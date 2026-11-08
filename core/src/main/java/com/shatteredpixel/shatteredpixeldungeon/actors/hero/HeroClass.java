@@ -49,6 +49,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.En
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.HeroicLeap;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Shockwave;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
+import com.shatteredpixel.shatteredpixeldungeon.items.DevChest;
+import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
@@ -56,12 +58,15 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HolyTome;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.VelvetPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfPurity;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfLullaby;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
@@ -83,6 +88,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSt
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.DeviceCompat;
+import com.watabou.utils.Reflection;
 
 public enum HeroClass {
 
@@ -91,7 +97,9 @@ public enum HeroClass {
 	ROGUE( HeroSubClass.ASSASSIN, HeroSubClass.FREERUNNER ),
 	HUNTRESS( HeroSubClass.SNIPER, HeroSubClass.WARDEN ),
 	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK ),
-	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN );
+	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN ),
+	//아이템 테스트용 직업: 전사의 전직·특성을 그대로 사용
+	TESTER( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
 
 	private HeroSubClass[] subClasses;
 
@@ -144,6 +152,10 @@ public enum HeroClass {
 			case CLERIC:
 				initCleric( hero );
 				break;
+
+			case TESTER:
+				initTester( hero );
+				break;
 		}
 
 		if (SPDSettings.quickslotWaterskin()) {
@@ -171,6 +183,8 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_DUELIST;
 			case CLERIC:
 				return Badges.Badge.MASTERY_CLERIC;
+			case TESTER:
+				return null;
 		}
 		return null;
 	}
@@ -264,6 +278,37 @@ public enum HeroClass {
 		new ScrollOfRemoveCurse().identify();
 	}
 
+	private static void initTester( Hero hero ) {
+		//전사와 같은 기본 무기
+		(hero.belongings.weapon = new WornShortsword()).identify();
+
+		//높은 체력과 힘
+		hero.HTBoost = 80;
+		hero.updateHT( false );
+		hero.HP = hero.HT;
+		hero.STR = 20;
+
+		//넉넉한 돈과 감정 주문서
+		Dungeon.gold += 10000;
+		new ScrollOfIdentify().quantity(20).identify().collect();
+
+		//물약, 주문서, 반지 종류를 전부 감정된 상태로 시작
+		for (Class<?> cls : Generator.Category.POTION.classes){
+			((Potion)Reflection.newInstance(cls)).setKnown();
+		}
+		for (Class<?> cls : Generator.Category.SCROLL.classes){
+			((Scroll)Reflection.newInstance(cls)).setKnown();
+		}
+		for (Class<?> cls : Generator.Category.RING.classes){
+			((Ring)Reflection.newInstance(cls)).setKnown();
+		}
+
+		//원하는 아이템을 바로 얻을 수 있는 개발자 상자
+		DevChest chest = new DevChest();
+		chest.collect();
+		Dungeon.quickslot.setSlot(0, chest);
+	}
+
 	public String title() {
 		return Messages.get(HeroClass.class, name());
 	}
@@ -311,6 +356,8 @@ public enum HeroClass {
 				return Assets.Sprites.DUELIST;
 			case CLERIC:
 				return Assets.Sprites.CLERIC;
+			case TESTER:
+				return Assets.Sprites.TESTER;
 		}
 	}
 
@@ -328,6 +375,8 @@ public enum HeroClass {
 				return Assets.Splashes.DUELIST;
 			case CLERIC:
 				return Assets.Splashes.CLERIC;
+			case TESTER:
+				return Assets.Splashes.TESTER;
 		}
 	}
 	
@@ -348,6 +397,8 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
 			case CLERIC:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_CLERIC);
+			case TESTER:
+				return true;
 		}
 	}
 	
