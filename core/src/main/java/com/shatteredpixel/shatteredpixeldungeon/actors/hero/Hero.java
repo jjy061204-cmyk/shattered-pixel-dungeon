@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BonsterRush;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
@@ -734,6 +735,11 @@ public class Hero extends Char {
 			speed *= (2f + 0.25f*pointsInTalent(Talent.GROWING_POWER));
 		}
 
+		//본스터 각성: 이동 속도 2배
+		if (BonsterRush.isActive(this)){
+			speed *= BonsterRush.SPEED_FACTOR;
+		}
+
 		speed = AscensionChallenge.modifyHeroSpeed(speed);
 		
 		return speed;
@@ -786,6 +792,11 @@ public class Hero extends Char {
 		}
 
 		float delay = 1f;
+
+		//본스터 각성: 공격 속도 2배 (공격에 걸리는 시간 절반)
+		if (BonsterRush.isActive(this)){
+			delay /= BonsterRush.SPEED_FACTOR;
+		}
 
 		if (!RingOfForce.fightingUnarmed(this)) {
 			
