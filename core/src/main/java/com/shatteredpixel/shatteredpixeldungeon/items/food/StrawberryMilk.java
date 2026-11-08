@@ -9,12 +9,14 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.food;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.watabou.noosa.audio.Sample;
 
 //다른 차원에서 흘러들어온 딸기우유
 public class StrawberryMilk extends Food {
@@ -45,6 +47,12 @@ public class StrawberryMilk extends Food {
 		}
 
 		Buff.affect( hero, Recharging.class, RECHARGE_TURNS );
+	}
+
+	//음식 대신 물약 마시는 소리
+	@Override
+	protected void eatSFX() {
+		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 	}
 
 	@Override
