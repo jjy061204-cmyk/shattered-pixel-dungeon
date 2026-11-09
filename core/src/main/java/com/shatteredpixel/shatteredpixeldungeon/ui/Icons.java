@@ -125,6 +125,7 @@ public enum Icons {
 	SCROLL_HOLDER,
 	WAND_HOLSTER,
 	POTION_BANDOLIER,
+	FOOD_BAG,
 
 	//icons that appear in the about screen, variable spacing
 	LIBGDX,
@@ -402,6 +403,9 @@ public enum Icons {
 				break;
 			case POTION_BANDOLIER:
 				icon.frame( icon.texture.uvRectBySize( 216, 80, 10, 10 ) );
+				break;
+			case FOOD_BAG:
+				icon.frame( icon.texture.uvRectBySize( 226, 80, 10, 10 ) );
 				break;
 		
 			case LIBGDX:

@@ -183,7 +183,8 @@ public class InventoryPane extends Component {
 		}
 
 		bags = new ArrayList<>();
-		for (int i = 0; i < 5; i++){
+		//모드: 음식 바구니가 생겨 가방 칸이 6개 (배낭 + 가방 5종)
+		for (int i = 0; i < 6; i++){
 			BagButton btn = new BagButton(null, i+1);
 			bags.add(btn);
 			add(btn);
@@ -239,8 +240,10 @@ public class InventoryPane extends Component {
 		energy.x = energyTxt.x + energyTxt.width() + 1;
 		energy.y = energyTxt.y;
 
+		//가방 버튼이 남은 폭에 다 들어가도록 너비를 맞춤
+		float bagW = Math.min(SLOT_WIDTH, (float)Math.floor((x + width - 3 - left) / bags.size()) - 1);
 		for (BagButton b : bags){
-			b.setRect(left, y + 14, SLOT_WIDTH, 14);
+			b.setRect(left, y + 14, bagW, 14);
 			left = b.right()+1;
 		}
 
@@ -483,6 +486,8 @@ public class InventoryPane extends Component {
 			return Icons.get( Icons.WAND_HOLSTER );
 		} else if (bag instanceof PotionBandolier) {
 			return Icons.get( Icons.POTION_BANDOLIER );
+		} else if (bag instanceof com.shatteredpixel.shatteredpixeldungeon.items.bags.FoodBag) {
+			return Icons.get( Icons.FOOD_BAG );
 		} else {
 			return Icons.get( Icons.BACKPACK );
 		}
@@ -689,6 +694,8 @@ public class InventoryPane extends Component {
 					return SPDAction.BAG_4;
 				case 5:
 					return SPDAction.BAG_5;
+				case 6:
+					return com.watabou.input.GameAction.NONE;   //모드: 6번째 가방은 단축키 없음
 			}
 		}
 

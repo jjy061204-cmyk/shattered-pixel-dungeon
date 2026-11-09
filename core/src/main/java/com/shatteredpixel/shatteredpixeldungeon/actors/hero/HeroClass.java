@@ -114,6 +114,9 @@ public enum HeroClass {
 		Item i = new ClothArmor().identify();
 		if (!Challenges.isItemBlocked(i)) hero.belongings.armor = (ClothArmor)i;
 
+		//모드: 모든 영웅이 음식 바구니를 들고 시작 (음식보다 먼저 챙겨야 음식이 바구니로 들어감)
+		new com.shatteredpixel.shatteredpixeldungeon.items.bags.FoodBag().collect();
+
 		i = new Food();
 		if (!Challenges.isItemBlocked(i)) i.collect();
 
