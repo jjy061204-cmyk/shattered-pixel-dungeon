@@ -29,7 +29,8 @@ public class ItemSpriteSheet {
 	public static final int SIZE = 16;
 
 	private static final int TX_WIDTH = 256;
-	private static final int TX_HEIGHT = 512;
+	//모드: 아래쪽에 모드 전용 줄(33줄~)을 붙여서 높이를 늘림
+	private static final int TX_HEIGHT = 640;
 
 	private static final int WIDTH = TX_WIDTH / SIZE;
 
@@ -240,7 +241,6 @@ public class ItemSpriteSheet {
 	public static final int QUARTERSTAFF    = WEP_TIER2+3;
 	public static final int DIRK            = WEP_TIER2+4;
 	public static final int SICKLE          = WEP_TIER2+5;
-	public static final int USAGI_ROD       = WEP_TIER2+6;
 	static{
 		assignItemRect(SHORTSWORD,      13, 13);
 		assignItemRect(HAND_AXE,        12, 14);
@@ -248,7 +248,6 @@ public class ItemSpriteSheet {
 		assignItemRect(QUARTERSTAFF,    16, 16);
 		assignItemRect(DIRK,            13, 14);
 		assignItemRect(SICKLE,          15, 15);
-		assignItemRect(USAGI_ROD,       14, 14);
 	}
 
 	private static final int WEP_TIER3      =                               xy(1, 8);   //8 slots
@@ -720,9 +719,6 @@ public class ItemSpriteSheet {
 	public static final int BERRY           = FOOD+10;
 	public static final int PHANTOM_MEAT    = FOOD+11;
 	public static final int SUPPLY_RATION   = FOOD+12;
-	public static final int STRAWBERRY_MILK = FOOD+13;
-	public static final int CUP_COFFEE      = FOOD+14;
-	public static final int BONSTER         = FOOD+15;
 	static{
 		assignItemRect(MEAT,            15, 11);
 		assignItemRect(STEAK,           15, 11);
@@ -737,9 +733,6 @@ public class ItemSpriteSheet {
 		assignItemRect(BERRY,           9,  11);
 		assignItemRect(PHANTOM_MEAT,    15, 11);
 		assignItemRect(SUPPLY_RATION,   16, 12);
-		assignItemRect(STRAWBERRY_MILK, 13, 15);
-		assignItemRect(CUP_COFFEE,      12, 14);
-		assignItemRect(BONSTER,         10, 15);
 	}
 
 	private static final int HOLIDAY_FOOD   =                               xy(1, 29);  //16 slots
@@ -753,7 +746,6 @@ public class ItemSpriteSheet {
 	public static final int VANILLA_CAKE    = HOLIDAY_FOOD+7;
 	public static final int CANDY_CANE      = HOLIDAY_FOOD+8;
 	public static final int SPARKLING_POTION= HOLIDAY_FOOD+9;
-	public static final int STRAWBERRY_CAKE = HOLIDAY_FOOD+10;
 	static{
 		assignItemRect(STEAMED_FISH,    16, 12);
 		assignItemRect(FISH_LEFTOVER,   16, 12);
@@ -765,7 +757,6 @@ public class ItemSpriteSheet {
 		assignItemRect(VANILLA_CAKE,    14, 13);
 		assignItemRect(CANDY_CANE,      13, 16);
 		assignItemRect(SPARKLING_POTION, 7, 16);
-		assignItemRect(STRAWBERRY_CAKE, 14, 13);
 	}
 
 	private static final int QUEST  =                                       xy(1, 30);  //16 slots
@@ -827,6 +818,34 @@ public class ItemSpriteSheet {
 		assignItemRect(CITY_PAGE,   10, 11);
 		assignItemRect(HALLS_PAGE,  10, 11);
 	}
+
+	//===== 모드 전용 줄 (33줄부터) =====
+	//원작 그림과 섞이지 않도록 모드 아이템은 이 아래에만 추가
+
+	private static final int MOD_FOOD   =                                   xy(1, 33);  //16 slots
+	public static final int STRAWBERRY_MILK = MOD_FOOD+0;
+	public static final int CUP_COFFEE      = MOD_FOOD+1;
+	public static final int BONSTER         = MOD_FOOD+2;
+	public static final int STRAWBERRY_CAKE = MOD_FOOD+3;
+	public static final int BUNGEOPPANG     = MOD_FOOD+4;
+	static{
+		assignItemRect(STRAWBERRY_MILK, 13, 15);
+		assignItemRect(CUP_COFFEE,      12, 14);
+		assignItemRect(BONSTER,         10, 15);
+		assignItemRect(STRAWBERRY_CAKE, 14, 13);
+		assignItemRect(BUNGEOPPANG,     15, 10);
+	}
+
+	private static final int MOD_WEAPON =                                   xy(1, 34);  //16 slots
+	public static final int USAGI_ROD       = MOD_WEAPON+0;
+	static{
+		assignItemRect(USAGI_ROD,       14, 14);
+	}
+
+	private static final int MOD_MISC   =                                   xy(1, 35);  //16 slots
+	//(비어 있음: 음식·무기 외의 모드 아이템용)
+
+	//(36~40줄은 앞으로 더 쓸 수 있도록 비워 둠)
 
 	//for smaller 8x8 icons that often accompany an item sprite
 	public static class Icons {
