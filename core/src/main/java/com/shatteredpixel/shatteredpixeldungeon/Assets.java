@@ -66,6 +66,7 @@ public class Assets {
 		public static final String CAVES_BOSS       = "environment/custom_tiles/caves_boss.png";
 		public static final String CITY_QUEST       = "environment/custom_tiles/city_quest.png";
 		public static final String MODERN_ROAD      = "environment/custom_tiles/modern_road.png";
+		public static final String MODERN_PROPS     = "environment/custom_tiles/modern_props.png";
 		public static final String CITY_BOSS        = "environment/custom_tiles/city_boss.png";
 		public static final String HALLS_SP         = "environment/custom_tiles/halls_special.png";
 	}
@@ -304,6 +305,7 @@ public class Assets {
 		public static final String SHEEP    = "sprites/sheep.png";
 		public static final String KEEPER   = "sprites/shopkeeper.png";
 		public static final String CLERK    = "sprites/clerk.png";
+		public static final String CLERKS   = "sprites/clerks.png";
 		public static final String BAT      = "sprites/bat.png";
 		public static final String ELEMENTAL= "sprites/elemental.png";
 		public static final String MONK     = "sprites/monk.png";

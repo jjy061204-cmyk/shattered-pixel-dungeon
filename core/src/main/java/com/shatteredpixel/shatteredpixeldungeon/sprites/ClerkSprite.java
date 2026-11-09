@@ -12,20 +12,27 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
 
-//현대 세계 점원: 상인 그림을 초록 앞치마로 바꾼 버전
+//현대 세계 점원. clerks.png 한 줄에 한 가게 점원 (0번 프레임: 눈 깜빡임, 1번 프레임: 기본)
 public class ClerkSprite extends ShopkeeperSprite {
+
+	//가게 순서: 0 편의점, 1 카페, 2 약국, 3 서점, 4 철물점, 5 옷가게
+	protected int row(){
+		return 0;
+	}
 
 	public ClerkSprite() {
 		super();
 
-		texture( Assets.Sprites.CLERK );
+		texture( Assets.Sprites.CLERKS );
 		TextureFilm film = new TextureFilm( texture, 14, 14 );
 
+		int f0 = row() * 2, f1 = row() * 2 + 1;
+
 		idle = new Animation( 10, true );
-		idle.frames( film, 1, 1, 1, 1, 1, 0, 0, 0, 0 );
+		idle.frames( film, f1, f1, f1, f1, f1, f1, f1, f0, f1, f1 );
 
 		die = new Animation( 20, false );
-		die.frames( film, 0 );
+		die.frames( film, f0 );
 
 		run = idle.clone();
 
@@ -33,4 +40,11 @@ public class ClerkSprite extends ShopkeeperSprite {
 
 		idle();
 	}
+
+	public static class Convenience extends ClerkSprite { @Override protected int row(){ return 0; } }
+	public static class Cafe        extends ClerkSprite { @Override protected int row(){ return 1; } }
+	public static class Pharmacy    extends ClerkSprite { @Override protected int row(){ return 2; } }
+	public static class Bookstore   extends ClerkSprite { @Override protected int row(){ return 3; } }
+	public static class Hardware    extends ClerkSprite { @Override protected int row(){ return 4; } }
+	public static class Clothing    extends ClerkSprite { @Override protected int row(){ return 5; } }
 }
