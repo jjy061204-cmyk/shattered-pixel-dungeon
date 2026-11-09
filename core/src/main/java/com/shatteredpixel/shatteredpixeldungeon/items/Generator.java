@@ -422,8 +422,9 @@ public class Generator {
 					Gloves.class,
 					Rapier.class,
 					Cudgel.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WoodenSword.class //모드
 			};
-			WEP_T1.defaultProbs = new float[]{ 2, 0, 2, 2, 2, 2 };
+			WEP_T1.defaultProbs = new float[]{ 2, 0, 2, 2, 2, 2, 2 };
 			WEP_T1.probs = WEP_T1.defaultProbs.clone();
 			
 			WEP_T2.classes = new Class<?>[]{
