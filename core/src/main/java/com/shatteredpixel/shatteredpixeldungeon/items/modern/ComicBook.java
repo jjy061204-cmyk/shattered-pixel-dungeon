@@ -10,10 +10,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.modern;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -29,9 +26,6 @@ public class ComicBook extends ModernConsumable {
 	protected void apply( Hero hero ) {
 		Buff.detach( hero, Terror.class );
 		Buff.detach( hero, Dread.class );
-		Buff.detach( hero, Amok.class );
-		Buff.detach( hero, Charm.class );
-		Buff.affect( hero, Bless.class, 5f );
 	}
 
 	@Override

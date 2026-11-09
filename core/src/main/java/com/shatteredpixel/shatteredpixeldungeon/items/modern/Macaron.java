@@ -9,8 +9,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.modern;
 
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -26,7 +24,7 @@ public class Macaron extends Food {
 	@Override
 	protected void satisfy( Hero hero ) {
 		super.satisfy( hero );
-		Buff.affect( hero, Bless.class, 5f );
+		ModernEffects.heal( hero, 0.10f );
 	}
 
 	@Override

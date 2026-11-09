@@ -12,7 +12,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.modern;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -26,9 +25,10 @@ public class EyeDrops extends ModernConsumable {
 	@Override
 	protected void apply( Hero hero ) {
 		Buff.detach( hero, Blindness.class );
-		Buff.affect( hero, MindVision.class, 5f );
 		Dungeon.observe();
 		GameScene.updateFog();
+		//눈이 맑아져서 주변을 꼼꼼히 살펴봄 (숨겨진 문이나 함정 찾기)
+		hero.search( true );
 	}
 
 	@Override

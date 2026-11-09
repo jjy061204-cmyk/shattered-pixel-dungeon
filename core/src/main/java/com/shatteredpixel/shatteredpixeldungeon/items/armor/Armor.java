@@ -126,6 +126,11 @@ public class Armor extends EquipableItem {
 	private float usesLeftToID = USES_TO_ID;
 	private float availableUsesToID = USES_TO_ID/2f;
 	
+	//캐릭터 도트에서 몇 번째 줄 그림을 쓸지 (기본은 방어구 티어와 같음, 모드 옷은 7~9번 줄)
+	public int visualTier(){
+		return tier;
+	}
+
 	public Armor( int tier ) {
 		this.tier = tier;
 	}

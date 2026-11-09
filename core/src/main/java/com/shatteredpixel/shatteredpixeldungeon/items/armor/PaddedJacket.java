@@ -18,6 +18,12 @@ public class PaddedJacket extends Armor {
 		image = ItemSpriteSheet.PADDED_JACKET;
 	}
 
+	//입으면 캐릭터 도트의 8번째 줄(현대 옷 그림)을 씀
+	@Override
+	public int visualTier() {
+		return 8;
+	}
+
 	public PaddedJacket() {
 		super( 2 );
 	}

@@ -228,7 +228,7 @@ public class Belongings implements Iterable<Item> {
 			if (armor instanceof ClassArmor){
 				info.armorTier = 6;
 			} else {
-				info.armorTier = armor.tier;
+				info.armorTier = armor.visualTier();
 			}
 		} else {
 			info.armorTier = 0;

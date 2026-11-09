@@ -11,8 +11,10 @@ package com.shatteredpixel.shatteredpixeldungeon.items.modern;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -21,6 +23,16 @@ public class CityMap extends ModernConsumable {
 
 	{
 		image = ItemSpriteSheet.CITY_MAP;
+	}
+
+	//현대 세계의 진짜 지도: 현대 세계 안에서만 길을 찾을 수 있음
+	@Override
+	protected boolean canUse( Hero hero ) {
+		if (!(Dungeon.level instanceof ModernLevel)) {
+			GLog.w( Messages.get( this, "no_dungeon" ) );
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -37,7 +49,7 @@ public class CityMap extends ModernConsumable {
 			}
 		}
 		GameScene.updateFog();
-		SpellSprite.show( hero, SpellSprite.MAP );
+
 	}
 
 	@Override

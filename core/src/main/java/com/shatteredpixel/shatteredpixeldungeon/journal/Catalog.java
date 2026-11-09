@@ -288,7 +288,7 @@ public enum Catalog {
 				DimensionTicket.class, DimensionReturnTicket.class,
 				Bandage.class, Painkiller.class, Antidote.class, PainPatch.class, EyeDrops.class,
 				CityMap.class, Encyclopedia.class, Workbook.class, ComicBook.class,
-				Flashlight.class, DuctTape.class, FireExtinguisher.class);
+				Flashlight.class, DuctTape.class, FireExtinguisher.class, Whistle.class);
 
 	}
 

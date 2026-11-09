@@ -10,60 +10,55 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.modern;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Daze;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Random;
 
-//백과사전: 가방 속 미감정 아이템 하나를 찾아보고 감정함
-public class Encyclopedia extends ModernConsumable {
+//백과사전: 아주 무겁고 두꺼운 책. 던지면 맞은 적에게 피해를 주고 2턴 동안 멍하게 만듦.
+//책은 떨어진 자리에 남아서 다시 주워 쓸 수 있음.
+public class Encyclopedia extends Item {
 
 	{
 		image = ItemSpriteSheet.ENCYCLOPEDIA;
+		defaultAction = AC_THROW;
+		stackable = true;
+	}
+
+	public int damageRoll(){
+		int depth = Dungeon.scalingDepth();
+		return Random.NormalIntRange( 2 + depth / 3, 6 + depth / 2 );
 	}
 
 	@Override
-	public void execute( final Hero hero, String action ) {
-		if (action.equals( AC_USE )) {
-			GameScene.selectItem( new WndBag.ItemSelector() {
-				@Override
-				public String textPrompt() {
-					return Messages.get( Encyclopedia.class, "prompt" );
-				}
-
-				@Override
-				public boolean itemSelectable( Item item ) {
-					return !item.isIdentified();
-				}
-
-				@Override
-				public void onSelect( Item item ) {
-					if (item == null) return;
-					Encyclopedia.this.detach( hero.belongings.backpack );
-					item.identify();
-					Sample.INSTANCE.play( Assets.Sounds.READ );
-					GLog.i( Messages.get( Encyclopedia.class, "found", Messages.titleCase( item.title() ) ) );
-					Catalog.countUse( Encyclopedia.class );
-					hero.spendAndNext( TIME_TO_USE );
-				}
-			} );
-			return;
+	protected void onThrow( int cell ) {
+		Char ch = Actor.findChar( cell );
+		if (ch != null && ch != Dungeon.hero && ch.alignment != Char.Alignment.ALLY) {
+			ch.damage( damageRoll(), this );
+			if (ch.isAlive()) Buff.affect( ch, Daze.class, 2f );
+			Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG );
 		}
-		super.execute( hero, action );
+		//책은 그 자리에 떨어짐
+		super.onThrow( cell );
 	}
 
 	@Override
-	protected void apply( Hero hero ) {
-		//선택창에서 처리
+	public boolean isUpgradable() {
+		return false;
+	}
+
+	@Override
+	public boolean isIdentified() {
+		return true;
 	}
 
 	@Override
 	public int value() {
-		return 30 * quantity;
+		return 25 * quantity;
 	}
 }

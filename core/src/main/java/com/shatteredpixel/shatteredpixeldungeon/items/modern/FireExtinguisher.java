@@ -17,7 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -27,7 +27,7 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
-//소화기: 던지면 떨어진 곳 주변 2칸의 불을 끄고, 불붙은 것을 진화하고, 적을 4턴 동안 얼림
+//소화기: 던지면 떨어진 곳 주변 2칸의 불을 끄고, 불붙은 것을 진화하고, 분말 때문에 적이 3턴 동안 앞을 못 봄
 public class FireExtinguisher extends Item {
 
 	public static final int RADIUS = 2;
@@ -54,7 +54,7 @@ public class FireExtinguisher extends Item {
 			if (ch != null) {
 				Buff.detach( ch, Burning.class );
 				if (ch.alignment != Char.Alignment.ALLY) {
-					Buff.affect( ch, Chill.class, 4f );
+					Buff.affect( ch, Blindness.class, 3f );
 				}
 			}
 		}

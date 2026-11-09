@@ -18,6 +18,12 @@ public class LeatherJacket extends Armor {
 		image = ItemSpriteSheet.LEATHER_JACKET;
 	}
 
+	//입으면 캐릭터 도트의 9번째 줄(현대 옷 그림)을 씀
+	@Override
+	public int visualTier() {
+		return 9;
+	}
+
 	public LeatherJacket() {
 		super( 3 );
 	}

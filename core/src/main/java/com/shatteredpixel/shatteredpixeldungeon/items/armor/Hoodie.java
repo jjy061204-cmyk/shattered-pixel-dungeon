@@ -18,6 +18,12 @@ public class Hoodie extends Armor {
 		image = ItemSpriteSheet.HOODIE;
 	}
 
+	//입으면 캐릭터 도트의 7번째 줄(현대 옷 그림)을 씀
+	@Override
+	public int visualTier() {
+		return 7;
+	}
+
 	public Hoodie() {
 		super( 1 );
 	}

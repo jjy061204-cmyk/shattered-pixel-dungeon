@@ -365,21 +365,20 @@ public class ModernLevel extends Level {
 			pharm.addStock( new EyeDrops(), ModernClerk.DEAL_NONE );
 		}
 
-		//서점: 지도, 백과사전, 문제집, 만화책
+		//서점: 백과사전(던지는 두꺼운 책), 문제집, 만화책
 		ModernClerk books = clerks[3];
 		if (books != null) {
-			books.addStock( new CityMap(), ModernClerk.DEAL_NONE );
-			books.addStock( new CityMap(), ModernClerk.DEAL_NONE );
 			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
 			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
 			books.addStock( new Workbook(), ModernClerk.DEAL_NONE );
 			books.addStock( new ComicBook().quantity(2), ModernClerk.DEAL_NONE );
 		}
 
-		//철물점: 손전등, 덕트 테이프, 소화기, 쇠지렛대
+		//철물점: 손전등, 호루라기, 덕트 테이프, 소화기, 쇠지렛대
 		ModernClerk hard = clerks[4];
 		if (hard != null) {
 			hard.addStock( new Flashlight(), ModernClerk.DEAL_NONE );
+			hard.addStock( new Whistle(), ModernClerk.DEAL_NONE );
 			hard.addStock( new DuctTape().quantity(2), ModernClerk.DEAL_NONE );
 			hard.addStock( new FireExtinguisher().quantity(2), ModernClerk.DEAL_NONE );
 			Crowbar bar = new Crowbar();

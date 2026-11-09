@@ -11,8 +11,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.modern;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -26,8 +24,6 @@ public class Antidote extends ModernConsumable {
 	@Override
 	protected void apply( Hero hero ) {
 		Buff.detach( hero, Poison.class );
-		Buff.detach( hero, Ooze.class );
-		Buff.detach( hero, Corrosion.class );
 		ModernEffects.heal( hero, 0.10f );
 	}
 

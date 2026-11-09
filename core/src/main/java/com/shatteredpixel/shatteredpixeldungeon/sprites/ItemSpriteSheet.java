@@ -871,20 +871,20 @@ public class ItemSpriteSheet {
 	public static final int CROISSANT         = MOD_FOOD+14;
 	public static final int MACARON           = MOD_FOOD+15;
 	static{
-		assignItemRect(TRIANGLE_KIMBAP,   14, 10);
-		assignItemRect(CUP_RAMEN,         13, 11);
-		assignItemRect(CHOCO_BAR,         15, 6);
-		assignItemRect(BOTTLED_WATER,     10, 13);
+		assignItemRect(TRIANGLE_KIMBAP,   14, 12);
+		assignItemRect(CUP_RAMEN,         14, 14);
+		assignItemRect(CHOCO_BAR,         16, 6);
+		assignItemRect(BOTTLED_WATER,     10, 14);
 		assignItemRect(ION_DRINK,         10, 13);
-		assignItemRect(CAFE_LATTE,        14, 11);
-		assignItemRect(CROISSANT,         15, 8);
-		assignItemRect(MACARON,           14, 11);
+		assignItemRect(CAFE_LATTE,        14, 13);
+		assignItemRect(CROISSANT,         15, 9);
+		assignItemRect(MACARON,           13, 12);
 	}
 
 	//현대 물품 (MOD_WEAPON)
 	public static final int CROWBAR           = MOD_WEAPON+1;
 	static{
-		assignItemRect(CROWBAR,           15, 16);
+		assignItemRect(CROWBAR,           16, 16);
 	}
 
 	//현대 물품 (MOD_MISC)
@@ -900,25 +900,27 @@ public class ItemSpriteSheet {
 	public static final int FLASHLIGHT        = MOD_MISC+11;
 	public static final int DUCT_TAPE         = MOD_MISC+12;
 	public static final int FIRE_EXTINGUISHER = MOD_MISC+13;
+	public static final int WHISTLE           = MOD_MISC+14;
 	static{
 		assignItemRect(BANDAGE,           16, 7);
-		assignItemRect(PAINKILLER,        14, 9);
-		assignItemRect(ANTIDOTE,          10, 11);
-		assignItemRect(PAIN_PATCH,        14, 7);
-		assignItemRect(EYE_DROPS,         10, 11);
-		assignItemRect(CITY_MAP,          14, 8);
-		assignItemRect(ENCYCLOPEDIA,      12, 11);
-		assignItemRect(WORKBOOK,          15, 10);
-		assignItemRect(COMIC_BOOK,        12, 10);
-		assignItemRect(FLASHLIGHT,        15, 8);
-		assignItemRect(DUCT_TAPE,         12, 9);
-		assignItemRect(FIRE_EXTINGUISHER, 13, 12);
+		assignItemRect(PAINKILLER,        15, 10);
+		assignItemRect(ANTIDOTE,          10, 13);
+		assignItemRect(PAIN_PATCH,        15, 8);
+		assignItemRect(EYE_DROPS,         8, 12);
+		assignItemRect(CITY_MAP,          14, 9);
+		assignItemRect(ENCYCLOPEDIA,      13, 13);
+		assignItemRect(WORKBOOK,          16, 11);
+		assignItemRect(COMIC_BOOK,        13, 12);
+		assignItemRect(FLASHLIGHT,        16, 8);
+		assignItemRect(DUCT_TAPE,         13, 10);
+		assignItemRect(FIRE_EXTINGUISHER, 13, 14);
+		assignItemRect(WHISTLE,           13, 9);
 	}
 
 	//현대 물품 (MOD_FOOD2)
 	public static final int BUBBLE_TEA        = MOD_FOOD2+0;
 	static{
-		assignItemRect(BUBBLE_TEA,        14, 12);
+		assignItemRect(BUBBLE_TEA,        14, 14);
 	}
 
 	//현대 물품 (MOD_ARMOR)
@@ -926,9 +928,9 @@ public class ItemSpriteSheet {
 	public static final int PADDED_JACKET     = MOD_ARMOR+1;
 	public static final int LEATHER_JACKET    = MOD_ARMOR+2;
 	static{
-		assignItemRect(HOODIE,            14, 11);
+		assignItemRect(HOODIE,            14, 12);
 		assignItemRect(PADDED_JACKET,     14, 12);
-		assignItemRect(LEATHER_JACKET,    14, 11);
+		assignItemRect(LEATHER_JACKET,    14, 12);
 	}
 
 	//for smaller 8x8 icons that often accompany an item sprite

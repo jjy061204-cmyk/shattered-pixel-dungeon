@@ -463,7 +463,7 @@ public class Hero extends Char {
 		if (armor instanceof ClassArmor){
 			return 6;
 		} else if (armor != null){
-			return armor.tier;
+			return armor.visualTier();
 		} else {
 			return 0;
 		}
