@@ -21,6 +21,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Hoodie;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherJacket;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PaddedJacket;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Tracksuit;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.TrenchCoat;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ClawHammer;
 import com.shatteredpixel.shatteredpixeldungeon.items.modern.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crowbar;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.BananaMilk;
@@ -34,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryMilk;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Tilemap;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
@@ -64,36 +68,38 @@ public class ModernLevel extends Level {
 	// L 가로등   V 자판기   T 쓰레기통   b 벤치   " 화단   ~ 분수   @ 도착 지점
 	// 가게 안쪽(10x7)은 아래 SHOP_LAYOUTS 로 따로 채움
 	private static final String[] MAP = {
-		"########################################################",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"####s+#########s+#########s+#########s+#########s+######",
-		"#_________V____________________V_____________________V_#",
-		"#_L______L____T_____L_______________L___T______L_____L_#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#_L______L____L__________________________L____L______L_#",
-		"#_______T__V________________________________V__T_______#",
-		"####s+######________________________________####s+######",
-		"#..........#\"______________________________\"#..........#",
-		"#..........#__\"___L__________________L___\"__#..........#",
-		"#..........#______________~~~~______________#..........#",
-		"#..........#___b__________~~~~__________b___#..........#",
-		"#..........#________________________________#..........#",
-		"#..........#__\"___b________@________b____\"__#..........#",
-		"#..........#\"______T________________T______\"#..........#",
-		"########################################################",
+		"####################################################################",
+		"#..........#..........#..........#..........#..........#t\"\"t\"\"\"t\"\"t#",
+		"#..........#..........#..........#..........#..........#\"\"\"_____\"\"\"#",
+		"#..........#..........#..........#..........#..........#\"t_______t\"#",
+		"#..........#..........#..........#..........#..........#\"\"__b_b__\"\"#",
+		"#..........#..........#..........#..........#..........#\"t_______t\"#",
+		"#..........#..........#..........#..........#..........#\"\"\"__V__\"\"\"#",
+		"#..........#..........#..........#..........#..........#t\"\"_____\"\"t#",
+		"####s+#########s+#########s+#########s+#########s+######\"\"\"_____\"\"\"#",
+		"#_________V_____________________V____________________V_____________#",
+		"#_L__________L______T___L__________L______T___L__________L___B__L__#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#_L_____T____L__________L__________L_____T____L__________L______L__#",
+		"#__________V________b_____________b_________V______________________#",
+		"####s+######___________________________________________####s+#######",
+		"#..........#\"\"_______________________________________\"\"#..........##",
+		"#..........#\"__t_____L________FFFFFF_________L_____t__\"#..........##",
+		"#..........#_____________b____FFFFFF____b______________#..........##",
+		"#..........#__________________FFFFFF___________________#..........##",
+		"#..........#___________________________________________#..........##",
+		"#..........#___t_____L__b__@______________b__L_____t___#..........##",
+		"#..........#\"__________T___________________T__________\"#..........##",
+		"####################################################################",
 	};
 
 	//가게 안쪽 왼쪽 위 좌표 (위쪽 5곳, 아래쪽 2곳)
 	private static final int[][] SHOP_POS = {
 			{1, 1}, {12, 1}, {23, 1}, {34, 1}, {45, 1},     //편의점, 카페, 금은방, 약국, 서점
-			{1, 16}, {45, 16}                              //철물점, 옷가게
+			{1, 18}, {56, 18}                              //철물점, 옷가게
 	};
 	private static final ModernClerk.Shop[] SHOP_TYPES = {
 			ModernClerk.Shop.CONVENIENCE, ModernClerk.Shop.CAFE, ModernClerk.Shop.JEWELRY,
@@ -121,9 +127,9 @@ public class ModernLevel extends Level {
 			"OO.P..P.OO",
 			"CE@CS.....",
 			"..........",
-			".T..T..T..",
+			"hTd..hTd..",
 			"..........",
-			".T.....T.I",
+			"hTd..hTd.I",
 			"P........P",
 		},
 		{ //금은방: 금고와 보석 진열장, 가운데 유리 계산대와 저울, 금 시세 전광판
@@ -183,9 +189,14 @@ public class ModernLevel extends Level {
 		PROP_IMG.put('A', 16); PROP_IMG.put('O', 17); PROP_IMG.put('Q', 18);
 		PROP_IMG.put('G', 19); PROP_IMG.put('J', 20); PROP_IMG.put('X', 21); PROP_IMG.put('B', 22);
 		PROP_IMG.put('D', 23);
+		PROP_IMG.put('h', 24); PROP_IMG.put('d', 25);      //카페 의자 (지나갈 수 있음)
 	}
 	//간판 그림 번호 (SIGN_IMG + 가게 종류 번호)
 	private static final int SIGN_IMG = 32;
+	//나무, 버스 정류장, 분수(6x3칸) 그림 번호
+	private static final int TREE_IMG = 26;
+	private static final int BUS_IMG  = 27;
+	private static final int FOUNTAIN_IMG = 48;
 
 	private int arrival = -1;
 	private int[] clerkPos = new int[SHOP_POS.length];
@@ -219,6 +230,7 @@ public class ModernLevel extends Level {
 		java.util.Arrays.fill( props.data, -1 );
 
 		//바깥 지도
+		int fountainX = -1, fountainY = -1;
 		for (int y = 0; y < height(); y++) {
 			String row = MAP[y];
 			for (int x = 0; x < width(); x++) {
@@ -236,6 +248,14 @@ public class ModernLevel extends Level {
 					case 'b': map[cell] = Terrain.REGION_DECO_ALT; break;
 					case '"': map[cell] = Terrain.GRASS; break;
 					case '~': map[cell] = Terrain.WATER; break;
+					case 't': map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = TREE_IMG; break;
+					case 'B': map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = BUS_IMG; break;
+					case 'F':
+						//분수: 처음 만난 F 칸이 왼쪽 위
+						if (fountainX < 0) { fountainX = x; fountainY = y; }
+						map[cell] = Terrain.CUSTOM_DECO;
+						props.data[cell] = FOUNTAIN_IMG + (x - fountainX) + (y - fountainY) * 16;
+						break;
 					case 's':
 						//가게 이름판 자리 (그림은 아래에서 가게 종류에 맞춰 덧그림)
 						map[cell] = Terrain.WALL;
@@ -263,8 +283,10 @@ public class ModernLevel extends Level {
 					if (c == '@') {
 						clerkPos[s] = cell;
 					} else if (PROP_IMG.containsKey(c)) {
-						map[cell] = Terrain.CUSTOM_DECO;      //지나갈 수 없는 집기
-						props.data[cell] = PROP_IMG.get(c);
+						int img = PROP_IMG.get(c);
+						//의자는 지나갈 수 있고, 나머지 집기는 막힘
+						map[cell] = (img == 24 || img == 25) ? Terrain.CUSTOM_DECO_EMPTY : Terrain.CUSTOM_DECO;
+						props.data[cell] = img;
 					}
 				}
 			}
@@ -273,7 +295,7 @@ public class ModernLevel extends Level {
 
 		//도로 위 중앙선, 횡단보도, 맨홀
 		ModernRoad road = new ModernRoad();
-		road.setRect( 1, 11, width() - 2, 2 );
+		road.setRect( 1, 11, width() - 2, 4 );
 		customTiles.add( road );
 
 		//가장자리는 항상 벽
@@ -304,7 +326,8 @@ public class ModernLevel extends Level {
 		//예전 버전(가로 33칸)으로 만들어진 층
 		if (width() == 33) return 16 + 14 * width();
 		if (width() == 45) return 22 + 21 * width();
-		return 27 + 21 * width();
+		if (width() == 56) return 27 + 21 * width();
+		return 27 + 23 * width();
 	}
 
 	//==== 점원과 상품 ====
@@ -358,17 +381,21 @@ public class ModernLevel extends Level {
 			conv.addStock( new TriangleKimbap(), n( 3, 6 ), ModernClerk.DEAL_NONE, "food" );
 			conv.addStock( new CupRamen(),       n( 2, 5 ), ModernClerk.DEAL_NONE, "food" );
 			conv.addStock( new Bungeoppang(),    n( 2, 4 ), ModernClerk.DEAL_NONE, "food" );
+			conv.addStock( new Dosirak(),        n( 1, 3 ), ModernClerk.DEAL_NONE, "food" );
+			conv.addStock( new HotBar(),         n( 3, 6 ), ModernClerk.DEAL_NONE, "food" );
 			conv.addStock( new Butter(),         n( 1, 3 ), ModernClerk.DEAL_NONE, "food" );
 			conv.addStock( new ChocoBar(),       n( 3, 6 ), ModernClerk.DEAL_NONE, "snack" );
 			conv.addStock( new Pudding(),        n( 2, 4 ), ModernClerk.DEAL_NONE, "snack" );
+			conv.addStock( new PotatoChips(),    n( 3, 6 ), ModernClerk.DEAL_NONE, "snack" );
+			conv.addStock( new HandWarmer(),     n( 2, 4 ), ModernClerk.DEAL_NONE, "etc" );
 			conv.addStock( new DimensionTicket(), n( 1, 2 ), ModernClerk.DEAL_NONE, "etc" );
 		}
 
 		//카페: 오늘의 메뉴 하나 30% 할인
 		ModernClerk cafe = clerk( ModernClerk.Shop.CAFE );
 		if (cafe != null) {
-			Item[] drinks = { new CupCoffee(), new CafeLatte(), new BubbleTea() };
-			Item[] desserts = { new StrawberryCake(), new Croissant(), new Macaron(), new Pudding(), new Parfait() };
+			Item[] drinks = { new CupCoffee(), new IcedAmericano(), new CafeLatte(), new BubbleTea() };
+			Item[] desserts = { new StrawberryCake(), new Waffle(), new Croissant(), new Macaron(), new Pudding(), new Parfait() };
 			int today = Random.Int( drinks.length + desserts.length );
 			for (int i = 0; i < drinks.length; i++)
 				cafe.addStock( drinks[i], n( 3, 6 ), i == today ? ModernClerk.DEAL_30_OFF : ModernClerk.DEAL_NONE, "drink" );
@@ -382,8 +409,10 @@ public class ModernLevel extends Level {
 			pharm.addStock( new Painkiller(), n( 2, 4 ), ModernClerk.DEAL_NONE, "medicine" );
 			pharm.addStock( new Antidote(),   n( 1, 3 ), ModernClerk.DEAL_NONE, "medicine" );
 			pharm.addStock( new EyeDrops(),   n( 1, 3 ), ModernClerk.DEAL_NONE, "medicine" );
+			pharm.addStock( new MotionPill(), n( 2, 4 ), ModernClerk.DEAL_NONE, "medicine" );
 			pharm.addStock( new Bandage(),    n( 3, 6 ), ModernClerk.DEAL_NONE, "firstaid" );
 			pharm.addStock( new PainPatch(),  n( 2, 4 ), ModernClerk.DEAL_NONE, "firstaid" );
+			pharm.addStock( new BurnOintment(), n( 2, 4 ), ModernClerk.DEAL_NONE, "firstaid" );
 		}
 
 		//서점: 책과 만화책
@@ -392,6 +421,8 @@ public class ModernLevel extends Level {
 			books.addStock( new Encyclopedia(), n( 2, 3 ), ModernClerk.DEAL_NONE, "book" );
 			books.addStock( new Workbook(),     n( 1, 3 ), ModernClerk.DEAL_NONE, "book" );
 			books.addStock( new CityMap(),      n( 1, 2 ), ModernClerk.DEAL_NONE, "book" );
+			books.addStock( new SurvivalGuide(), n( 1, 3 ), ModernClerk.DEAL_NONE, "book" );
+			books.addStock( new Crossword(),    n( 2, 4 ), ModernClerk.DEAL_NONE, "comic" );
 			books.addStock( new ComicBook(),    n( 2, 4 ), ModernClerk.DEAL_NONE, "comic" );
 		}
 
@@ -405,12 +436,16 @@ public class ModernLevel extends Level {
 			Crowbar bar = new Crowbar();
 			bar.enchant( null ); bar.cursed = false; bar.level( 0 ); bar.identify( false );
 			hard.addStock( bar, n( 1, 2 ), ModernClerk.DEAL_NONE, "safety" );
+			hard.addStock( new HandWarmer(), n( 2, 5 ), ModernClerk.DEAL_NONE, "safety" );
+			ClawHammer ham = new ClawHammer();
+			ham.enchant( null ); ham.cursed = false; ham.level( 0 ); ham.identify( false );
+			hard.addStock( ham, 1, ModernClerk.DEAL_NONE, "tool" );
 		}
 
 		//옷가게: 시즌 오프, 전 품목 20% 할인
 		ModernClerk clothes = clerk( ModernClerk.Shop.CLOTHING );
 		if (clothes != null) {
-			Armor[] wear = { new Hoodie(), new PaddedJacket(), new LeatherJacket() };
+			Armor[] wear = { new Hoodie(), new Tracksuit(), new PaddedJacket(), new LeatherJacket(), new TrenchCoat() };
 			for (Armor a : wear) {
 				a.inscribe( null ); a.cursed = false; a.level( 0 ); a.identify( false );
 				clothes.addStock( a, n( 1, 2 ), ModernClerk.DEAL_20_OFF, "clothes" );
@@ -494,7 +529,23 @@ public class ModernLevel extends Level {
 	public boolean isInteractive( int cell ){
 		if (cell < 0 || cell >= length()) return false;
 		if (map[cell] == Terrain.STATUE_SP) return true;      //자판기
+		if (map[cell] == Terrain.CUSTOM_DECO && isFountain( cell )) return true;
 		return map[cell] == Terrain.CUSTOM_DECO && propAt( cell ) >= 0;
+	}
+
+	private boolean isFountain( int cell ){
+		ModernProps p = props();
+		return p != null && p.data != null && cell >= 0 && cell < p.data.length && p.data[cell] >= FOUNTAIN_IMG;
+	}
+
+	//분수에 동전 던지기
+	private void tossCoin(){
+		if (!ModernCoin.spend( 1 )) {
+			GLog.i( Messages.get( ModernLevel.class, "fountain_no_coin" ) );
+			return;
+		}
+		com.watabou.noosa.audio.Sample.INSTANCE.play( Assets.Sounds.WATER );
+		GLog.i( Messages.get( ModernLevel.class, "fountain_wish_" + Random.Int( 4 ) ) );
 	}
 
 	//집기 그림 번호 -> 열어 줄 상품 분류 ("menu": 점원과 이야기, "flavor": 둘러보기만)
@@ -502,10 +553,15 @@ public class ModernLevel extends Level {
 			"menu", "menu", "drink", "drink", "snack", "food", "medicine", "book",
 			"tool", "clothes", "clothes", "flavor", "all", "flavor", "magazine", "dessert",
 			"stand", "drink", "firstaid",
-			"menu", "menu", "flavor", "menu", "flavor"
+			"menu", "menu", "flavor", "menu", "flavor",
+			"flavor", "flavor", "flavor", "flavor"
 	};
 
 	public void interact( final int cell ){
+		if (isFountain( cell )){
+			tossCoin();
+			return;
+		}
 		if (map[cell] == Terrain.STATUE_SP){
 			final ModernLevel lvl = this;
 			com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
@@ -667,7 +723,8 @@ public class ModernLevel extends Level {
 				"counter", "register", "espresso", "fridge", "snack_shelf", "noodle_shelf", "med_shelf", "book_shelf",
 				"tool_rack", "clothes_rack", "mannequin", "cafe_table", "kiosk", "plant", "magazine", "cake_showcase",
 				"armor_stand", "coffee_bar", "med_shelf",
-				"jewel_counter", "jewel_cabinet", "safe", "scale_counter", "price_board"
+				"jewel_counter", "jewel_cabinet", "safe", "scale_counter", "price_board",
+				"cafe_chair", "cafe_chair", "tree", "bus_stop"
 		};
 		//가게 종류 순서 (ModernClerk.Shop)
 		private static final String[] SIGN_KEYS = {
@@ -698,6 +755,7 @@ public class ModernLevel extends Level {
 			int img = data[i];
 			if (img >= 0 && img < KEYS.length) return KEYS[img];
 			if (img >= SIGN_IMG && img < SIGN_IMG + SIGN_KEYS.length) return SIGN_KEYS[img - SIGN_IMG];
+			if (img >= FOUNTAIN_IMG) return "fountain";
 			return null;
 		}
 
@@ -728,10 +786,10 @@ public class ModernLevel extends Level {
 		}
 	}
 
-	//도로 위에 덧그리는 중앙선, 횡단보도, 맨홀 (54칸 x 2칸 그림)
+	//도로 위에 덧그리는 차선, 횡단보도, 정지선, 맨홀 (4차선, 66칸 x 4칸 그림)
 	public static class ModernRoad extends CustomTilemap {
 
-		public static final int ROAD_W = 54;
+		public static final int ROAD_W = 66;
 
 		{
 			texture = Assets.Environment.MODERN_ROAD;
@@ -740,7 +798,7 @@ public class ModernLevel extends Level {
 		@Override
 		public Tilemap create() {
 			Tilemap v = super.create();
-			v.map( mapSimpleImage( 0, 0, 1024 ), tileW );
+			v.map( mapSimpleImage( 0, 0, 2048 ), tileW );
 			return v;
 		}
 	}

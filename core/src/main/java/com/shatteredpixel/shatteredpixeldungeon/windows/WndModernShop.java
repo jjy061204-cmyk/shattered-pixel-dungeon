@@ -18,6 +18,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CurrencyIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ModernDigits;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
@@ -63,12 +64,10 @@ public class WndModernShop extends Window {
 
 		//가진 코인
 		Image coinIcon = new Image( Assets.Sprites.MODERN_UI, 32, 16, 7, 7 );
-		BitmapText coins = new BitmapText( Integer.toString( ModernCoin.count() ), PixelScene.pixelFont );
-		coins.measure();
-		coins.hardlight( 0xFFFFFF );
-		coins.x = WIDTH - 3 - coins.width();
-		coins.y = (16 - coins.baseLine()) / 2f;
-		coinIcon.x = coins.x - 9;
+		ModernDigits coins = new ModernDigits( ModernDigits.PRICE );
+		coins.text( Integer.toString( ModernCoin.count() ), 0xFFFFFF );
+		coins.setPos( WIDTH - 3 - coins.width(), 5 );
+		coinIcon.x = coins.left() - 9;
 		coinIcon.y = (16 - 7) / 2f;
 		add( coinIcon );
 		add( coins );
@@ -155,10 +154,9 @@ public class WndModernShop extends Window {
 			prev.setRect( 0, pos, 20, 16 );
 			add( prev );
 
-			BitmapText pg = new BitmapText( (fp + 1) + "/" + pages, PixelScene.pixelFont );
-			pg.measure();
-			pg.x = 22 + (16 - pg.width()) / 2f;
-			pg.y = pos + (16 - pg.baseLine()) / 2f;
+			ModernDigits pg = new ModernDigits( ModernDigits.PRICE );
+			pg.text( (fp + 1) + "/" + pages, 0xFFFFFF );
+			pg.setPos( 22 + (16 - pg.width()) / 2f, pos + 5 );
 			add( pg );
 
 			RedButton next = new RedButton( ">" ){
@@ -233,10 +231,10 @@ public class WndModernShop extends Window {
 		private final int index;
 		private Image bg;
 		private ItemSprite sprite;
-		private BitmapText price;
-		private BitmapText left;
+		private ModernDigits price;
+		private ModernDigits left;
 		private ColorBlock tagBg;
-		private BitmapText tag;
+		private ModernDigits tag;
 		private RenderedTextBlock soldOut;
 		private Image coin;
 
@@ -253,24 +251,21 @@ public class WndModernShop extends Window {
 			sprite = new ItemSprite( item );
 			add( sprite );
 
-			price = new BitmapText( Integer.toString( p ), PixelScene.pixelFont );
-			price.measure();
-			price.hardlight( p > ModernCoin.count() ? 0xC03020 : 0x5A3A10 );
+			price = new ModernDigits( ModernDigits.PRICE );
+			price.text( Integer.toString( p ), p > ModernCoin.count() ? 0xC03020 : 0x4A2E08 );
 			add( price );
 			coin = new Image( Assets.Sprites.MODERN_UI, 32, 16, 7, 7 );
 			add( coin );
 
-			left = new BitmapText( "x" + count, PixelScene.pixelFont );
-			left.measure();
-			left.hardlight( 0x8A7A6A );
+			left = new ModernDigits( ModernDigits.PRICE );
+			left.text( "x" + count, count > 0 ? 0x7A6A5A : 0xC03020 );
 			add( left );
 
 			String t = clerk.dealTag( index );
 			if (!t.isEmpty()){
-				tag = new BitmapText( t, PixelScene.pixelFont );
-				tag.measure();
-				tag.hardlight( 0xFFFFFF );
-				tagBg = new ColorBlock( tag.width() + 3, 7, 0xFFD03030 );
+				tag = new ModernDigits( ModernDigits.PRICE );
+				tag.text( t, 0xFFFFFF );
+				tagBg = new ColorBlock( tag.width() + 4, 8, 0xFFD03030 );
 				add( tagBg );
 				add( tag );
 			}
@@ -293,21 +288,16 @@ public class WndModernShop extends Window {
 			sprite.y = y + 2 + (22 - sprite.height()) / 2f;
 			PixelScene.align( sprite );
 
-			float pw = price.width() + 8;
-			coin.x = x + (CARD_W - pw) / 2f;
-			coin.y = y + 26;
-			price.x = coin.x + 8;
-			price.y = y + 25 + (7 - price.baseLine()) / 2f + 0.5f;
-			PixelScene.align( price );
+			float pw = price.width() + 9;
+			coin.x = (int)(x + (CARD_W - pw) / 2f);
+			coin.y = y + 25;
+			price.setPos( coin.x + 9, y + 26 );
 
-			left.x = x + CARD_W - 2 - left.width();
-			left.y = y + 33;
-			PixelScene.align( left );
+			left.setPos( (int)(x + CARD_W - 3 - left.width()), y + 33 );
 
 			if (tag != null){
 				tagBg.x = x + 1; tagBg.y = y + 1;
-				tag.x = x + 2.5f; tag.y = y + 1.5f;
-				PixelScene.align( tag );
+				tag.setPos( x + 3, y + 2 );
 			}
 			if (soldOut != null){
 				soldOut.setPos( x + (CARD_W - soldOut.width()) / 2f, y + 8 );

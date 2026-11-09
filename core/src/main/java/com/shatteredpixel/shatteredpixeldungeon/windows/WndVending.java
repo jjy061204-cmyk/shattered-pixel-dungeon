@@ -20,6 +20,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CurrencyIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ModernDigits;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -47,9 +49,9 @@ public class WndVending extends Window {
 	private int credit = 0;
 
 	private Image[] lights = new Image[SLOTS];
-	private BitmapText[] prices = new BitmapText[SLOTS];
+	private ModernDigits[] prices = new ModernDigits[SLOTS];
 	private ItemSprite[] shelf = new ItemSprite[SLOTS];
-	private BitmapText led;
+	private ModernDigits led;
 	private RenderedTextBlock notice;
 	private float noticeTime;
 	private String ledFlash;
@@ -98,20 +100,28 @@ public class WndVending extends Window {
 			shelf[i] = spr;
 			add( spr );
 
-			BitmapText pr = new BitmapText( PixelScene.pixelFont );
+			ModernDigits pr = new ModernDigits( ModernDigits.PRICE );
 			prices[i] = pr;
 			add( pr );
 
 			Image light = new Image( Assets.Sprites.VENDING_UI, 136, 0, 10, 5 );
-			light.x = sx + 6; light.y = sy + 32;
+			light.x = sx + 6; light.y = sy + 33;
 			lights[i] = light;
 			add( light );
+
+			//음료를 누르면 설명, 가격표·버튼을 누르면 구매
+			Button look = new Button(){
+				@Override
+				protected void onClick() { describe( slot ); }
+			};
+			look.setRect( sx, sy, 22, 22 );
+			add( look );
 
 			Button b = new Button(){
 				@Override
 				protected void onClick() { select( slot ); }
 			};
-			b.setRect( sx, sy, 22, 40 );
+			b.setRect( sx, sy + 22, 22, 18 );
 			add( b );
 		}
 
@@ -120,8 +130,8 @@ public class WndVending extends Window {
 		glare.x = 5; glare.y = 19;
 		add( glare );
 
-		led = new BitmapText( PixelScene.pixelFont );
-		led.hardlight( 0x55FF77 );
+		led = new ModernDigits( ModernDigits.LED );
+		led.ledCells( 3, 0x1E3A24 );
 		add( led );
 
 		Button coinSlot = new Button(){
@@ -162,6 +172,8 @@ public class WndVending extends Window {
 
 		CurrencyIndicator.showGold = true;
 		refresh();
+		say( "tip" );
+		noticeTime = 4f;
 	}
 
 	private void addLabel( String s, float cx, float y ){
@@ -178,28 +190,20 @@ public class WndVending extends Window {
 		for (int i = 0; i < SLOTS; i++){
 			int sx = 6 + (i % 4) * 22, sy = 19 + (i / 4) * 44;
 			int p = ModernLevel.vendingPrice( i );
-			BitmapText pr = prices[i];
+			ModernDigits pr = prices[i];
 			if (stock[i] <= 0){
-				pr.text( "SOLD" );
-				pr.hardlight( 0xD03030 );
+				pr.text( "SOLD", 0xD02828 );
 				lights[i].frame( 136, 12, 10, 5 );
 				shelf[i].alpha( 0.3f );
 			} else {
-				pr.text( Integer.toString( p ) );
-				pr.hardlight( 0x30303A );
+				pr.text( Integer.toString( p ), 0x26262E );
 				lights[i].frame( 136, credit >= p ? 0 : 6, 10, 5 );
 			}
-			pr.measure();
-			pr.x = sx + 2 + (18 - pr.width()) / 2f;
-			pr.y = sy + 23 + (7 - pr.baseLine()) / 2f + 0.5f;
-			PixelScene.align( pr );
+			pr.setPos( (int)(sx + 1 + (20 - pr.width()) / 2f + 0.5f), sy + 23 );
 		}
 		String s = ledFlash != null ? ledFlash : Integer.toString( credit );
-		led.text( s );
-		led.measure();
-		led.x = 121 - led.width();
-		led.y = 24;
-		PixelScene.align( led );
+		led.text( s, 0x66FF88 );
+		led.setPos( 121 - led.width(), 23 );
 	}
 
 	private void say( String key, Object... args ){
@@ -219,13 +223,13 @@ public class WndVending extends Window {
 	private void insert( int n ){
 		int have = ModernCoin.count();
 		if (credit >= 990){
-			flash( "FULL" );
+			flash( "FUL" );
 			return;
 		}
 		n = Math.min( n, Math.min( have, 990 - credit ) );
 		if (n <= 0){
 			Sample.INSTANCE.play( Assets.Sounds.CLICK );
-			flash( "0" );
+			flash( "---" );
 			say( "no_coin" );
 			return;
 		}
@@ -236,12 +240,17 @@ public class WndVending extends Window {
 		refresh();
 	}
 
+	private void describe( int i ){
+		Sample.INSTANCE.play( Assets.Sounds.CLICK );
+		GameScene.show( new WndInfoItem( ModernLevel.vendingDrink( i ) ) );
+	}
+
 	private void select( int i ){
 		int[] stock = level.vendingStock( cell );
 		int p = ModernLevel.vendingPrice( i );
 		if (stock[i] <= 0){
 			Sample.INSTANCE.play( Assets.Sounds.CLICK );
-			flash( "SOLD" );
+			flash( "SOL" );
 			return;
 		}
 		if (credit < p){

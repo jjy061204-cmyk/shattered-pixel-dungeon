@@ -60,9 +60,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.BananaMilk;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Berry;
 import com.shatteredpixel.shatteredpixeldungeon.items.modern.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crowbar;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ClawHammer;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Hoodie;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PaddedJacket;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherJacket;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Tracksuit;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.TrenchCoat;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Bonster;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Bungeoppang;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Butter;
@@ -207,13 +210,13 @@ public enum Catalog {
 
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T1.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T2.classes);
-		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class);
+		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class, ClawHammer.class);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T3.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T4.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T5.classes);
 
 		ARMOR.addItems(Generator.Category.ARMOR.classes);
-		ARMOR.addItems(Hoodie.class, PaddedJacket.class, LeatherJacket.class);
+		ARMOR.addItems(Hoodie.class, PaddedJacket.class, LeatherJacket.class, Tracksuit.class, TrenchCoat.class);
 
 		THROWN_WEAPONS.addItems(Generator.Category.MIS_T1.classes);
 		THROWN_WEAPONS.addItems(Generator.Category.MIS_T2.classes);
@@ -258,7 +261,8 @@ public enum Catalog {
 				StrawberryMilk.class, CupCoffee.class, Bonster.class, StrawberryCake.class,
 				Bungeoppang.class, Pudding.class, BananaMilk.class, Butter.class,
 				TriangleKimbap.class, CupRamen.class, ChocoBar.class, BottledWater.class, IonDrink.class,
-				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class, Parfait.class, BarleyTea.class, Cider.class, Cola.class, CanCoffee.class, Sikhye.class, GrapeJuice.class );
+				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class, Parfait.class, BarleyTea.class, Cider.class, Cola.class, CanCoffee.class, Sikhye.class, GrapeJuice.class,
+				HotBar.class, PotatoChips.class, Dosirak.class, IcedAmericano.class, Waffle.class );
 
 		EXOTIC_POTIONS.addItems(ExoticPotion.exoToReg.keySet().toArray(new Class[0]));
 
@@ -288,7 +292,8 @@ public enum Catalog {
 				DimensionTicket.class, DimensionReturnTicket.class,
 				Bandage.class, Painkiller.class, Antidote.class, PainPatch.class, EyeDrops.class,
 				CityMap.class, Encyclopedia.class, Workbook.class, ComicBook.class,
-				Flashlight.class, DuctTape.class, FireExtinguisher.class, Whistle.class, ModernCoin.class);
+				Flashlight.class, DuctTape.class, FireExtinguisher.class, Whistle.class, ModernCoin.class,
+				BurnOintment.class, MotionPill.class, SurvivalGuide.class, Crossword.class, HandWarmer.class);
 
 	}
 

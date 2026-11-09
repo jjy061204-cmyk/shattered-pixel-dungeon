@@ -932,6 +932,12 @@ public class ItemSpriteSheet {
 	public static final int CAN_COFFEE        = MOD_FOOD2+5;
 	public static final int SIKHYE            = MOD_FOOD2+6;
 	public static final int GRAPE_JUICE       = MOD_FOOD2+7;
+	//가게 새 상품 (먹을 것)
+	public static final int HOT_BAR           = MOD_FOOD2+8;
+	public static final int POTATO_CHIPS      = MOD_FOOD2+9;
+	public static final int DOSIRAK           = MOD_FOOD2+10;
+	public static final int ICED_AMERICANO    = MOD_FOOD2+11;
+	public static final int WAFFLE            = MOD_FOOD2+12;
 	static{
 		assignItemRect(BUBBLE_TEA, 15, 14);
 		assignItemRect(PARFAIT, 16, 16);
@@ -941,6 +947,28 @@ public class ItemSpriteSheet {
 		assignItemRect(CAN_COFFEE, 8, 13);
 		assignItemRect(SIKHYE, 10, 14);
 		assignItemRect(GRAPE_JUICE, 10, 14);
+		assignItemRect(HOT_BAR, 14, 12);
+		assignItemRect(POTATO_CHIPS, 13, 13);
+		assignItemRect(DOSIRAK, 16, 11);
+		assignItemRect(ICED_AMERICANO, 13, 14);
+		assignItemRect(WAFFLE, 15, 11);
+	}
+
+	//현대 물품 2 (가게 새 상품)
+	private static final int MOD_MISC2  =                                   xy(1, 38);  //16 slots
+	public static final int BURN_OINTMENT     = MOD_MISC2+0;
+	public static final int MOTION_PILL       = MOD_MISC2+1;
+	public static final int SURVIVAL_GUIDE    = MOD_MISC2+2;
+	public static final int CROSSWORD         = MOD_MISC2+3;
+	public static final int HAND_WARMER       = MOD_MISC2+4;
+	public static final int CLAW_HAMMER       = MOD_WEAPON+2;
+	static{
+		assignItemRect(BURN_OINTMENT, 13, 9);
+		assignItemRect(MOTION_PILL, 12, 10);
+		assignItemRect(SURVIVAL_GUIDE, 14, 14);
+		assignItemRect(CROSSWORD, 14, 12);
+		assignItemRect(HAND_WARMER, 12, 11);
+		assignItemRect(CLAW_HAMMER, 16, 14);
 	}
 
 	//==== 촘촘한(고해상도) 아이템 ====
@@ -971,10 +999,14 @@ public class ItemSpriteSheet {
 	public static final int HOODIE            = MOD_ARMOR+0;
 	public static final int PADDED_JACKET     = MOD_ARMOR+1;
 	public static final int LEATHER_JACKET    = MOD_ARMOR+2;
+	public static final int TRACKSUIT         = MOD_ARMOR+3;
+	public static final int TRENCH_COAT       = MOD_ARMOR+4;
 	static{
 		assignItemRect(HOODIE, 14, 12);
 		assignItemRect(PADDED_JACKET, 14, 12);
 		assignItemRect(LEATHER_JACKET, 14, 12);
+		assignItemRect(TRACKSUIT, 14, 12);
+		assignItemRect(TRENCH_COAT, 14, 13);
 	}
 
 	//for smaller 8x8 icons that often accompany an item sprite
