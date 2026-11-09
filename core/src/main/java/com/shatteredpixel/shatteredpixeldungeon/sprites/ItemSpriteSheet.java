@@ -872,7 +872,7 @@ public class ItemSpriteSheet {
 	public static final int CROISSANT         = MOD_FOOD+14;
 	public static final int MACARON           = MOD_FOOD+15;
 	static{
-		assignItemRect(TRIANGLE_KIMBAP, 16, 13);
+		assignItemRect(TRIANGLE_KIMBAP, 16, 14);
 		assignItemRect(CUP_RAMEN, 14, 14);
 		assignItemRect(CHOCO_BAR, 16, 7);
 		assignItemRect(BOTTLED_WATER, 12, 15);
@@ -922,30 +922,48 @@ public class ItemSpriteSheet {
 
 	//현대 물품 (MOD_FOOD2)
 	public static final int BUBBLE_TEA        = MOD_FOOD2+0;
-	//실험: 32x32로 그린 아이템. items.png에는 16x16으로 줄인 그림이 들어가고,
-	//실제 화면에는 items_hd.png의 32x32 그림이 같은 크기로 촘촘하게 그려짐 (ItemSprite 참고)
+	//실험: 16x16보다 촘촘하게 그린 아이템. items.png에는 16x16으로 줄인 그림이 들어가고,
+	//실제 화면에는 items_hd.png의 큰 그림이 같은 자리 크기로 촘촘하게 그려짐 (ItemSprite 참고)
 	public static final int PARFAIT           = MOD_FOOD2+1;
+	//자판기 음료
+	public static final int BARLEY_TEA        = MOD_FOOD2+2;
+	public static final int CIDER             = MOD_FOOD2+3;
+	public static final int COLA              = MOD_FOOD2+4;
+	public static final int CAN_COFFEE        = MOD_FOOD2+5;
+	public static final int SIKHYE            = MOD_FOOD2+6;
+	public static final int GRAPE_JUICE       = MOD_FOOD2+7;
 	static{
 		assignItemRect(BUBBLE_TEA, 15, 14);
 		assignItemRect(PARFAIT, 16, 16);
+		assignItemRect(BARLEY_TEA, 10, 15);
+		assignItemRect(CIDER, 10, 14);
+		assignItemRect(COLA, 10, 14);
+		assignItemRect(CAN_COFFEE, 8, 13);
+		assignItemRect(SIKHYE, 10, 14);
+		assignItemRect(GRAPE_JUICE, 10, 14);
 	}
 
-	//==== 고해상도(32x32) 아이템 ====
+	//==== 촘촘한(고해상도) 아이템 ====
+	//items_hd.png는 32x32 칸으로 나뉘고, 칸 안 왼쪽 위에 그림 크기(size x size)만큼 그려 둠
 	public static class HD {
-		public static final int SIZE = 32;
-		private static final int TX_W = 256, TX_H = 32;
-		//그림 번호 -> items_hd.png 안의 칸 번호
-		private static final java.util.HashMap<Integer, Integer> SLOT = new java.util.HashMap<>();
+		private static final int CELL = 32;
+		private static final float TX_W = 256f, TX_H = 32f;
+		private static final java.util.HashMap<Integer, int[]> SLOT = new java.util.HashMap<>();
 		static {
-			SLOT.put( PARFAIT, 0 );
+			//그림 번호 -> { 칸 번호, 그림 크기 }
+			SLOT.put( PARFAIT, new int[]{ 0, 24 } );
 		}
-		public static TextureFilm film = new TextureFilm( TX_W, TX_H, SIZE, SIZE );
 
 		public static boolean has( int image ){
 			return SLOT.containsKey( image );
 		}
+		public static int size( int image ){
+			return SLOT.get( image )[1];
+		}
 		public static RectF rect( int image ){
-			return film.get( SLOT.get( image ) );
+			int[] s = SLOT.get( image );
+			float x = s[0] * CELL;
+			return new RectF( x / TX_W, 0, (x + s[1]) / TX_W, s[1] / TX_H );
 		}
 	}
 

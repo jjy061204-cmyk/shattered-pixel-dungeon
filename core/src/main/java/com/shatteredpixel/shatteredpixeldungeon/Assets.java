@@ -274,6 +274,9 @@ public class Assets {
 		public static final String ITEMS        = "sprites/items.png";
 		//모드: 32x32로 그린 실험용 아이템 그림
 		public static final String ITEMS_HD     = "sprites/items_hd.png";
+		//모드: 현대 세계 가게 화면, 자판기 화면 그림
+		public static final String MODERN_UI    = "sprites/modern_ui.png";
+		public static final String VENDING_UI   = "sprites/vending_ui.png";
 		public static final String ITEM_ICONS   = "sprites/item_icons.png";
 
 		public static final String WARRIOR  = "sprites/warrior.png";

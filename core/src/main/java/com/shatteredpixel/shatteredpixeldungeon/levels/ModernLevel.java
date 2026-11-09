@@ -339,71 +339,72 @@ public class ModernLevel extends Level {
 		return null;
 	}
 
+	//재고 개수: lo ~ hi 중 하나
+	private static int n( int lo, int hi ){
+		return Random.IntRange( lo, hi );
+	}
+
 	@Override
 	protected void createItems() {
 
 		//편의점: 음료 하나는 1+1 행사, 차원 이동 카드도 판매
 		ModernClerk conv = clerk( ModernClerk.Shop.CONVENIENCE );
 		if (conv != null) {
-			ArrayList<Item> drinks = new ArrayList<>();
-			drinks.add( new BananaMilk() ); drinks.add( new StrawberryMilk() );
-			drinks.add( new CupCoffee() );  drinks.add( new Bonster() );
-			drinks.add( new IonDrink() );   drinks.add( new BottledWater().quantity(2) );
-			int onePlusOne = Random.Int( drinks.size() );
-			for (int i = 0; i < drinks.size(); i++) {
-				conv.addStock( drinks.get(i), i == onePlusOne ? ModernClerk.DEAL_ONE_PLUS_ONE : ModernClerk.DEAL_NONE );
+			Item[] drinks = { new BananaMilk(), new StrawberryMilk(), new CupCoffee(), new Bonster(), new IonDrink(), new BottledWater() };
+			int onePlusOne = Random.Int( drinks.length );
+			for (int i = 0; i < drinks.length; i++) {
+				conv.addStock( drinks[i], n( 3, 6 ), i == onePlusOne ? ModernClerk.DEAL_ONE_PLUS_ONE : ModernClerk.DEAL_NONE, "drink" );
 			}
-			conv.addStock( new TriangleKimbap().quantity(2), ModernClerk.DEAL_NONE );
-			conv.addStock( new CupRamen(), ModernClerk.DEAL_NONE );
-			conv.addStock( new ChocoBar().quantity(2), ModernClerk.DEAL_NONE );
-			conv.addStock( new Pudding(), ModernClerk.DEAL_NONE );
-			conv.addStock( new Bungeoppang().quantity(2), ModernClerk.DEAL_NONE );
-			conv.addStock( new Butter(), ModernClerk.DEAL_NONE );
-			conv.addStock( new DimensionTicket(), ModernClerk.DEAL_NONE );
+			conv.addStock( new TriangleKimbap(), n( 3, 6 ), ModernClerk.DEAL_NONE, "food" );
+			conv.addStock( new CupRamen(),       n( 2, 5 ), ModernClerk.DEAL_NONE, "food" );
+			conv.addStock( new Bungeoppang(),    n( 2, 4 ), ModernClerk.DEAL_NONE, "food" );
+			conv.addStock( new Butter(),         n( 1, 3 ), ModernClerk.DEAL_NONE, "food" );
+			conv.addStock( new ChocoBar(),       n( 3, 6 ), ModernClerk.DEAL_NONE, "snack" );
+			conv.addStock( new Pudding(),        n( 2, 4 ), ModernClerk.DEAL_NONE, "snack" );
+			conv.addStock( new DimensionTicket(), n( 1, 2 ), ModernClerk.DEAL_NONE, "etc" );
 		}
 
 		//카페: 오늘의 메뉴 하나 30% 할인
 		ModernClerk cafe = clerk( ModernClerk.Shop.CAFE );
 		if (cafe != null) {
-			ArrayList<Item> menu = new ArrayList<>();
-			menu.add( new CupCoffee() ); menu.add( new CafeLatte() ); menu.add( new BubbleTea() );
-			menu.add( new StrawberryCake() ); menu.add( new Croissant() ); menu.add( new Macaron().quantity(2) );
-			menu.add( new Pudding() ); menu.add( new Parfait() );
-			int today = Random.Int( menu.size() );
-			for (int i = 0; i < menu.size(); i++) {
-				cafe.addStock( menu.get(i), i == today ? ModernClerk.DEAL_30_OFF : ModernClerk.DEAL_NONE );
-			}
+			Item[] drinks = { new CupCoffee(), new CafeLatte(), new BubbleTea() };
+			Item[] desserts = { new StrawberryCake(), new Croissant(), new Macaron(), new Pudding(), new Parfait() };
+			int today = Random.Int( drinks.length + desserts.length );
+			for (int i = 0; i < drinks.length; i++)
+				cafe.addStock( drinks[i], n( 3, 6 ), i == today ? ModernClerk.DEAL_30_OFF : ModernClerk.DEAL_NONE, "drink" );
+			for (int i = 0; i < desserts.length; i++)
+				cafe.addStock( desserts[i], n( 1, 4 ), i + drinks.length == today ? ModernClerk.DEAL_30_OFF : ModernClerk.DEAL_NONE, "dessert" );
 		}
 
-		//약국: 현대 의약품
+		//약국: 상비약과 응급용품
 		ModernClerk pharm = clerk( ModernClerk.Shop.PHARMACY );
 		if (pharm != null) {
-			pharm.addStock( new Bandage().quantity(3), ModernClerk.DEAL_NONE );
-			pharm.addStock( new Painkiller().quantity(2), ModernClerk.DEAL_NONE );
-			pharm.addStock( new Antidote(), ModernClerk.DEAL_NONE );
-			pharm.addStock( new PainPatch().quantity(2), ModernClerk.DEAL_NONE );
-			pharm.addStock( new EyeDrops(), ModernClerk.DEAL_NONE );
+			pharm.addStock( new Painkiller(), n( 2, 4 ), ModernClerk.DEAL_NONE, "medicine" );
+			pharm.addStock( new Antidote(),   n( 1, 3 ), ModernClerk.DEAL_NONE, "medicine" );
+			pharm.addStock( new EyeDrops(),   n( 1, 3 ), ModernClerk.DEAL_NONE, "medicine" );
+			pharm.addStock( new Bandage(),    n( 3, 6 ), ModernClerk.DEAL_NONE, "firstaid" );
+			pharm.addStock( new PainPatch(),  n( 2, 4 ), ModernClerk.DEAL_NONE, "firstaid" );
 		}
 
-		//서점: 백과사전(던지는 두꺼운 책), 문제집, 만화책
+		//서점: 책과 만화책
 		ModernClerk books = clerk( ModernClerk.Shop.BOOKSTORE );
 		if (books != null) {
-			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
-			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
-			books.addStock( new Workbook(), ModernClerk.DEAL_NONE );
-			books.addStock( new ComicBook().quantity(2), ModernClerk.DEAL_NONE );
+			books.addStock( new Encyclopedia(), n( 2, 3 ), ModernClerk.DEAL_NONE, "book" );
+			books.addStock( new Workbook(),     n( 1, 3 ), ModernClerk.DEAL_NONE, "book" );
+			books.addStock( new CityMap(),      n( 1, 2 ), ModernClerk.DEAL_NONE, "book" );
+			books.addStock( new ComicBook(),    n( 2, 4 ), ModernClerk.DEAL_NONE, "comic" );
 		}
 
 		//철물점: 손전등, 호루라기, 덕트 테이프, 소화기, 쇠지렛대
 		ModernClerk hard = clerk( ModernClerk.Shop.HARDWARE );
 		if (hard != null) {
-			hard.addStock( new Flashlight(), ModernClerk.DEAL_NONE );
-			hard.addStock( new Whistle(), ModernClerk.DEAL_NONE );
-			hard.addStock( new DuctTape().quantity(2), ModernClerk.DEAL_NONE );
-			hard.addStock( new FireExtinguisher().quantity(2), ModernClerk.DEAL_NONE );
+			hard.addStock( new Flashlight(),       n( 1, 3 ), ModernClerk.DEAL_NONE, "tool" );
+			hard.addStock( new Whistle(),          1,         ModernClerk.DEAL_NONE, "tool" );
+			hard.addStock( new DuctTape(),         n( 2, 4 ), ModernClerk.DEAL_NONE, "tool" );
+			hard.addStock( new FireExtinguisher(), n( 2, 3 ), ModernClerk.DEAL_NONE, "safety" );
 			Crowbar bar = new Crowbar();
 			bar.enchant( null ); bar.cursed = false; bar.level( 0 ); bar.identify( false );
-			hard.addStock( bar, ModernClerk.DEAL_NONE );
+			hard.addStock( bar, n( 1, 2 ), ModernClerk.DEAL_NONE, "safety" );
 		}
 
 		//옷가게: 시즌 오프, 전 품목 20% 할인
@@ -412,9 +413,152 @@ public class ModernLevel extends Level {
 			Armor[] wear = { new Hoodie(), new PaddedJacket(), new LeatherJacket() };
 			for (Armor a : wear) {
 				a.inscribe( null ); a.cursed = false; a.level( 0 ); a.identify( false );
-				clothes.addStock( a, ModernClerk.DEAL_20_OFF );
+				clothes.addStock( a, n( 1, 2 ), ModernClerk.DEAL_20_OFF, "clothes" );
 			}
 		}
+	}
+
+	//==== 자판기 ====
+
+	//음료 순서: 생수, 보리차, 사이다, 콜라, 캔커피, 식혜, 포도알 주스, 본스터
+	private static final int[] VENDING_BASE = { 10, 15, 20, 20, 20, 25, 25, 40 };
+
+	public static Item vendingDrink( int i ){
+		switch (i){
+			case 0: default: return new BottledWater();
+			case 1: return new BarleyTea();
+			case 2: return new Cider();
+			case 3: return new Cola();
+			case 4: return new CanCoffee();
+			case 5: return new Sikhye();
+			case 6: return new GrapeJuice();
+			case 7: return new Bonster();
+		}
+	}
+
+	public static int vendingPrice( int i ){
+		return VENDING_BASE[i] * (Dungeon.depth / 5 + 1);
+	}
+
+	//자판기마다 칸별 재고 (처음 열 때 정해짐)
+	private HashMap<Integer, int[]> vending = new HashMap<>();
+
+	public int[] vendingStock( int cell ){
+		int[] st = vending.get( cell );
+		if (st == null){
+			st = new int[VENDING_BASE.length];
+			for (int i = 0; i < st.length; i++) st[i] = Random.IntRange( 2, 5 );
+			st[Random.Int( st.length )] = 0;     //하나는 품절
+			vending.put( cell, st );
+		}
+		return st;
+	}
+
+	//==== 집기 누르기 ====
+
+	private ModernProps props(){
+		if (customTiles == null) return null;
+		for (CustomTilemap t : customTiles){
+			if (t instanceof ModernProps) return (ModernProps) t;
+		}
+		return null;
+	}
+
+	private int propAt( int cell ){
+		ModernProps p = props();
+		if (p == null || p.data == null || cell < 0 || cell >= p.data.length) return -1;
+		int d = p.data[cell];
+		return d >= 0 && d < SIGN_IMG ? d : -1;
+	}
+
+	//칸이 속한 가게 (가게 밖이면 null)
+	private ModernClerk.Shop shopAt( int cell ){
+		if (width() != MAP[0].length()) return null;
+		int x = cell % width(), y = cell / width();
+		for (int s = 0; s < SHOP_POS.length; s++){
+			int l = SHOP_POS[s][0], t = SHOP_POS[s][1];
+			if (x >= l && x < l + 10 && y >= t && y < t + SHOP_LAYOUTS[s].length) return SHOP_TYPES[s];
+		}
+		return null;
+	}
+
+	private ModernClerk findClerk( ModernClerk.Shop type ){
+		if (type == null) return null;
+		for (Mob m : mobs){
+			if (m instanceof ModernClerk && ((ModernClerk) m).shop == type && m.isAlive()) return (ModernClerk) m;
+		}
+		return null;
+	}
+
+	//영웅이 눌러서 다가갈 수 있는 집기인지
+	public boolean isInteractive( int cell ){
+		if (cell < 0 || cell >= length()) return false;
+		if (map[cell] == Terrain.STATUE_SP) return true;      //자판기
+		return map[cell] == Terrain.CUSTOM_DECO && propAt( cell ) >= 0;
+	}
+
+	//집기 그림 번호 -> 열어 줄 상품 분류 ("menu": 점원과 이야기, "flavor": 둘러보기만)
+	private static final String[] PROP_ACTION = {
+			"menu", "menu", "drink", "drink", "snack", "food", "medicine", "book",
+			"tool", "clothes", "clothes", "flavor", "all", "flavor", "magazine", "dessert",
+			"stand", "drink", "firstaid",
+			"menu", "menu", "flavor", "menu", "flavor"
+	};
+
+	public void interact( final int cell ){
+		if (map[cell] == Terrain.STATUE_SP){
+			final ModernLevel lvl = this;
+			com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
+				@Override
+				public void call() {
+					com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+							new com.shatteredpixel.shatteredpixeldungeon.windows.WndVending( lvl, cell ) );
+				}
+			});
+			return;
+		}
+		int prop = propAt( cell );
+		if (prop < 0) return;
+		String key = ModernProps.KEYS[prop];
+		String act = prop < PROP_ACTION.length ? PROP_ACTION[prop] : "flavor";
+		ModernClerk.Shop type = shopAt( cell );
+		ModernClerk clerk = findClerk( type );
+
+		if (act.equals( "flavor" )){
+			showFlavor( prop, key );
+			return;
+		}
+		if (clerk == null){
+			showFlavor( prop, "no_clerk" );
+			return;
+		}
+		if (act.equals( "menu" )){
+			clerk.openMenu();
+			return;
+		}
+		String cat;
+		switch (act){
+			case "all": cat = null; break;
+			case "magazine": cat = type == ModernClerk.Shop.BOOKSTORE ? "comic" : "etc"; break;
+			case "stand": cat = type == ModernClerk.Shop.HARDWARE ? "safety" : "clothes"; break;
+			default: cat = act;
+		}
+		clerk.say( clerk.line( "prop" ) );
+		clerk.openShop( cat );
+	}
+
+	private void showFlavor( final int prop, final String key ){
+		final String title = Messages.titleCase( Messages.get( ModernLevel.class, "prop_" + ModernProps.KEYS[prop] + "_name" ) );
+		final String text = Messages.get( ModernLevel.class, "use_" + key + "_" + Random.Int( 2 ) );
+		com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
+			@Override
+			public void call() {
+				com.watabou.noosa.Image icon = new com.watabou.noosa.Image( Assets.Environment.MODERN_PROPS,
+						(prop % 16) * 16, (prop / 16) * 16, 16, 16 );
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+						new com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage( icon, title, text ) );
+			}
+		});
 	}
 
 	@Override
@@ -426,16 +570,43 @@ public class ModernLevel extends Level {
 
 	private static final String ARRIVAL = "modern_arrival";
 
+	private static final String VEND_CELLS = "vending_cells";
+	private static final String VEND_STOCK = "vending_stock";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( ARRIVAL, arrival );
+		int[] cells = new int[vending.size()];
+		int[] flat = new int[vending.size() * VENDING_BASE.length];
+		int k = 0;
+		for (Integer c : vending.keySet()){
+			cells[k] = c;
+			int[] st = vending.get( c );
+			for (int i = 0; i < VENDING_BASE.length; i++) flat[k * VENDING_BASE.length + i] = i < st.length ? st[i] : 0;
+			k++;
+		}
+		bundle.put( VEND_CELLS, cells );
+		bundle.put( VEND_STOCK, flat );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		arrival = bundle.contains( ARRIVAL ) ? bundle.getInt( ARRIVAL ) : -1;
+		vending.clear();
+		if (bundle.contains( VEND_CELLS )){
+			int[] cells = bundle.getIntArray( VEND_CELLS );
+			int[] flat = bundle.getIntArray( VEND_STOCK );
+			for (int k = 0; k < cells.length; k++){
+				int[] st = new int[VENDING_BASE.length];
+				for (int i = 0; i < st.length; i++){
+					int idx = k * VENDING_BASE.length + i;
+					st[i] = flat != null && idx < flat.length ? flat[idx] : 0;
+				}
+				vending.put( cells[k], st );
+			}
+		}
 	}
 
 	//==== 타일 이름과 설명 ====
@@ -492,7 +663,7 @@ public class ModernLevel extends Level {
 		public int[] data;
 
 		//그림 번호 -> 이름 열쇠
-		private static final String[] KEYS = {
+		public static final String[] KEYS = {
 				"counter", "register", "espresso", "fridge", "snack_shelf", "noodle_shelf", "med_shelf", "book_shelf",
 				"tool_rack", "clothes_rack", "mannequin", "cafe_table", "kiosk", "plant", "magazine", "cake_showcase",
 				"armor_stand", "coffee_bar", "med_shelf",

@@ -258,7 +258,7 @@ public enum Catalog {
 				StrawberryMilk.class, CupCoffee.class, Bonster.class, StrawberryCake.class,
 				Bungeoppang.class, Pudding.class, BananaMilk.class, Butter.class,
 				TriangleKimbap.class, CupRamen.class, ChocoBar.class, BottledWater.class, IonDrink.class,
-				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class, Parfait.class );
+				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class, Parfait.class, BarleyTea.class, Cider.class, Cola.class, CanCoffee.class, Sikhye.class, GrapeJuice.class );
 
 		EXOTIC_POTIONS.addItems(ExoticPotion.exoToReg.keySet().toArray(new Class[0]));
 

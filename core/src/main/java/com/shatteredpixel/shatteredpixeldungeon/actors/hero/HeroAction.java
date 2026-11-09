@@ -76,6 +76,13 @@ public class HeroAction {
 		}
 	}
 	
+	//모드: 현대 세계 집기·자판기 누르기
+	public static class ModernProp extends HeroAction {
+		public ModernProp( int cell ) {
+			this.dst = cell;
+		}
+	}
+
 	public static class Alchemy extends HeroAction {
 		public Alchemy( int pot ) {
 			this.dst = pot;

@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CurrencyIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndModernShop;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage;
 import com.watabou.noosa.Game;
@@ -63,13 +64,14 @@ public class ModernClerk extends Shopkeeper {
 
 	//예전 방식(바닥 진열) 가게용: 자기 가게로 보는 범위
 	private static final int SHOP_RADIUS = 4;
-	//목록 한 쪽에 보여줄 상품 수
-	private static final int PER_PAGE = 5;
 
 	public Shop shop = Shop.CONVENIENCE;
 
+	//상품 진열: 상품 견본(1개), 남은 재고, 행사, 분류
 	public ArrayList<Item> stock = new ArrayList<>();
+	public ArrayList<Integer> counts = new ArrayList<>();
 	public ArrayList<Integer> deals = new ArrayList<>();
+	public ArrayList<String> cats = new ArrayList<>();
 
 	public ModernClerk(){
 		super();
@@ -94,17 +96,58 @@ public class ModernClerk extends Shopkeeper {
 		}
 	}
 
-	public void addStock( Item item, int deal ){
-		if (item == null) return;
+	//가게 화면 머리띠 색
+	public int themeColor(){
+		switch (shop){
+			case CONVENIENCE: default: return 0x2E9650;
+			case CAFE:      return 0x7A4C2E;
+			case PHARMACY:  return 0x28967A;
+			case BOOKSTORE: return 0x3C5096;
+			case HARDWARE:  return 0xD66E1E;
+			case CLOTHING:  return 0x964690;
+			case JEWELRY:   return 0x1E2246;
+		}
+	}
+
+	public void addStock( Item item, int count, int deal, String cat ){
+		if (item == null || count <= 0) return;
+		item.quantity( 1 );
 		stock.add( item );
+		counts.add( count );
 		deals.add( deal );
+		cats.add( cat );
+	}
+
+	public int size(){ return stock.size(); }
+	public Item item( int i ){ return stock.get( i ); }
+	public int count( int i ){ return counts.get( i ); }
+	public int deal( int i ){ return deals.get( i ); }
+	public String cat( int i ){ return cats.get( i ); }
+
+	//진열된 분류 (넣은 순서대로)
+	public ArrayList<String> categories(){
+		ArrayList<String> out = new ArrayList<>();
+		for (String c : cats) if (!out.contains( c )) out.add( c );
+		return out;
+	}
+
+	public String catName( String cat ){
+		return cat == null ? txt( "cat_all" ) : txt( "cat_" + cat );
+	}
+
+	public String shopName(){
+		return txt( "shop_" + key() );
+	}
+
+	public String promo(){
+		return txt( "promo_" + key() );
 	}
 
 	private String key(){
 		return shop.name().toLowerCase();
 	}
 
-	private String txt( String k, Object... args ){
+	public String txt( String k, Object... args ){
 		return Messages.get( ModernClerk.class, k, args );
 	}
 
@@ -119,21 +162,21 @@ public class ModernClerk extends Shopkeeper {
 	}
 
 	//가게마다 대사 3개 중 하나
-	private String line( String kind ){
+	public String line( String kind ){
 		return txt( kind + "_" + key() + "_" + Random.Int(3) );
 	}
 
 	//빨간 경고 대신 평범한 말풍선처럼 보여주기
-	private void say( String str ){
+	public void say( String str ){
 		GLog.newLine();
 		GLog.i( "%s: \"%s\"", Messages.titleCase( name() ), str );
 	}
 
 	//==== 가격 ====
 
+	//한 개 값
 	public int price( int index ){
-		Item item = stock.get( index );
-		int base = Shopkeeper.sellPrice( item );
+		int base = Shopkeeper.sellPrice( stock.get( index ) );
 		switch (deals.get( index )){
 			case DEAL_20_OFF: return Math.max(1, Math.round( base * 0.8f ));
 			case DEAL_30_OFF: return Math.max(1, Math.round( base * 0.7f ));
@@ -141,13 +184,30 @@ public class ModernClerk extends Shopkeeper {
 		}
 	}
 
-	private String dealTag( int index ){
+	//행사 표시 (작은 숫자 글꼴용)
+	public String dealTag( int index ){
 		switch (deals.get( index )){
-			case DEAL_ONE_PLUS_ONE: return txt( "tag_1p1" );
-			case DEAL_20_OFF: return txt( "tag_20" );
-			case DEAL_30_OFF: return txt( "tag_30" );
+			case DEAL_ONE_PLUS_ONE: return "1+1";
+			case DEAL_20_OFF: return "-20%";
+			case DEAL_30_OFF: return "-30%";
 			default: return "";
 		}
+	}
+
+	public String dealInfo( int index ){
+		switch (deals.get( index )){
+			case DEAL_ONE_PLUS_ONE: return txt( "deal_1p1_info" );
+			case DEAL_20_OFF: return txt( "deal_off_info", 20 );
+			case DEAL_30_OFF: return txt( "deal_off_info", 30 );
+			default: return "";
+		}
+	}
+
+	//지금 살 수 있는 최대 개수
+	public int maxBuy( int index ){
+		int p = price( index );
+		int afford = p <= 0 ? counts.get( index ) : ModernCoin.count() / p;
+		return Math.min( counts.get( index ), afford );
 	}
 
 	private int serviceFee(){
@@ -165,13 +225,34 @@ public class ModernClerk extends Shopkeeper {
 		if (c != Dungeon.hero) {
 			return true;
 		}
+		openMenu();
+		return true;
+	}
+
+	//계산대에서 말 걸기 (집기를 눌렀을 때도 사용)
+	public void openMenu(){
 		Game.runOnRenderThread(new Callback() {
 			@Override
 			public void call() {
 				showMainMenu();
 			}
 		});
-		return true;
+	}
+
+	//가게 화면 열기 (cat: 처음 보여줄 분류, null이면 전체)
+	public void openShop( final String cat ){
+		Game.runOnRenderThread(new Callback() {
+			@Override
+			public void call() {
+				showShop( cat );
+			}
+		});
+	}
+
+	public void showShop( String cat ){
+		if (cat != null && !cats.contains( cat )) cat = null;
+		CurrencyIndicator.showGold = true;
+		GameScene.show( new WndModernShop( this, cat, 0 ) );
 	}
 
 	private void showMainMenu(){
@@ -180,13 +261,13 @@ public class ModernClerk extends Shopkeeper {
 			return;
 		}
 		final ArrayList<String> options = new ArrayList<>();
-		options.add( txt( "browse", stock.size() ) );
+		options.add( txt( "browse" ) );
 		final boolean service = hasService();
 		if (service) options.add( txt( "service_" + key(), serviceFee() ) );
 		options.add( txt( "talk" ) );
 
 		String msg = line( "greet" );
-		String promo = txt( "promo_" + key() );
+		String promo = promo();
 		if (!promo.isEmpty()) msg += "\n\n" + promo;
 		msg += "\n\n" + txt( "wallet", ModernCoin.count() );
 
@@ -197,7 +278,7 @@ public class ModernClerk extends Shopkeeper {
 			protected void onSelect( int index ) {
 				super.onSelect( index );
 				int i = index;
-				if (i == 0) { showStock( 0 ); return; }
+				if (i == 0) { showShop( null ); return; }
 				if (service) {
 					if (i == 1) { startService(); return; }
 					i--;
@@ -284,106 +365,38 @@ public class ModernClerk extends Shopkeeper {
 		say( line( "thanks" ) );
 	}
 
-	//==== 상품 목록 (메뉴판) ====
+	//==== 결제 ====
 
-	private void showStock( final int page ){
-		if (stock.isEmpty()){
-			say( txt( "sold_out" ) );
-			return;
+	//index 상품을 n개 삼. 성공하면 true
+	public boolean buy( int index, int n ){
+		if (index < 0 || index >= stock.size() || n <= 0) return false;
+		n = Math.min( n, counts.get( index ) );
+		if (n <= 0) return false;
+		int total = price( index ) * n;
+		if (!ModernCoin.spend( total )) {
+			say( txt( "no_money" ) );
+			return false;
 		}
-		final int pages = (stock.size() + PER_PAGE - 1) / PER_PAGE;
-		final int p = Math.min( page, pages - 1 );
-		final int start = p * PER_PAGE;
-		final int end = Math.min( start + PER_PAGE, stock.size() );
+		counts.set( index, counts.get( index ) - n );
 
-		final ArrayList<String> options = new ArrayList<>();
-		for (int i = start; i < end; i++){
-			Item item = stock.get(i);
-			String name = Messages.titleCase( item.title() );
-			if (name.length() > 16) name = name.substring(0, 15) + "…";
-			options.add( txt( "price_line", name, price(i), dealTag(i) ) );
-		}
-		final int listSize = options.size();
-		final boolean hasPrev = p > 0, hasNext = p < pages - 1;
-		final int coins = ModernCoin.count();
-		if (hasPrev) options.add( txt( "prev" ) );
-		if (hasNext) options.add( txt( "next" ) );
-		options.add( txt( "back" ) );
-
-		CurrencyIndicator.showGold = true;
-		GameScene.show( new ClerkWnd( sprite(), txt( "menu_title_" + key() ),
-				txt( "menu_body", p + 1, pages, coins ), options.toArray( new String[0] ) ){
-
-			@Override
-			protected boolean hasIcon( int index ) {
-				return index < listSize;
-			}
-
-			@Override
-			protected Image getIcon( int index ) {
-				return new ItemSprite( stock.get( start + index ) );
-			}
-
-			@Override
-			protected void onSelect( int index ) {
-				super.onSelect( index );
-				if (index < listSize){
-					confirm( start + index, p );
-				} else if (hasPrev && index == listSize){
-					showStock( p - 1 );
-				} else if (hasNext && index == listSize + (hasPrev ? 1 : 0)){
-					showStock( p + 1 );
-				} else {
-					showMainMenu();
-				}
-			}
-		});
-	}
-
-	private void confirm( final int index, final int page ){
-		final Item item = stock.get( index );
-		final int price = price( index );
-		String info = item.info();
-		if (deals.get(index) == DEAL_ONE_PLUS_ONE) info += "\n\n" + txt( "deal_1p1_info" );
-		info += "\n\n" + txt( "total", price, ModernCoin.count() );
-
-		GameScene.show( new ClerkWnd( new ItemSprite( item ), Messages.titleCase( item.title() ), info,
-				txt( "pay", price ), txt( "cancel" ) ){
-			@Override
-			protected boolean enabled( int i ) {
-				if (i == 0) return ModernCoin.count() >= price;
-				return true;
-			}
-
-			@Override
-			protected void onSelect( int i ) {
-				super.onSelect( i );
-				if (i == 0){
-					buy( index );
-				}
-				showStock( page );
-			}
-		});
-	}
-
-	private void buy( int index ){
-		if (index < 0 || index >= stock.size()) return;
-		int price = price( index );
-		if (ModernCoin.count() < price) return;
-		if (!ModernCoin.spend( price )) return;
-
-		Item item = stock.remove( index );
-		int deal = deals.remove( index );
-
-		//1+1: 겹칠 수 있는 물건이면 하나 더
-		if (deal == DEAL_ONE_PLUS_ONE && item.stackable){
-			item.quantity( item.quantity() * 2 );
-		}
+		Item proto = stock.get( index );
+		//1+1: 산 만큼 하나씩 더
+		int get = deals.get( index ) == DEAL_ONE_PLUS_ONE ? n * 2 : n;
 
 		Sample.INSTANCE.play( Assets.Sounds.GOLD );
-		GLog.p( txt( "receipt", Messages.titleCase( item.title() ), price ) );
+		GLog.p( txt( "receipt_n", Messages.titleCase( proto.title() ), get, total ) );
 		say( line( "thanks" ) );
 
+		if (proto.stackable){
+			give( proto.duplicate().quantity( get ) );
+		} else {
+			for (int i = 0; i < get; i++) give( proto.duplicate().quantity( 1 ) );
+		}
+		return true;
+	}
+
+	private void give( Item item ){
+		if (item == null) return;
 		if (!item.doPickUp( Dungeon.hero )){
 			Dungeon.level.drop( item, Dungeon.hero.pos ).sprite.drop();
 		}
@@ -428,7 +441,9 @@ public class ModernClerk extends Shopkeeper {
 	public void destroy() {
 		//가게 물건은 점원과 함께 사라짐
 		stock.clear();
+		counts.clear();
 		deals.clear();
+		cats.clear();
 
 		//예전 방식(바닥 진열) 가게: 다른 가게 물건은 잠시 일반 더미로 바꿔서 보호
 		ArrayList<Heap> otherShops = new ArrayList<>();
@@ -463,16 +478,22 @@ public class ModernClerk extends Shopkeeper {
 
 	private static final String SHOP  = "modern_shop";
 	private static final String STOCK = "modern_stock";
+	private static final String COUNTS = "modern_counts";
 	private static final String DEALS = "modern_deals";
+	private static final String CATS  = "modern_cats";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( SHOP, shop.name() );
 		bundle.put( STOCK, stock );
+		int[] c = new int[counts.size()];
 		int[] d = new int[deals.size()];
+		for (int i = 0; i < c.length; i++) c[i] = counts.get(i);
 		for (int i = 0; i < d.length; i++) d[i] = deals.get(i);
+		bundle.put( COUNTS, c );
 		bundle.put( DEALS, d );
+		bundle.put( CATS, cats.toArray( new String[0] ) );
 	}
 
 	@Override
@@ -482,13 +503,19 @@ public class ModernClerk extends Shopkeeper {
 			shop = Shop.valueOf( bundle.getString( SHOP ) );
 		}
 		updateSprite();
-		stock.clear();
-		deals.clear();
+		stock.clear(); counts.clear(); deals.clear(); cats.clear();
 		if (bundle.contains( STOCK )) {
 			Collection<?> items = bundle.getCollection( STOCK );
 			for (Object o : items) stock.add( (Item) o );
+			int[] c = bundle.contains( COUNTS ) ? bundle.getIntArray( COUNTS ) : null;
 			int[] d = bundle.getIntArray( DEALS );
-			for (int i = 0; i < stock.size(); i++) deals.add( d != null && i < d.length ? d[i] : DEAL_NONE );
+			String[] k = bundle.contains( CATS ) ? bundle.getStringArray( CATS ) : null;
+			for (int i = 0; i < stock.size(); i++) {
+				counts.add( c != null && i < c.length ? c[i] : Math.max( 1, stock.get(i).quantity() ) );
+				deals.add( d != null && i < d.length ? d[i] : DEAL_NONE );
+				cats.add( k != null && i < k.length ? k[i] : "etc" );
+				stock.get(i).quantity( 1 );
+			}
 		}
 	}
 }

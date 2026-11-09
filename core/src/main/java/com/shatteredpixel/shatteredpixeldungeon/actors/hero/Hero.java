@@ -155,6 +155,7 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.VaultLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
@@ -932,6 +933,9 @@ public class Hero extends Char {
 				
 			} else if (curAction instanceof HeroAction.Alchemy) {
 				actResult = actAlchemy( (HeroAction.Alchemy)curAction );
+
+			} else if (curAction instanceof HeroAction.ModernProp) {
+				actResult = actModernProp( (HeroAction.ModernProp)curAction );
 				
 			} else {
 				actResult = false;
@@ -1086,6 +1090,23 @@ public class Hero extends Char {
 
 			return true;
 
+		} else {
+			ready();
+			return false;
+		}
+	}
+
+	//모드: 현대 세계 집기·자판기 앞까지 걸어가서 사용
+	private boolean actModernProp( HeroAction.ModernProp action ) {
+		int dst = action.dst;
+		if (Dungeon.level.distance( dst, pos ) <= 1) {
+			ready();
+			if (Dungeon.level instanceof ModernLevel) {
+				((ModernLevel) Dungeon.level).interact( dst );
+			}
+			return false;
+		} else if (getCloser( dst )) {
+			return true;
 		} else {
 			ready();
 			return false;
@@ -1951,7 +1972,12 @@ public class Hero extends Char {
 		Char ch = Actor.findChar( cell );
 		Heap heap = Dungeon.level.heaps.get( cell );
 
-		if (Dungeon.level.map[cell] == Terrain.ALCHEMY && cell != pos) {
+		if (Dungeon.level instanceof ModernLevel && cell != pos
+				&& ((ModernLevel) Dungeon.level).isInteractive( cell )) {
+
+			curAction = new HeroAction.ModernProp( cell );
+
+		} else if (Dungeon.level.map[cell] == Terrain.ALCHEMY && cell != pos) {
 			
 			curAction = new HeroAction.Alchemy( cell );
 			

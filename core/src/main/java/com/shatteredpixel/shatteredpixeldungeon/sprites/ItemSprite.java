@@ -248,11 +248,12 @@ public class ItemSprite extends MovieClip {
 
 	public void frame( int image ){
 		if (ItemSpriteSheet.HD.has( image )){
-			//모드: 32x32 그림을 16x16 자리에 그려서 두 배 촘촘하게 보이게 함
+			//모드: 큰 그림(24x24 등)을 16x16 자리에 그려서 더 촘촘하게 보이게 함
 			texture = TextureCache.get( Assets.Sprites.ITEMS_HD );
 			frame( ItemSpriteSheet.HD.rect( image ) );
-			width = width / 2f;
-			height = height / 2f;
+			float k = 16f / ItemSpriteSheet.HD.size( image );
+			width = width * k;
+			height = height * k;
 			updateVertices();
 		} else {
 			if (texture == null || texture != TextureCache.get( Assets.Sprites.ITEMS )){
