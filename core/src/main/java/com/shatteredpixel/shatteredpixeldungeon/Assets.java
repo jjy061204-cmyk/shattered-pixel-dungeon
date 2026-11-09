@@ -43,6 +43,7 @@ public class Assets {
 		public static final String TILES_PRISON = "environment/tiles_prison.png";
 		public static final String TILES_CAVES  = "environment/tiles_caves.png";
 		public static final String TILES_CITY   = "environment/tiles_city.png";
+		public static final String TILES_MODERN = "environment/tiles_modern.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
@@ -52,6 +53,7 @@ public class Assets {
 		public static final String WATER_PRISON = "environment/water1.png";
 		public static final String WATER_CAVES  = "environment/water2.png";
 		public static final String WATER_CITY   = "environment/water3.png";
+		public static final String WATER_MODERN = "environment/water_modern.png";
 		public static final String WATER_HALLS  = "environment/water4.png";
 
 		public static final String CARPET           = "environment/custom_tiles/carpet.png";
@@ -63,6 +65,7 @@ public class Assets {
 		public static final String CAVES_QUEST      = "environment/custom_tiles/caves_quest.png";
 		public static final String CAVES_BOSS       = "environment/custom_tiles/caves_boss.png";
 		public static final String CITY_QUEST       = "environment/custom_tiles/city_quest.png";
+		public static final String MODERN_ROAD      = "environment/custom_tiles/modern_road.png";
 		public static final String CITY_BOSS        = "environment/custom_tiles/city_boss.png";
 		public static final String HALLS_SP         = "environment/custom_tiles/halls_special.png";
 	}

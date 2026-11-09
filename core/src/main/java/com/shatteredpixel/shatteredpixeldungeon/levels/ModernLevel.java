@@ -38,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.watabou.noosa.Tilemap;
 import com.watabou.noosa.audio.Music;
 
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class ModernLevel extends Level {
 
 	//지도 기호
 	// # 벽   + 문   = 간판(장식 벽)   . 가게 바닥   , 도로   _ 보도
-	// L 가로등   " 화단   ~ 분수   B 책장   @ 도착 지점
+	// L 가로등   V 자판기   T 쓰레기통   b 벤치   " 화단   ~ 분수   B 책장   @ 도착 지점
 	private static final String[] MAP = {
 		"#################################",
 		"#.......#.......#.......#.......#",
@@ -66,15 +68,15 @@ public class ModernLevel extends Level {
 		"#.......#.......#.......#.......#",
 		"#.......#.......#.......#.......#",
 		"##=#+#=###=#+#=###=#+#=###=#+#=##",
-		"#_L_____L_______L_______L_____L_#",
+		"#_L___V_L_____T_L_______L_T___L_#",
 		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
 		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#_L_____L_______________L_____L_#",
+		"#_L___T_L_______________L_V___L_#",
 		"##=#+#=##_______________#=##+##=#",
 		"#.......#\"_____________\"#.......#",
 		"#.......#__\"___~~~___\"__#.......#",
 		"#.......#__\"___~~~___\"__#.......#",
-		"#.......#_______@_______#.......#",
+		"#.......#___b___@___b___#.......#",
 		"#.......#\"_____________\"#.......#",
 		"#################################",
 	};
@@ -87,12 +89,12 @@ public class ModernLevel extends Level {
 
 	@Override
 	public String tilesTex() {
-		return Assets.Environment.TILES_CITY;
+		return Assets.Environment.TILES_MODERN;
 	}
 
 	@Override
 	public String waterTex() {
-		return Assets.Environment.WATER_CITY;
+		return Assets.Environment.WATER_MODERN;
 	}
 
 	@Override
@@ -124,6 +126,9 @@ public class ModernLevel extends Level {
 					case '"': map[cell] = Terrain.GRASS; break;
 					case '~': map[cell] = Terrain.WATER; break;
 					case 'B': map[cell] = Terrain.BOOKSHELF; break;
+					case 'V': map[cell] = Terrain.STATUE_SP; break;
+					case 'T': map[cell] = Terrain.REGION_DECO; break;
+					case 'b': map[cell] = Terrain.REGION_DECO_ALT; break;
 					case '@':
 						map[cell] = Terrain.EMPTY_DECO;
 						arrival = cell;
@@ -137,6 +142,11 @@ public class ModernLevel extends Level {
 		for (int x = bx; x < bx + 7; x++) {
 			if (x != bx + 3) map[x + by * width()] = Terrain.BOOKSHELF;
 		}
+
+		//도로 위 중앙선과 횡단보도
+		ModernRoad road = new ModernRoad();
+		road.setRect( 1, 7, ModernRoad.ROAD_W, 2 );
+		customTiles.add( road );
 
 		//가장자리는 항상 벽
 		for (int x = 0; x < width(); x++) {
@@ -321,6 +331,9 @@ public class ModernLevel extends Level {
 			case Terrain.EMPTY_DECO:  return Messages.get(ModernLevel.class, "sidewalk_name");
 			case Terrain.EMPTY_SP:    return Messages.get(ModernLevel.class, "shop_floor_name");
 			case Terrain.STATUE:      return Messages.get(ModernLevel.class, "lamp_name");
+			case Terrain.STATUE_SP:   return Messages.get(ModernLevel.class, "vending_name");
+			case Terrain.REGION_DECO: return Messages.get(ModernLevel.class, "trash_name");
+			case Terrain.REGION_DECO_ALT: return Messages.get(ModernLevel.class, "bench_name");
 			case Terrain.WATER:       return Messages.get(ModernLevel.class, "fountain_name");
 			case Terrain.GRASS:       return Messages.get(ModernLevel.class, "flowerbed_name");
 			case Terrain.WALL:        return Messages.get(ModernLevel.class, "wall_name");
@@ -338,6 +351,9 @@ public class ModernLevel extends Level {
 			case Terrain.EMPTY_DECO:  return Messages.get(ModernLevel.class, "sidewalk_desc");
 			case Terrain.EMPTY_SP:    return Messages.get(ModernLevel.class, "shop_floor_desc");
 			case Terrain.STATUE:      return Messages.get(ModernLevel.class, "lamp_desc");
+			case Terrain.STATUE_SP:   return Messages.get(ModernLevel.class, "vending_desc");
+			case Terrain.REGION_DECO: return Messages.get(ModernLevel.class, "trash_desc");
+			case Terrain.REGION_DECO_ALT: return Messages.get(ModernLevel.class, "bench_desc");
 			case Terrain.WATER:       return Messages.get(ModernLevel.class, "fountain_desc");
 			case Terrain.GRASS:       return Messages.get(ModernLevel.class, "flowerbed_desc");
 			case Terrain.WALL:        return Messages.get(ModernLevel.class, "wall_desc");
@@ -345,6 +361,23 @@ public class ModernLevel extends Level {
 			case Terrain.DOOR:
 			case Terrain.OPEN_DOOR:   return Messages.get(ModernLevel.class, "door_desc");
 			default:                  return super.tileDesc( tile );
+		}
+	}
+
+	//도로 위에 덧그리는 중앙선과 횡단보도 (31칸 x 2칸 그림)
+	public static class ModernRoad extends CustomTilemap {
+
+		public static final int ROAD_W = 31;
+
+		{
+			texture = Assets.Environment.MODERN_ROAD;
+		}
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( mapSimpleImage( 0, 0, 512 ), tileW );
+			return v;
 		}
 	}
 }
