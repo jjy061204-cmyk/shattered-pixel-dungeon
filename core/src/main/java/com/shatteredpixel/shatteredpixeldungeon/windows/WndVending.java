@@ -124,10 +124,6 @@ public class WndVending extends Window {
 		led.hardlight( 0x55FF77 );
 		add( led );
 
-		//투입구 표시
-		addLabel( "+10", 111, 51 );
-		addLabel( "+50", 111, 66 );
-
 		Button coinSlot = new Button(){
 			@Override
 			protected void onClick() { insert( 10 ); }
@@ -139,7 +135,7 @@ public class WndVending extends Window {
 			@Override
 			protected void onClick() { insert( 50 ); }
 		};
-		billSlot.setRect( 98, 55, 26, 14 );
+		billSlot.setRect( 98, 54, 26, 15 );
 		add( billSlot );
 
 		Button lever = new Button(){
