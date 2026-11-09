@@ -982,6 +982,12 @@ public class ItemSpriteSheet {
 		assignItemRect(CROSSWORD, 14, 12);
 		assignItemRect(HAND_WARMER, 12, 11);
 		assignItemRect(CLAW_HAMMER, 16, 14);
+	}
+
+	//모드 무기: 차원 균열 단검
+	public static final int RIFT_DAGGER       = MOD_WEAPON+3;
+	static{
+		assignItemRect(RIFT_DAGGER, 16, 16);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);
 		assignItemRect(DAKKOCHI, 15, 12);

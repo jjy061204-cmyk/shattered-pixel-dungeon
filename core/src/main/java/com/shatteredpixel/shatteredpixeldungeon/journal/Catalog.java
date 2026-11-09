@@ -210,7 +210,7 @@ public enum Catalog {
 
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T1.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T2.classes);
-		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class, ClawHammer.class);
+		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class, ClawHammer.class, com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RiftDagger.class);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T3.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T4.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T5.classes);

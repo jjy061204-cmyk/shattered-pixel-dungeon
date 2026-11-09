@@ -400,6 +400,12 @@ public abstract class Char extends Actor {
 				if (h.buff(MonkEnergy.MonkAbility.UnarmedAbilityTracker.class) != null){
 					dr = 0;
 				}
+
+				//모드: 차원 균열 단검은 방어력 일부를 꿰뚫음
+				if (h.belongings.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RiftDagger){
+					float pierce = ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RiftDagger) h.belongings.attackingWeapon()).armorPierce();
+					dr = Math.round(dr * (1f - pierce));
+				}
 			}
 
 			//we use a float here briefly so that we don't have to constantly round while
