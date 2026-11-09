@@ -64,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.HallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
@@ -370,6 +371,9 @@ public class Dungeon {
 				default:
 					level = new DeadEndLevel();
 			}
+		} else if (branch == ModernLevel.BRANCH) {
+			//모드: 현대 세계 층
+			level = new ModernLevel();
 		} else {
 			level = new DeadEndLevel();
 		}
@@ -455,6 +459,7 @@ public class Dungeon {
 	public static boolean interfloorTeleportAllowed(){
 		if (Dungeon.level.locked
 				|| Dungeon.level instanceof MiningLevel || Dungeon.level instanceof VaultLevel
+				|| Dungeon.level instanceof ModernLevel
 				|| (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
 			return false;
 		}

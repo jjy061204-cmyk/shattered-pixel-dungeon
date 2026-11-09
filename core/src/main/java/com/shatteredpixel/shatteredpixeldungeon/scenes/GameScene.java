@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
@@ -581,6 +582,10 @@ public class GameScene extends PixelScene {
 					});
 				} else {
 					ScrollOfTeleportation.appearVFX(Dungeon.hero);
+				}
+				//모드: 현대 세계 층 도착 안내
+				if (Dungeon.level instanceof ModernLevel){
+					GLog.h(Messages.get(ModernLevel.class, "arrive"));
 				}
 				break;
 			case DESCEND:

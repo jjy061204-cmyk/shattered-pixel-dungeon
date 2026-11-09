@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
@@ -175,7 +176,7 @@ public class WarpBeacon extends ArmorAbility {
 
 						} else {
 
-							if (!Dungeon.interfloorTeleportAllowed()){
+							if (!Dungeon.interfloorTeleportAllowed() || tracker.branch == ModernLevel.BRANCH){
 								GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 								return;
 							}

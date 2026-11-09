@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfPas
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
@@ -197,8 +198,9 @@ public class BeaconOfReturning extends Spell {
 				return;
 			}
 
-			//cannot return to mining or vault level
-			if (tracker.returnDepth >= 11 && tracker.returnDepth <= 19 && tracker.returnBranch == 1){
+			//cannot return to mining or vault level (모드: 현대 세계 층도 금지)
+			if ((tracker.returnDepth >= 11 && tracker.returnDepth <= 19 && tracker.returnBranch == 1)
+					|| tracker.returnBranch == ModernLevel.BRANCH){
 				GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 				return;
 			}

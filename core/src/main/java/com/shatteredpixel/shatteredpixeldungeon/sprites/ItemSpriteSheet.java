@@ -828,12 +828,18 @@ public class ItemSpriteSheet {
 	public static final int BONSTER         = MOD_FOOD+2;
 	public static final int STRAWBERRY_CAKE = MOD_FOOD+3;
 	public static final int BUNGEOPPANG     = MOD_FOOD+4;
+	public static final int PUDDING         = MOD_FOOD+5;
+	public static final int BANANA_MILK     = MOD_FOOD+6;
+	public static final int BUTTER          = MOD_FOOD+7;
 	static{
 		assignItemRect(STRAWBERRY_MILK, 13, 15);
 		assignItemRect(CUP_COFFEE,      12, 14);
 		assignItemRect(BONSTER,         10, 15);
 		assignItemRect(STRAWBERRY_CAKE, 14, 13);
 		assignItemRect(BUNGEOPPANG,     15, 10);
+		assignItemRect(PUDDING,         12, 11);
+		assignItemRect(BANANA_MILK,     13, 15);
+		assignItemRect(BUTTER,          15, 10);
 	}
 
 	private static final int MOD_WEAPON =                                   xy(1, 34);  //16 slots
@@ -843,7 +849,12 @@ public class ItemSpriteSheet {
 	}
 
 	private static final int MOD_MISC   =                                   xy(1, 35);  //16 slots
-	//(비어 있음: 음식·무기 외의 모드 아이템용)
+	public static final int DIMENSION_TICKET        = MOD_MISC+0;
+	public static final int DIMENSION_RETURN_TICKET = MOD_MISC+1;
+	static{
+		assignItemRect(DIMENSION_TICKET,        13, 8);
+		assignItemRect(DIMENSION_RETURN_TICKET, 13, 8);
+	}
 
 	//(36~40줄은 앞으로 더 쓸 수 있도록 비워 둠)
 
