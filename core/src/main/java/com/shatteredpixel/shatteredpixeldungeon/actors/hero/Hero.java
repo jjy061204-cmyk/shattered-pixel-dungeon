@@ -1973,9 +1973,10 @@ public class Hero extends Char {
 		Heap heap = Dungeon.level.heaps.get( cell );
 
 		if (Dungeon.level instanceof ModernLevel && cell != pos
-				&& ((ModernLevel) Dungeon.level).isInteractive( cell )) {
+				&& ((ModernLevel) Dungeon.level).isInteractive( ((ModernLevel) Dungeon.level).stallFront( cell ) )) {
 
-			curAction = new HeroAction.ModernProp( cell );
+			//포장마차 안 주인을 눌러도 천막 앞까지 걸어가서 메뉴를 엶
+			curAction = new HeroAction.ModernProp( ((ModernLevel) Dungeon.level).stallFront( cell ) );
 
 		} else if (Dungeon.level.map[cell] == Terrain.ALCHEMY && cell != pos) {
 			

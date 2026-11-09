@@ -462,7 +462,8 @@ public class PrisonBossLevel extends Level {
 	private com.watabou.noosa.particles.Emitter riftEmitter;
 
 	private void addRiftVisuals(){
-		if (visuals == null || riftEmitter != null) return;
+		//장면을 다시 만들 때 visuals 가 비워지므로 붙어 있지 않으면 다시 붙임
+		if (visuals == null || (riftEmitter != null && riftEmitter.parent == visuals)) return;
 		riftEmitter = new com.watabou.noosa.particles.Emitter();
 		com.watabou.utils.PointF c = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.tileCenterToWorld(riftCell());
 		riftEmitter.pos(c.x - 4, c.y - 14, 8, 20);
@@ -472,6 +473,8 @@ public class PrisonBossLevel extends Level {
 
 	//균열 칸에 들어서면 차원 이동 카드로 들어갈지 물어봄
 	private void enterRift(){
+		//균열을 지나쳐 걸어가던 중이면 멈춰 세움
+		Dungeon.hero.interrupt();
 		final com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket card =
 				Dungeon.hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket.class);
 		if (card == null){

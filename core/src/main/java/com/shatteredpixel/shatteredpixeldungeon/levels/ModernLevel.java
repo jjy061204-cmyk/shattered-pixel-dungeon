@@ -675,6 +675,14 @@ public class ModernLevel extends Level {
 		return ModernCityData.KEYS[cityKeys[cell]];
 	}
 
+	//포장마차 안에 선 주인 칸을 누르면 바로 아래 천막 칸으로 바꿔 줌 (주인 칸은 천막에 둘러싸여 못 다가감)
+	public int stallFront( int cell ){
+		if (cell < 0 || cell + width() >= length()) return cell;
+		String k = cityKey( cell + width() );
+		if (k != null && k.startsWith( "stall_" ) && map[cell] != Terrain.CUSTOM_DECO) return cell + width();
+		return cell;
+	}
+
 	//영웅이 눌러서 다가갈 수 있는 집기인지
 	public boolean isInteractive( int cell ){
 		if (cell >= 0 && cell < length() && map[cell] == Terrain.CUSTOM_DECO && cityKey( cell ) != null) return true;
