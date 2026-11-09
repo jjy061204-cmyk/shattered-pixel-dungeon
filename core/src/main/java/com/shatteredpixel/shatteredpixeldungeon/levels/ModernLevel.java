@@ -68,38 +68,60 @@ public class ModernLevel extends Level {
 	// L 가로등   V 자판기   T 쓰레기통   b 벤치   " 화단   ~ 분수   @ 도착 지점
 	// 가게 안쪽(10x7)은 아래 SHOP_LAYOUTS 로 따로 채움
 	private static final String[] MAP = {
-		"####################################################################",
-		"#..........#..........#..........#..........#..........#t\"\"t\"\"\"t\"\"t#",
-		"#..........#..........#..........#..........#..........#\"\"\"_____\"\"\"#",
-		"#..........#..........#..........#..........#..........#\"t_______t\"#",
-		"#..........#..........#..........#..........#..........#\"\"__b_b__\"\"#",
-		"#..........#..........#..........#..........#..........#\"t_______t\"#",
-		"#..........#..........#..........#..........#..........#\"\"\"__V__\"\"\"#",
-		"#..........#..........#..........#..........#..........#t\"\"_____\"\"t#",
-		"####s+#########s+#########s+#########s+#########s+######\"\"\"_____\"\"\"#",
-		"#_________V_____________________V____________________V_____________#",
-		"#_L__________L______T___L__________L______T___L__________L___B__L__#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#_L_____T____L__________L__________L_____T____L__________L______L__#",
-		"#__________V________b_____________b_________V______________________#",
-		"####s+######___________________________________________####s+#######",
-		"#..........#\"\"_______________________________________\"\"#..........##",
-		"#..........#\"__t_____L________FFFFFF_________L_____t__\"#..........##",
-		"#..........#_____________b____FFFFFF____b______________#..........##",
-		"#..........#__________________FFFFFF___________________#..........##",
-		"#..........#___________________________________________#..........##",
-		"#..........#___t_____L__b__@______________b__L_____t___#..........##",
-		"#..........#\"__________T___________________T__________\"#..........##",
-		"####################################################################",
+		"########################################################",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"####s+#########s+#########s+#########s+#########s+######",
+		"#_________V__p_______m__________V__p_______P_________V_#",
+		"#__o___o____L__T___L__h__o___o___B___L__T___L__o___o___#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#__o___o____L______L__g__o___o___h___L______L__o___o___#",
+		"#__________V__k_____T_____________p_____k___V__________#",
+		"####s+######________________________________####s+######",
+		"#..........#\"\"_t________________________t_\"\"#..........#",
+		"#..........#______L______FFFFFF______L______#..........#",
+		"#..........#_________b___FFFFFF___b_________#..........#",
+		"#..........#__p__________FFFFFF__________p__#..........#",
+		"#..........#___t__L__________________L__t___#..........#",
+		"#..........#__________b____@_____b__________#..........#",
+		"#..........#\"_______T______________T_______\"#..........#",
+		"############__p___p___p__o____o__p___p___p__############",
+		"#___L___________L____T_________________L______T____L___#",
+		"#_______o___o_____m______o___o____V________o___o_______#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#_______o___o_______g____o___o_____B_______o___o_______#",
+		"#_k_L___________L______________________L___________L_P_#",
+		"#t\"\"\"t\"\"\"__\"\"\"t\"\"tp,,,,,,,,,,,,,,,,,,p_____L_________xx#",
+		"#\"\"u\"\"\"\"\"__\"\"\"\"\"\"\"uc,,,,,,,,,,,,,,,,Mu_nN_____nN_______#",
+		"#\"\"~~~~\"\"__\"\"S\"\"u\"u,CD,,CD,,,,,CD,,,,u______________b__#",
+		"#\"\"~~~~u\"__\"\"\"\"W\"\"u,,,,,,,,,,,,,,,,,,u________________P#",
+		"#\"\"~~~~\"\"__\"b\"\"\"\"\"uc,CD,,,,CD,,,,CD,,up_____Z__________#",
+		"#t\"\"\"\"\"\"b__\"\"\"\"\"\"tu,,,,,,,,,,,,,,,,,,u____b_______nN___#",
+		"#__________________,,,,,,,,,,,,,,,,,,_________________V#",
+		"#t\"\"\"\"\"\"\"__\"\"\"\"\"\"t_,,,,,,,c,,,c,,,,,,____________g_____#",
+		"#\"\"\"\"b\"\"\"__b\"\"\"V\"\"u,,,,,,,,,,,,,,,,,,ur_nN____________r#",
+		"#\"u\"\"\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_____________L___#",
+		"#\"\"\"\"\"\"\"\"__\"\"\"\"t\"\"u,CD,,CD,,CD,,,CD,,u__________b______#",
+		"#\"\"\"t\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
+		"#\"\"\"\"\"\"u\"__\"u\"\"\"\"\"u,,,CD,,,,,,CD,,,,,u_______nN_______x#",
+		"#\"\"T\"\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,ux________________#",
+		"#t\"\"\"\"t\"\"__\"\"t\"\"\"tuc,,,,,,,,,,,,,,,,cum____L___T_____Z_#",
+		"########################################################",
 	};
 
 	//가게 안쪽 왼쪽 위 좌표 (위쪽 5곳, 아래쪽 2곳)
 	private static final int[][] SHOP_POS = {
 			{1, 1}, {12, 1}, {23, 1}, {34, 1}, {45, 1},     //편의점, 카페, 금은방, 약국, 서점
-			{1, 18}, {56, 18}                              //철물점, 옷가게
+			{1, 18}, {45, 18}                              //철물점, 옷가게
 	};
 	private static final ModernClerk.Shop[] SHOP_TYPES = {
 			ModernClerk.Shop.CONVENIENCE, ModernClerk.Shop.CAFE, ModernClerk.Shop.JEWELRY,
@@ -197,6 +219,18 @@ public class ModernLevel extends Level {
 	private static final int TREE_IMG = 26;
 	private static final int BUS_IMG  = 27;
 	private static final int FOUNTAIN_IMG = 48;
+	//거리 잡동사니 기물 (96번부터)
+	private static final int STREET_IMG = 96;
+	private static final HashMap<Character, Integer> STREET = new HashMap<>();
+	static {
+		String chars = "hmopkcPrg";                  //소화전, 우체통, 볼라드, 화단, 자전거 거치대, 라바콘, 공중전화, 분리수거함, 이정표
+		for (int i = 0; i < chars.length(); i++) STREET.put( chars.charAt(i), STREET_IMG + i );
+		STREET.put( 'n', STREET_IMG + 9 );  STREET.put( 'N', STREET_IMG + 10 );   //포장마차 (2칸)
+		STREET.put( 'C', STREET_IMG + 11 ); STREET.put( 'D', STREET_IMG + 12 );   //주차된 차 (2칸)
+		STREET.put( 'S', STREET_IMG + 13 ); STREET.put( 'W', STREET_IMG + 14 );   //미끄럼틀, 그네
+		STREET.put( 'u', STREET_IMG + 15 ); STREET.put( 'Z', STREET_IMG + 16 );   //덤불, 배달 오토바이
+		STREET.put( 'x', STREET_IMG + 17 ); STREET.put( 'M', STREET_IMG + 18 );   //택배 상자, 주차 정산기
+	}
 
 	private int arrival = -1;
 	private int[] clerkPos = new int[SHOP_POS.length];
@@ -249,6 +283,9 @@ public class ModernLevel extends Level {
 					case '"': map[cell] = Terrain.GRASS; break;
 					case '~': map[cell] = Terrain.WATER; break;
 					case 't': map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = TREE_IMG; break;
+					case 'h': case 'm': case 'o': case 'p': case 'k': case 'c': case 'P': case 'r': case 'g':
+					case 'n': case 'N': case 'C': case 'D': case 'S': case 'W': case 'u': case 'Z': case 'x': case 'M':
+						map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = STREET.get( c ); break;
 					case 'B': map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = BUS_IMG; break;
 					case 'F':
 						//분수: 처음 만난 F 칸이 왼쪽 위
@@ -297,6 +334,12 @@ public class ModernLevel extends Level {
 		ModernRoad road = new ModernRoad();
 		road.setRect( 1, 11, width() - 2, 4 );
 		customTiles.add( road );
+		//아래쪽 2차선 길
+		if (height() > 30) {
+			ModernSideRoad side = new ModernSideRoad();
+			side.setRect( 1, 28, width() - 2, 2 );
+			customTiles.add( side );
+		}
 
 		//가장자리는 항상 벽
 		for (int x = 0; x < width(); x++) {
@@ -326,7 +369,7 @@ public class ModernLevel extends Level {
 		//예전 버전(가로 33칸)으로 만들어진 층
 		if (width() == 33) return 16 + 14 * width();
 		if (width() == 45) return 22 + 21 * width();
-		if (width() == 56) return 27 + 21 * width();
+		if (width() == 56 && height() == 24) return 27 + 21 * width();
 		return 27 + 23 * width();
 	}
 
@@ -530,12 +573,21 @@ public class ModernLevel extends Level {
 		if (cell < 0 || cell >= length()) return false;
 		if (map[cell] == Terrain.STATUE_SP) return true;      //자판기
 		if (map[cell] == Terrain.CUSTOM_DECO && isFountain( cell )) return true;
+		if (map[cell] == Terrain.CUSTOM_DECO && streetAt( cell ) >= 0) return true;
 		return map[cell] == Terrain.CUSTOM_DECO && propAt( cell ) >= 0;
 	}
 
 	private boolean isFountain( int cell ){
 		ModernProps p = props();
-		return p != null && p.data != null && cell >= 0 && cell < p.data.length && p.data[cell] >= FOUNTAIN_IMG;
+		return p != null && p.data != null && cell >= 0 && cell < p.data.length
+				&& p.data[cell] >= FOUNTAIN_IMG && p.data[cell] < STREET_IMG;
+	}
+
+	private int streetAt( int cell ){
+		ModernProps p = props();
+		if (p == null || p.data == null || cell < 0 || cell >= p.data.length) return -1;
+		int d = p.data[cell];
+		return d >= STREET_IMG && d < STREET_IMG + ModernProps.STREET_KEYS.length ? d : -1;
 	}
 
 	//분수에 동전 던지기
@@ -560,6 +612,12 @@ public class ModernLevel extends Level {
 	public void interact( final int cell ){
 		if (isFountain( cell )){
 			tossCoin();
+			return;
+		}
+		int street = streetAt( cell );
+		if (street >= 0){
+			String k = ModernProps.STREET_KEYS[street - STREET_IMG];
+			showFlavor( street, k, k );
 			return;
 		}
 		if (map[cell] == Terrain.STATUE_SP){
@@ -604,13 +662,18 @@ public class ModernLevel extends Level {
 	}
 
 	private void showFlavor( final int prop, final String key ){
-		final String title = Messages.titleCase( Messages.get( ModernLevel.class, "prop_" + ModernProps.KEYS[prop] + "_name" ) );
-		final String text = Messages.get( ModernLevel.class, "use_" + key + "_" + Random.Int( 2 ) );
+		showFlavor( prop, ModernProps.KEYS[prop], key );
+	}
+
+	//img: 그림 번호, nameKey: 이름 열쇠, useKey: 둘러보기 글 열쇠
+	private void showFlavor( final int img, final String nameKey, final String useKey ){
+		final String title = Messages.titleCase( Messages.get( ModernLevel.class, "prop_" + nameKey + "_name" ) );
+		final String text = Messages.get( ModernLevel.class, "use_" + useKey + "_" + Random.Int( 2 ) );
 		com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
 			@Override
 			public void call() {
 				com.watabou.noosa.Image icon = new com.watabou.noosa.Image( Assets.Environment.MODERN_PROPS,
-						(prop % 16) * 16, (prop / 16) * 16, 16, 16 );
+						(img % 16) * 16, (img / 16) * 16, 16, 16 );
 				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
 						new com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage( icon, title, text ) );
 			}
@@ -726,6 +789,11 @@ public class ModernLevel extends Level {
 				"jewel_counter", "jewel_cabinet", "safe", "scale_counter", "price_board",
 				"cafe_chair", "cafe_chair", "tree", "bus_stop"
 		};
+		//거리 기물
+		public static final String[] STREET_KEYS = {
+				"hydrant", "mailbox", "bollard", "planter", "bike_rack", "cone", "phone_booth", "recycle_bins", "signpost",
+				"food_cart", "food_cart", "parked_car", "parked_car", "slide", "swing", "bush", "scooter", "boxes", "pay_machine"
+		};
 		//가게 종류 순서 (ModernClerk.Shop)
 		private static final String[] SIGN_KEYS = {
 				"sign_convenience", "sign_cafe", "sign_pharmacy", "sign_bookstore", "sign_hardware", "sign_clothing",
@@ -755,7 +823,8 @@ public class ModernLevel extends Level {
 			int img = data[i];
 			if (img >= 0 && img < KEYS.length) return KEYS[img];
 			if (img >= SIGN_IMG && img < SIGN_IMG + SIGN_KEYS.length) return SIGN_KEYS[img - SIGN_IMG];
-			if (img >= FOUNTAIN_IMG) return "fountain";
+			if (img >= STREET_IMG && img < STREET_IMG + STREET_KEYS.length) return STREET_KEYS[img - STREET_IMG];
+			if (img >= FOUNTAIN_IMG && img < STREET_IMG) return "fountain";
 			return null;
 		}
 
@@ -799,6 +868,21 @@ public class ModernLevel extends Level {
 		public Tilemap create() {
 			Tilemap v = super.create();
 			v.map( mapSimpleImage( 0, 0, 2048 ), tileW );
+			return v;
+		}
+	}
+
+	//아래쪽 2차선 길 (도로 그림의 5~6번째 줄)
+	public static class ModernSideRoad extends CustomTilemap {
+
+		{
+			texture = Assets.Environment.MODERN_ROAD;
+		}
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( mapSimpleImage( 0, 4, 2048 ), tileW );
 			return v;
 		}
 	}
