@@ -73,6 +73,11 @@ public class WellFed extends Buff {
 		}
 	}
 
+	//모드: 정해진 턴 수만큼 배부름 (이미 더 길게 남아 있으면 그대로 유지)
+	public void setTurns( int turns ) {
+		left = Math.max(left, turns);
+	}
+
 	public void extend( float duration ) {
 		left += duration;
 	}
