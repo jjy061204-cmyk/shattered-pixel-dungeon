@@ -50,7 +50,9 @@ import java.util.Collection;
 public class ModernClerk extends Shopkeeper {
 
 	public enum Shop {
-		CONVENIENCE, CAFE, PHARMACY, BOOKSTORE, HARDWARE, CLOTHING, JEWELRY
+		CONVENIENCE, CAFE, PHARMACY, BOOKSTORE, HARDWARE, CLOTHING, JEWELRY,
+		//먹자골목 노점
+		TTEOKBOKKI, FISHBREAD, SKEWER, POTATO
 	}
 
 	//금은방 환전 단위
@@ -93,6 +95,10 @@ public class ModernClerk extends Shopkeeper {
 			case HARDWARE:  spriteClass = ClerkSprite.Hardware.class; break;
 			case CLOTHING:  spriteClass = ClerkSprite.Clothing.class; break;
 			case JEWELRY:   spriteClass = ClerkSprite.Jewelry.class; break;
+			case TTEOKBOKKI: spriteClass = ClerkSprite.Tteokbokki.class; break;
+			case FISHBREAD: spriteClass = ClerkSprite.Fishbread.class; break;
+			case SKEWER:    spriteClass = ClerkSprite.Skewer.class; break;
+			case POTATO:    spriteClass = ClerkSprite.Potato.class; break;
 		}
 	}
 
@@ -106,6 +112,10 @@ public class ModernClerk extends Shopkeeper {
 			case HARDWARE:  return 0xD66E1E;
 			case CLOTHING:  return 0x964690;
 			case JEWELRY:   return 0x1E2246;
+			case TTEOKBOKKI: return 0xC83228;
+			case FISHBREAD: return 0x326ED2;
+			case SKEWER:    return 0xE09A1E;
+			case POTATO:    return 0x8C5A32;
 		}
 	}
 

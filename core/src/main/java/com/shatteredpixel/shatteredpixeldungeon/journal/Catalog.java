@@ -262,7 +262,8 @@ public enum Catalog {
 				Bungeoppang.class, Pudding.class, BananaMilk.class, Butter.class,
 				TriangleKimbap.class, CupRamen.class, ChocoBar.class, BottledWater.class, IonDrink.class,
 				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class, Parfait.class, BarleyTea.class, Cider.class, Cola.class, CanCoffee.class, Sikhye.class, GrapeJuice.class,
-				HotBar.class, PotatoChips.class, Dosirak.class, IcedAmericano.class, Waffle.class );
+				HotBar.class, PotatoChips.class, Dosirak.class, IcedAmericano.class, Waffle.class,
+				Tteokbokki.class, Sundae.class, Odeng.class, Gyeranppang.class, Hotteok.class, Dakkochi.class, Sotteok.class, SweetPotato.class, Chestnuts.class );
 
 		EXOTIC_POTIONS.addItems(ExoticPotion.exoToReg.keySet().toArray(new Class[0]));
 

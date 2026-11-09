@@ -938,6 +938,10 @@ public class ItemSpriteSheet {
 	public static final int DOSIRAK           = MOD_FOOD2+10;
 	public static final int ICED_AMERICANO    = MOD_FOOD2+11;
 	public static final int WAFFLE            = MOD_FOOD2+12;
+	//먹자골목 노점 음식
+	public static final int TTEOKBOKKI        = MOD_FOOD2+13;
+	public static final int SUNDAE            = MOD_FOOD2+14;
+	public static final int ODENG             = MOD_FOOD2+15;
 	static{
 		assignItemRect(BUBBLE_TEA, 15, 14);
 		assignItemRect(PARFAIT, 16, 16);
@@ -952,6 +956,9 @@ public class ItemSpriteSheet {
 		assignItemRect(DOSIRAK, 16, 11);
 		assignItemRect(ICED_AMERICANO, 13, 14);
 		assignItemRect(WAFFLE, 15, 11);
+		assignItemRect(TTEOKBOKKI, 14, 10);
+		assignItemRect(SUNDAE, 16, 8);
+		assignItemRect(ODENG, 15, 12);
 	}
 
 	//현대 물품 2 (가게 새 상품)
@@ -962,6 +969,12 @@ public class ItemSpriteSheet {
 	public static final int CROSSWORD         = MOD_MISC2+3;
 	public static final int HAND_WARMER       = MOD_MISC2+4;
 	public static final int CLAW_HAMMER       = MOD_WEAPON+2;
+	public static final int GYERANPPANG       = MOD_MISC2+5;
+	public static final int HOTTEOK           = MOD_MISC2+6;
+	public static final int DAKKOCHI          = MOD_MISC2+7;
+	public static final int SOTTEOK           = MOD_MISC2+8;
+	public static final int SWEET_POTATO      = MOD_MISC2+9;
+	public static final int CHESTNUTS         = MOD_MISC2+10;
 	static{
 		assignItemRect(BURN_OINTMENT, 13, 9);
 		assignItemRect(MOTION_PILL, 12, 10);
@@ -969,6 +982,12 @@ public class ItemSpriteSheet {
 		assignItemRect(CROSSWORD, 14, 12);
 		assignItemRect(HAND_WARMER, 12, 11);
 		assignItemRect(CLAW_HAMMER, 16, 14);
+		assignItemRect(GYERANPPANG, 14, 8);
+		assignItemRect(HOTTEOK, 14, 9);
+		assignItemRect(DAKKOCHI, 15, 12);
+		assignItemRect(SOTTEOK, 15, 13);
+		assignItemRect(SWEET_POTATO, 15, 9);
+		assignItemRect(CHESTNUTS, 14, 9);
 	}
 
 	//==== 촘촘한(고해상도) 아이템 ====

@@ -48,4 +48,9 @@ public class ClerkSprite extends ShopkeeperSprite {
 	public static class Hardware    extends ClerkSprite { @Override protected int row(){ return 4; } }
 	public static class Clothing    extends ClerkSprite { @Override protected int row(){ return 5; } }
 	public static class Jewelry     extends ClerkSprite { @Override protected int row(){ return 6; } }
+	//노점 주인
+	public static class Tteokbokki  extends ClerkSprite { @Override protected int row(){ return 7; } }
+	public static class Fishbread   extends ClerkSprite { @Override protected int row(){ return 8; } }
+	public static class Skewer      extends ClerkSprite { @Override protected int row(){ return 9; } }
+	public static class Potato      extends ClerkSprite { @Override protected int row(){ return 10; } }
 }
