@@ -68,6 +68,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.PhantomMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.SmallRation;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StewedMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryMilk;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.UsagiRod;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.SupplyRation;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
@@ -194,6 +195,7 @@ public enum Catalog {
 
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T1.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T2.classes);
+		MELEE_WEAPONS.addItems(UsagiRod.class);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T3.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T4.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T5.classes);
