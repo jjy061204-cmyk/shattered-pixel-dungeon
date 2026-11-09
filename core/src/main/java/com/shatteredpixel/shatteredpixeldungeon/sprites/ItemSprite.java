@@ -247,7 +247,19 @@ public class ItemSprite extends MovieClip {
 	}
 
 	public void frame( int image ){
-		frame( ItemSpriteSheet.film.get( image ));
+		if (ItemSpriteSheet.HD.has( image )){
+			//모드: 32x32 그림을 16x16 자리에 그려서 두 배 촘촘하게 보이게 함
+			texture = TextureCache.get( Assets.Sprites.ITEMS_HD );
+			frame( ItemSpriteSheet.HD.rect( image ) );
+			width = width / 2f;
+			height = height / 2f;
+			updateVertices();
+		} else {
+			if (texture == null || texture != TextureCache.get( Assets.Sprites.ITEMS )){
+				texture = TextureCache.get( Assets.Sprites.ITEMS );
+			}
+			frame( ItemSpriteSheet.film.get( image ));
+		}
 
 		float height = ItemSpriteSheet.film.height( image );
 		//adds extra raise to very short items, so they are visible

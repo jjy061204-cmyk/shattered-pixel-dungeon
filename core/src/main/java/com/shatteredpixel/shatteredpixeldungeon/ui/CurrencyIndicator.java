@@ -22,6 +22,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.modern.ModernCoin;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Game;
@@ -33,12 +35,16 @@ public class CurrencyIndicator extends Component {
 	
 	private int lastGold = 0;
 	private int lastEnergy = 0;
+	private int lastCoins = 0;
 	
 	private BitmapText gold;
 	private BitmapText energy;
+	//모드: 현대 세계 코인
+	private BitmapText coins;
 	
 	private float goldTime;
 	private float energyTime;
+	private float coinTime;
 
 	public static boolean showGold = false;
 	
@@ -56,7 +62,13 @@ public class CurrencyIndicator extends Component {
 		energy.hardlight( 0x44CCFF );
 		add( energy );
 		
-		gold.visible = energy.visible = false;
+		coins = new BitmapText( PixelScene.pixelFont);
+		coins.text( lastCoins + " COIN" );
+		coins.measure();
+		coins.hardlight( 0x66FFCC );
+		add( coins );
+		
+		gold.visible = energy.visible = coins.visible = false;
 	}
 	
 	@Override
@@ -70,6 +82,10 @@ public class CurrencyIndicator extends Component {
 		} else {
 			energy.y = top() + 1;
 		}
+
+		coins.x = x+1;
+		int lines = (gold.visible ? 1 : 0) + (energy.visible ? 1 : 0);
+		coins.y = top() + 1 + lines * (coins.height() - 2);
 	}
 	
 	@Override
@@ -123,12 +139,44 @@ public class CurrencyIndicator extends Component {
 			layout();
 		}
 
+		if (coins.visible) {
+
+			coinTime -= Game.elapsed;
+			if (coinTime > 0) {
+				coins.alpha( coinTime > TIME / 2 ? 1f : coinTime * 2 / TIME );
+			} else {
+				coins.visible = false;
+			}
+
+		}
+
+		int c = ModernCoin.count();
+		if (c != lastCoins) {
+			lastCoins = c;
+
+			coins.text( lastCoins + " COIN" );
+			coins.measure();
+
+			coins.visible = true;
+			coinTime = TIME;
+
+			layout();
+		}
+
 		if (showGold){
 			if (!gold.visible){
 				gold.visible = true;
 				layout();
 			}
 			goldTime = TIME/2;
+			//현대 세계 가게에서는 코인도 함께 보여 줌
+			if (Dungeon.level instanceof ModernLevel){
+				if (!coins.visible){
+					coins.visible = true;
+					layout();
+				}
+				coinTime = TIME/2;
+			}
 		}
 
 	}

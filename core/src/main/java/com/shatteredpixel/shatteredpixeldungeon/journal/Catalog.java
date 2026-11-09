@@ -258,7 +258,7 @@ public enum Catalog {
 				StrawberryMilk.class, CupCoffee.class, Bonster.class, StrawberryCake.class,
 				Bungeoppang.class, Pudding.class, BananaMilk.class, Butter.class,
 				TriangleKimbap.class, CupRamen.class, ChocoBar.class, BottledWater.class, IonDrink.class,
-				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class );
+				CafeLatte.class, Croissant.class, Macaron.class, BubbleTea.class, Parfait.class );
 
 		EXOTIC_POTIONS.addItems(ExoticPotion.exoToReg.keySet().toArray(new Class[0]));
 
@@ -288,7 +288,7 @@ public enum Catalog {
 				DimensionTicket.class, DimensionReturnTicket.class,
 				Bandage.class, Painkiller.class, Antidote.class, PainPatch.class, EyeDrops.class,
 				CityMap.class, Encyclopedia.class, Workbook.class, ComicBook.class,
-				Flashlight.class, DuctTape.class, FireExtinguisher.class, Whistle.class);
+				Flashlight.class, DuctTape.class, FireExtinguisher.class, Whistle.class, ModernCoin.class);
 
 	}
 

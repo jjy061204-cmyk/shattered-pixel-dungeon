@@ -45,7 +45,8 @@ import java.util.HashMap;
 //현대 세계 층.
 //- 차원 이동 카드로만 들어오고, 귀환 카드로만 나갈 수 있음 (계단 없음)
 //- 귀환의 신호기, 워프 신호기 등 다른 층간 순간이동은 막혀 있음 (Dungeon.interfloorTeleportAllowed 참고)
-//- 큰길 위쪽에 편의점·카페·약국·서점, 아래쪽에 철물점·분수 광장·옷가게
+//- 큰길 위쪽에 편의점·카페·금은방·약국·서점, 아래쪽에 철물점·분수 광장·옷가게
+//- 도착 지점 바로 위, 횡단보도 건너편이 금은방 (금화를 코인으로 바꾸는 곳)
 //- 물건은 바닥에 늘어놓지 않고, 계산대 점원에게 말을 걸어 메뉴판에서 삼 (ModernClerk 참고)
 //- 가게마다 던전 물건 대신 현대 물품을 팖 (items/modern 참고)
 public class ModernLevel extends Level {
@@ -63,40 +64,41 @@ public class ModernLevel extends Level {
 	// L 가로등   V 자판기   T 쓰레기통   b 벤치   " 화단   ~ 분수   @ 도착 지점
 	// 가게 안쪽(10x7)은 아래 SHOP_LAYOUTS 로 따로 채움
 	private static final String[] MAP = {
-		"#############################################",
-		"#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#",
-		"####s+#########s+#########s+#########s+######",
-		"#_________V___________________V_____________#",
-		"#_L______L___T______L___L______T___L______L_#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#_L______L____L_______________L____L______L_#",
-		"#_______T__V________________________T_______#",
-		"####s+######_____________________####s+######",
-		"#..........#\"___________________\"#..........#",
-		"#..........#__\"_______________\"__#..........#",
-		"#..........#____L____~~~____L____#..........#",
-		"#..........#_________~~~_________#..........#",
-		"#..........#_____________________#..........#",
-		"#..........#__\"___b___@___b___\"__#..........#",
-		"#..........#\"___T___________T___\"#..........#",
-		"#############################################",
+		"########################################################",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"#..........#..........#..........#..........#..........#",
+		"####s+#########s+#########s+#########s+#########s+######",
+		"#_________V____________________V_____________________V_#",
+		"#_L______L____T_____L_______________L___T______L_____L_#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+		"#_L______L____L__________________________L____L______L_#",
+		"#_______T__V________________________________V__T_______#",
+		"####s+######________________________________####s+######",
+		"#..........#\"______________________________\"#..........#",
+		"#..........#__\"___L__________________L___\"__#..........#",
+		"#..........#______________~~~~______________#..........#",
+		"#..........#___b__________~~~~__________b___#..........#",
+		"#..........#________________________________#..........#",
+		"#..........#__\"___b________@________b____\"__#..........#",
+		"#..........#\"______T________________T______\"#..........#",
+		"########################################################",
 	};
 
-	//가게 안쪽 왼쪽 위 좌표
+	//가게 안쪽 왼쪽 위 좌표 (위쪽 5곳, 아래쪽 2곳)
 	private static final int[][] SHOP_POS = {
-			{1, 1}, {12, 1}, {23, 1}, {34, 1},     //편의점, 카페, 약국, 서점
-			{1, 16}, {34, 16}                      //철물점, 옷가게
+			{1, 1}, {12, 1}, {23, 1}, {34, 1}, {45, 1},     //편의점, 카페, 금은방, 약국, 서점
+			{1, 16}, {45, 16}                              //철물점, 옷가게
 	};
 	private static final ModernClerk.Shop[] SHOP_TYPES = {
-			ModernClerk.Shop.CONVENIENCE, ModernClerk.Shop.CAFE, ModernClerk.Shop.PHARMACY,
-			ModernClerk.Shop.BOOKSTORE, ModernClerk.Shop.HARDWARE, ModernClerk.Shop.CLOTHING
+			ModernClerk.Shop.CONVENIENCE, ModernClerk.Shop.CAFE, ModernClerk.Shop.JEWELRY,
+			ModernClerk.Shop.PHARMACY, ModernClerk.Shop.BOOKSTORE,
+			ModernClerk.Shop.HARDWARE, ModernClerk.Shop.CLOTHING
 	};
 
 	//==== 가게 안쪽 배치 (가로 10 x 세로 7) ====
@@ -104,6 +106,7 @@ public class ModernLevel extends Level {
 	// C 계산대  R 계산대+포스기  E 계산대+커피머신  F 음료 냉장고  N 과자 진열대  U 컵라면 진열대
 	// M 약 진열대  Q 약 진열대(2)  K 책장  W 공구 진열판  H 옷걸이  Y 마네킹  T 카페 탁자
 	// I 키오스크  P 화분  Z 잡지 진열대  S 케이크 진열장  A 갑옷 진열대  O 커피 바
+	// G 보석 유리 계산대  J 보석 진열장  X 금고  B 계산대+저울  D 금 시세 전광판
 	private static final String[][] SHOP_LAYOUTS = {
 		{ //편의점: 뒤쪽 냉장고, 진열대 두 줄, 문 옆 계산대
 			"FFFF..FFFF",
@@ -121,6 +124,15 @@ public class ModernLevel extends Level {
 			".T..T..T..",
 			"..........",
 			".T.....T.I",
+			"P........P",
+		},
+		{ //금은방: 금고와 보석 진열장, 가운데 유리 계산대와 저울, 금 시세 전광판
+			"XJJJ..JJJD",
+			"..........",
+			"..GB@GG...",
+			"..........",
+			".G......G.",
+			"..........",
 			"P........P",
 		},
 		{ //약국: 약 진열대 벽, 가운데 상담 계산대
@@ -169,8 +181,10 @@ public class ModernLevel extends Level {
 		PROP_IMG.put('W', 8);  PROP_IMG.put('H', 9);  PROP_IMG.put('Y', 10); PROP_IMG.put('T', 11);
 		PROP_IMG.put('I', 12); PROP_IMG.put('P', 13); PROP_IMG.put('Z', 14); PROP_IMG.put('S', 15);
 		PROP_IMG.put('A', 16); PROP_IMG.put('O', 17); PROP_IMG.put('Q', 18);
+		PROP_IMG.put('G', 19); PROP_IMG.put('J', 20); PROP_IMG.put('X', 21); PROP_IMG.put('B', 22);
+		PROP_IMG.put('D', 23);
 	}
-	//간판 그림 번호 (가게 순서대로)
+	//간판 그림 번호 (SIGN_IMG + 가게 종류 번호)
 	private static final int SIGN_IMG = 32;
 
 	private int arrival = -1;
@@ -205,8 +219,6 @@ public class ModernLevel extends Level {
 		java.util.Arrays.fill( props.data, -1 );
 
 		//바깥 지도
-		int signCount = 0;
-		int[] signOrder = { 0, 1, 2, 3, 4, 5 };
 		for (int y = 0; y < height(); y++) {
 			String row = MAP[y];
 			for (int x = 0; x < width(); x++) {
@@ -225,11 +237,8 @@ public class ModernLevel extends Level {
 					case '"': map[cell] = Terrain.GRASS; break;
 					case '~': map[cell] = Terrain.WATER; break;
 					case 's':
-						//가게 이름판: 벽 앞면 위에 가게별 간판 그림을 덧그림
+						//가게 이름판 자리 (그림은 아래에서 가게 종류에 맞춰 덧그림)
 						map[cell] = Terrain.WALL;
-						if (signCount < signOrder.length) {
-							props.data[cell] = SIGN_IMG + signOrder[signCount++];
-						}
 						break;
 					case '@':
 						map[cell] = Terrain.EMPTY_DECO;
@@ -244,6 +253,9 @@ public class ModernLevel extends Level {
 			int left = SHOP_POS[s][0], top = SHOP_POS[s][1];
 			String[] layout = SHOP_LAYOUTS[s];
 			clerkPos[s] = -1;
+			//간판: 위쪽 가게는 가게 아래 벽, 아래쪽 가게는 가게 위 벽의 왼쪽에서 네 번째 칸
+			int signY = top < height() / 2 ? top + layout.length : top - 1;
+			props.data[(left + 3) + signY * width()] = SIGN_IMG + SHOP_TYPES[s].ordinal();
 			for (int y = 0; y < layout.length; y++) {
 				for (int x = 0; x < layout[y].length(); x++) {
 					char c = layout[y].charAt(x);
@@ -261,7 +273,7 @@ public class ModernLevel extends Level {
 
 		//도로 위 중앙선, 횡단보도, 맨홀
 		ModernRoad road = new ModernRoad();
-		road.setRect( 1, 11, ModernRoad.ROAD_W, 2 );
+		road.setRect( 1, 11, width() - 2, 2 );
 		customTiles.add( road );
 
 		//가장자리는 항상 벽
@@ -291,7 +303,8 @@ public class ModernLevel extends Level {
 		if (arrival != -1) return arrival;
 		//예전 버전(가로 33칸)으로 만들어진 층
 		if (width() == 33) return 16 + 14 * width();
-		return 22 + 21 * width();
+		if (width() == 45) return 22 + 21 * width();
+		return 27 + 21 * width();
 	}
 
 	//==== 점원과 상품 ====
@@ -319,11 +332,18 @@ public class ModernLevel extends Level {
 		return null;
 	}
 
+	private ModernClerk clerk( ModernClerk.Shop type ){
+		for (int s = 0; s < SHOP_TYPES.length; s++){
+			if (SHOP_TYPES[s] == type) return clerks[s];
+		}
+		return null;
+	}
+
 	@Override
 	protected void createItems() {
 
 		//편의점: 음료 하나는 1+1 행사, 차원 이동 카드도 판매
-		ModernClerk conv = clerks[0];
+		ModernClerk conv = clerk( ModernClerk.Shop.CONVENIENCE );
 		if (conv != null) {
 			ArrayList<Item> drinks = new ArrayList<>();
 			drinks.add( new BananaMilk() ); drinks.add( new StrawberryMilk() );
@@ -343,12 +363,12 @@ public class ModernLevel extends Level {
 		}
 
 		//카페: 오늘의 메뉴 하나 30% 할인
-		ModernClerk cafe = clerks[1];
+		ModernClerk cafe = clerk( ModernClerk.Shop.CAFE );
 		if (cafe != null) {
 			ArrayList<Item> menu = new ArrayList<>();
 			menu.add( new CupCoffee() ); menu.add( new CafeLatte() ); menu.add( new BubbleTea() );
 			menu.add( new StrawberryCake() ); menu.add( new Croissant() ); menu.add( new Macaron().quantity(2) );
-			menu.add( new Pudding() );
+			menu.add( new Pudding() ); menu.add( new Parfait() );
 			int today = Random.Int( menu.size() );
 			for (int i = 0; i < menu.size(); i++) {
 				cafe.addStock( menu.get(i), i == today ? ModernClerk.DEAL_30_OFF : ModernClerk.DEAL_NONE );
@@ -356,7 +376,7 @@ public class ModernLevel extends Level {
 		}
 
 		//약국: 현대 의약품
-		ModernClerk pharm = clerks[2];
+		ModernClerk pharm = clerk( ModernClerk.Shop.PHARMACY );
 		if (pharm != null) {
 			pharm.addStock( new Bandage().quantity(3), ModernClerk.DEAL_NONE );
 			pharm.addStock( new Painkiller().quantity(2), ModernClerk.DEAL_NONE );
@@ -366,7 +386,7 @@ public class ModernLevel extends Level {
 		}
 
 		//서점: 백과사전(던지는 두꺼운 책), 문제집, 만화책
-		ModernClerk books = clerks[3];
+		ModernClerk books = clerk( ModernClerk.Shop.BOOKSTORE );
 		if (books != null) {
 			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
 			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
@@ -375,7 +395,7 @@ public class ModernLevel extends Level {
 		}
 
 		//철물점: 손전등, 호루라기, 덕트 테이프, 소화기, 쇠지렛대
-		ModernClerk hard = clerks[4];
+		ModernClerk hard = clerk( ModernClerk.Shop.HARDWARE );
 		if (hard != null) {
 			hard.addStock( new Flashlight(), ModernClerk.DEAL_NONE );
 			hard.addStock( new Whistle(), ModernClerk.DEAL_NONE );
@@ -387,7 +407,7 @@ public class ModernLevel extends Level {
 		}
 
 		//옷가게: 시즌 오프, 전 품목 20% 할인
-		ModernClerk clothes = clerks[5];
+		ModernClerk clothes = clerk( ModernClerk.Shop.CLOTHING );
 		if (clothes != null) {
 			Armor[] wear = { new Hoodie(), new PaddedJacket(), new LeatherJacket() };
 			for (Armor a : wear) {
@@ -475,10 +495,13 @@ public class ModernLevel extends Level {
 		private static final String[] KEYS = {
 				"counter", "register", "espresso", "fridge", "snack_shelf", "noodle_shelf", "med_shelf", "book_shelf",
 				"tool_rack", "clothes_rack", "mannequin", "cafe_table", "kiosk", "plant", "magazine", "cake_showcase",
-				"armor_stand", "coffee_bar", "med_shelf"
+				"armor_stand", "coffee_bar", "med_shelf",
+				"jewel_counter", "jewel_cabinet", "safe", "scale_counter", "price_board"
 		};
+		//가게 종류 순서 (ModernClerk.Shop)
 		private static final String[] SIGN_KEYS = {
-				"sign_convenience", "sign_cafe", "sign_pharmacy", "sign_bookstore", "sign_hardware", "sign_clothing"
+				"sign_convenience", "sign_cafe", "sign_pharmacy", "sign_bookstore", "sign_hardware", "sign_clothing",
+				"sign_jewelry"
 		};
 
 		@Override
@@ -534,10 +557,10 @@ public class ModernLevel extends Level {
 		}
 	}
 
-	//도로 위에 덧그리는 중앙선, 횡단보도, 맨홀 (43칸 x 2칸 그림)
+	//도로 위에 덧그리는 중앙선, 횡단보도, 맨홀 (54칸 x 2칸 그림)
 	public static class ModernRoad extends CustomTilemap {
 
-		public static final int ROAD_W = 43;
+		public static final int ROAD_W = 54;
 
 		{
 			texture = Assets.Environment.MODERN_ROAD;

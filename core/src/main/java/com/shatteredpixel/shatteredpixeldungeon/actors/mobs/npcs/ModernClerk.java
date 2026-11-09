@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.modern.ModernCoin;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
@@ -43,11 +44,16 @@ import java.util.Collection;
 //- 가게마다 행사가 다름: 편의점 1+1, 카페 오늘의 메뉴 할인, 옷가게 전 품목 할인
 //- 약국은 물약 성분 분석, 서점은 주문서 감정 서비스를 제공
 //- 결제하면 영수증 메시지가 남음
+//- 돈은 금화가 아니라 '코인'(ModernCoin)으로 냄. 금은방에서 금화 1개 = 코인 1개로 바꿀 수 있음
+//- 물건 팔기(금으로 매입)는 금은방에서만 함
 public class ModernClerk extends Shopkeeper {
 
 	public enum Shop {
-		CONVENIENCE, CAFE, PHARMACY, BOOKSTORE, HARDWARE, CLOTHING
+		CONVENIENCE, CAFE, PHARMACY, BOOKSTORE, HARDWARE, CLOTHING, JEWELRY
 	}
+
+	//금은방 환전 단위
+	private static final int[] EXCHANGE_STEPS = { 100, 500, 1000 };
 
 	//행사 종류
 	public static final int DEAL_NONE    = 0;
@@ -84,6 +90,7 @@ public class ModernClerk extends Shopkeeper {
 			case BOOKSTORE: spriteClass = ClerkSprite.Bookstore.class; break;
 			case HARDWARE:  spriteClass = ClerkSprite.Hardware.class; break;
 			case CLOTHING:  spriteClass = ClerkSprite.Clothing.class; break;
+			case JEWELRY:   spriteClass = ClerkSprite.Jewelry.class; break;
 		}
 	}
 
@@ -168,19 +175,23 @@ public class ModernClerk extends Shopkeeper {
 	}
 
 	private void showMainMenu(){
+		if (shop == Shop.JEWELRY){
+			showJewelryMenu();
+			return;
+		}
 		final ArrayList<String> options = new ArrayList<>();
 		options.add( txt( "browse", stock.size() ) );
 		final boolean service = hasService();
 		if (service) options.add( txt( "service_" + key(), serviceFee() ) );
-		options.add( txt( "sell" ) );
 		options.add( txt( "talk" ) );
 
 		String msg = line( "greet" );
 		String promo = txt( "promo_" + key() );
 		if (!promo.isEmpty()) msg += "\n\n" + promo;
+		msg += "\n\n" + txt( "wallet", ModernCoin.count() );
 
 		CurrencyIndicator.showGold = true;
-		GameScene.show( new WndOptions( sprite(), Messages.titleCase( name() ), msg,
+		GameScene.show( new ClerkWnd( sprite(), Messages.titleCase( name() ), msg,
 				options.toArray( new String[0] ) ){
 			@Override
 			protected void onSelect( int index ) {
@@ -192,12 +203,85 @@ public class ModernClerk extends Shopkeeper {
 					i--;
 				}
 				if (i == 1) {
-					sell();
-				} else if (i == 2) {
 					GameScene.show( new WndTitledMessage( sprite(), Messages.titleCase( name() ), line( "chat" ) ) );
 				}
 			}
 		});
+	}
+
+	//==== 금은방: 환전과 매입 ====
+
+	private void showJewelryMenu(){
+		String msg = line( "greet" ) + "\n\n" + txt( "promo_jewelry" )
+				+ "\n\n" + txt( "wallet_both", Dungeon.gold, ModernCoin.count() );
+		CurrencyIndicator.showGold = true;
+		GameScene.show( new ClerkWnd( sprite(), Messages.titleCase( name() ), msg,
+				txt( "to_coin" ), txt( "to_gold" ), txt( "sell_jewelry" ), txt( "talk" ) ){
+			@Override
+			protected void onSelect( int index ) {
+				super.onSelect( index );
+				switch (index){
+					case 0: showExchange( true ); break;
+					case 1: showExchange( false ); break;
+					case 2: sell(); break;
+					case 3: GameScene.show( new WndTitledMessage( sprite(), Messages.titleCase( name() ), line( "chat" ) ) ); break;
+				}
+			}
+		});
+	}
+
+	//toCoin: 금화 -> 코인, 아니면 코인 -> 금화
+	private void showExchange( final boolean toCoin ){
+		final int have = toCoin ? Dungeon.gold : ModernCoin.count();
+		final ArrayList<String> options = new ArrayList<>();
+		final ArrayList<Integer> amounts = new ArrayList<>();
+		for (int n : EXCHANGE_STEPS){
+			options.add( txt( toCoin ? "amount_to_coin" : "amount_to_gold", n ) );
+			amounts.add( n );
+		}
+		options.add( txt( "amount_all", have ) );
+		amounts.add( have );
+		options.add( txt( "back" ) );
+
+		CurrencyIndicator.showGold = true;
+		GameScene.show( new ClerkWnd( sprite(), txt( toCoin ? "to_coin" : "to_gold" ),
+				txt( toCoin ? "exchange_body_to_coin" : "exchange_body_to_gold", Dungeon.gold, ModernCoin.count() ),
+				options.toArray( new String[0] ) ){
+			@Override
+			protected boolean enabled( int i ) {
+				if (i < amounts.size()) {
+					int n = amounts.get( i );
+					return n > 0 && n <= have;
+				}
+				return true;
+			}
+
+			@Override
+			protected void onSelect( int i ) {
+				super.onSelect( i );
+				if (i < amounts.size()){
+					exchange( toCoin, amounts.get( i ) );
+				}
+				showJewelryMenu();
+			}
+		});
+	}
+
+	private void exchange( boolean toCoin, int n ){
+		if (n <= 0) return;
+		if (toCoin){
+			if (Dungeon.gold < n) { say( txt( "no_gold" ) ); return; }
+			Dungeon.gold -= n;
+			Catalog.countUses( Gold.class, n );
+			ModernCoin.give( n );
+			GLog.p( txt( "exchanged_to_coin", n, n ) );
+		} else {
+			if (!ModernCoin.spend( n )) { say( txt( "no_money" ) ); return; }
+			Dungeon.gold += n;
+			GLog.p( txt( "exchanged_to_gold", n, n ) );
+		}
+		Sample.INSTANCE.play( Assets.Sounds.GOLD );
+		say( line( "thanks" ) );
 	}
 
 	//==== 상품 목록 (메뉴판) ====
@@ -221,13 +305,14 @@ public class ModernClerk extends Shopkeeper {
 		}
 		final int listSize = options.size();
 		final boolean hasPrev = p > 0, hasNext = p < pages - 1;
+		final int coins = ModernCoin.count();
 		if (hasPrev) options.add( txt( "prev" ) );
 		if (hasNext) options.add( txt( "next" ) );
 		options.add( txt( "back" ) );
 
 		CurrencyIndicator.showGold = true;
-		GameScene.show( new WndOptions( sprite(), txt( "menu_title_" + key() ),
-				txt( "menu_body", p + 1, pages ), options.toArray( new String[0] ) ){
+		GameScene.show( new ClerkWnd( sprite(), txt( "menu_title_" + key() ),
+				txt( "menu_body", p + 1, pages, coins ), options.toArray( new String[0] ) ){
 
 			@Override
 			protected boolean hasIcon( int index ) {
@@ -260,13 +345,13 @@ public class ModernClerk extends Shopkeeper {
 		final int price = price( index );
 		String info = item.info();
 		if (deals.get(index) == DEAL_ONE_PLUS_ONE) info += "\n\n" + txt( "deal_1p1_info" );
-		info += "\n\n" + txt( "total", price );
+		info += "\n\n" + txt( "total", price, ModernCoin.count() );
 
-		GameScene.show( new WndOptions( new ItemSprite( item ), Messages.titleCase( item.title() ), info,
+		GameScene.show( new ClerkWnd( new ItemSprite( item ), Messages.titleCase( item.title() ), info,
 				txt( "pay", price ), txt( "cancel" ) ){
 			@Override
 			protected boolean enabled( int i ) {
-				if (i == 0) return Dungeon.gold >= price;
+				if (i == 0) return ModernCoin.count() >= price;
 				return true;
 			}
 
@@ -284,13 +369,11 @@ public class ModernClerk extends Shopkeeper {
 	private void buy( int index ){
 		if (index < 0 || index >= stock.size()) return;
 		int price = price( index );
-		if (Dungeon.gold < price) return;
+		if (ModernCoin.count() < price) return;
+		if (!ModernCoin.spend( price )) return;
 
 		Item item = stock.remove( index );
 		int deal = deals.remove( index );
-
-		Dungeon.gold -= price;
-		Catalog.countUses( Gold.class, price );
 
 		//1+1: 겹칠 수 있는 물건이면 하나 더
 		if (deal == DEAL_ONE_PLUS_ONE && item.stackable){
@@ -310,7 +393,7 @@ public class ModernClerk extends Shopkeeper {
 
 	private void startService(){
 		final int fee = serviceFee();
-		if (Dungeon.gold < fee){
+		if (ModernCoin.count() < fee){
 			say( txt( "no_money" ) );
 			return;
 		}
@@ -330,9 +413,7 @@ public class ModernClerk extends Shopkeeper {
 			@Override
 			public void onSelect( Item item ) {
 				if (item == null) return;
-				if (Dungeon.gold < fee) return;
-				Dungeon.gold -= fee;
-				Catalog.countUses( Gold.class, fee );
+				if (!ModernCoin.spend( fee )) return;
 				item.identify();
 				Sample.INSTANCE.play( Assets.Sounds.GOLD );
 				say( txt( potions ? "service_done_pharmacy" : "service_done_bookstore",
@@ -362,6 +443,19 @@ public class ModernClerk extends Shopkeeper {
 		super.destroy();
 		for (Heap heap : otherShops) {
 			heap.type = Heap.Type.FOR_SALE;
+		}
+	}
+
+	//창을 닫으면 금화·코인 표시도 다시 숨김
+	private static class ClerkWnd extends WndOptions {
+		public ClerkWnd( Image icon, String title, String message, String... options ){
+			super( icon, title, message, options );
+		}
+
+		@Override
+		public void hide() {
+			super.hide();
+			CurrencyIndicator.showGold = false;
 		}
 	}
 

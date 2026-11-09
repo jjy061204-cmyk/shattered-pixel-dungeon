@@ -179,6 +179,8 @@ public class DevChest extends Item {
 		if (item == null) return;
 
 		item.identify();
+		//현대 세계 코인은 넉넉하게 1000개
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.modern.ModernCoin) item.quantity(1000);
 		String name = Messages.titleCase(item.name());
 		if (item.collect()){
 			GLog.p(txt("got", name));

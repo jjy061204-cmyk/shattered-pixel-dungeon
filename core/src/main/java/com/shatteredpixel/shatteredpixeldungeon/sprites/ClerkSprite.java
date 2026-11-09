@@ -15,7 +15,7 @@ import com.watabou.noosa.TextureFilm;
 //현대 세계 점원. clerks.png 한 줄에 한 가게 점원 (0번 프레임: 눈 깜빡임, 1번 프레임: 기본)
 public class ClerkSprite extends ShopkeeperSprite {
 
-	//가게 순서: 0 편의점, 1 카페, 2 약국, 3 서점, 4 철물점, 5 옷가게
+	//가게 순서: 0 편의점, 1 카페, 2 약국, 3 서점, 4 철물점, 5 옷가게, 6 금은방
 	protected int row(){
 		return 0;
 	}
@@ -47,4 +47,5 @@ public class ClerkSprite extends ShopkeeperSprite {
 	public static class Bookstore   extends ClerkSprite { @Override protected int row(){ return 3; } }
 	public static class Hardware    extends ClerkSprite { @Override protected int row(){ return 4; } }
 	public static class Clothing    extends ClerkSprite { @Override protected int row(){ return 5; } }
+	public static class Jewelry     extends ClerkSprite { @Override protected int row(){ return 6; } }
 }

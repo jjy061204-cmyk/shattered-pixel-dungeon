@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
+import com.watabou.utils.RectF;
 
 public class ItemSpriteSheet {
 
@@ -837,9 +838,9 @@ public class ItemSpriteSheet {
 		assignItemRect(BONSTER,         10, 15);
 		assignItemRect(STRAWBERRY_CAKE, 14, 13);
 		assignItemRect(BUNGEOPPANG,     15, 10);
-		assignItemRect(PUDDING,         12, 11);
-		assignItemRect(BANANA_MILK,     13, 15);
-		assignItemRect(BUTTER,          15, 10);
+		assignItemRect(PUDDING, 14, 13);
+		assignItemRect(BANANA_MILK, 14, 14);
+		assignItemRect(BUTTER, 15, 10);
 	}
 
 	private static final int MOD_WEAPON =                                   xy(1, 34);  //16 slots
@@ -852,8 +853,8 @@ public class ItemSpriteSheet {
 	public static final int DIMENSION_TICKET        = MOD_MISC+0;
 	public static final int DIMENSION_RETURN_TICKET = MOD_MISC+1;
 	static{
-		assignItemRect(DIMENSION_TICKET,        13, 8);
-		assignItemRect(DIMENSION_RETURN_TICKET, 13, 8);
+		assignItemRect(DIMENSION_TICKET, 15, 9);
+		assignItemRect(DIMENSION_RETURN_TICKET, 15, 9);
 	}
 
 	private static final int MOD_FOOD2  =                                   xy(1, 36);  //16 slots
@@ -871,20 +872,20 @@ public class ItemSpriteSheet {
 	public static final int CROISSANT         = MOD_FOOD+14;
 	public static final int MACARON           = MOD_FOOD+15;
 	static{
-		assignItemRect(TRIANGLE_KIMBAP,   14, 12);
-		assignItemRect(CUP_RAMEN,         14, 14);
-		assignItemRect(CHOCO_BAR,         16, 6);
-		assignItemRect(BOTTLED_WATER,     10, 14);
-		assignItemRect(ION_DRINK,         10, 13);
-		assignItemRect(CAFE_LATTE,        14, 13);
-		assignItemRect(CROISSANT,         15, 9);
-		assignItemRect(MACARON,           13, 12);
+		assignItemRect(TRIANGLE_KIMBAP, 16, 13);
+		assignItemRect(CUP_RAMEN, 14, 14);
+		assignItemRect(CHOCO_BAR, 16, 7);
+		assignItemRect(BOTTLED_WATER, 12, 15);
+		assignItemRect(ION_DRINK, 12, 14);
+		assignItemRect(CAFE_LATTE, 16, 14);
+		assignItemRect(CROISSANT, 16, 10);
+		assignItemRect(MACARON, 15, 12);
 	}
 
 	//현대 물품 (MOD_WEAPON)
 	public static final int CROWBAR           = MOD_WEAPON+1;
 	static{
-		assignItemRect(CROWBAR,           16, 16);
+		assignItemRect(CROWBAR, 16, 16);
 	}
 
 	//현대 물품 (MOD_MISC)
@@ -901,26 +902,51 @@ public class ItemSpriteSheet {
 	public static final int DUCT_TAPE         = MOD_MISC+12;
 	public static final int FIRE_EXTINGUISHER = MOD_MISC+13;
 	public static final int WHISTLE           = MOD_MISC+14;
+	public static final int MODERN_COIN       = MOD_MISC+15;
 	static{
-		assignItemRect(BANDAGE,           16, 7);
-		assignItemRect(PAINKILLER,        15, 10);
-		assignItemRect(ANTIDOTE,          10, 13);
-		assignItemRect(PAIN_PATCH,        15, 8);
-		assignItemRect(EYE_DROPS,         8, 12);
-		assignItemRect(CITY_MAP,          14, 9);
-		assignItemRect(ENCYCLOPEDIA,      13, 13);
-		assignItemRect(WORKBOOK,          16, 11);
-		assignItemRect(COMIC_BOOK,        13, 12);
-		assignItemRect(FLASHLIGHT,        16, 8);
-		assignItemRect(DUCT_TAPE,         13, 10);
+		assignItemRect(BANDAGE, 16, 7);
+		assignItemRect(PAINKILLER, 16, 10);
+		assignItemRect(ANTIDOTE, 10, 14);
+		assignItemRect(PAIN_PATCH, 15, 8);
+		assignItemRect(EYE_DROPS, 8, 13);
+		assignItemRect(CITY_MAP, 15, 9);
+		assignItemRect(ENCYCLOPEDIA, 14, 14);
+		assignItemRect(WORKBOOK, 16, 11);
+		assignItemRect(COMIC_BOOK, 14, 12);
+		assignItemRect(FLASHLIGHT, 16, 7);
+		assignItemRect(DUCT_TAPE, 13, 9);
 		assignItemRect(FIRE_EXTINGUISHER, 13, 14);
-		assignItemRect(WHISTLE,           13, 9);
+		assignItemRect(WHISTLE, 15, 10);
+		assignItemRect(MODERN_COIN, 12, 12);
 	}
 
 	//현대 물품 (MOD_FOOD2)
 	public static final int BUBBLE_TEA        = MOD_FOOD2+0;
+	//실험: 32x32로 그린 아이템. items.png에는 16x16으로 줄인 그림이 들어가고,
+	//실제 화면에는 items_hd.png의 32x32 그림이 같은 크기로 촘촘하게 그려짐 (ItemSprite 참고)
+	public static final int PARFAIT           = MOD_FOOD2+1;
 	static{
-		assignItemRect(BUBBLE_TEA,        14, 14);
+		assignItemRect(BUBBLE_TEA, 15, 14);
+		assignItemRect(PARFAIT, 16, 16);
+	}
+
+	//==== 고해상도(32x32) 아이템 ====
+	public static class HD {
+		public static final int SIZE = 32;
+		private static final int TX_W = 256, TX_H = 32;
+		//그림 번호 -> items_hd.png 안의 칸 번호
+		private static final java.util.HashMap<Integer, Integer> SLOT = new java.util.HashMap<>();
+		static {
+			SLOT.put( PARFAIT, 0 );
+		}
+		public static TextureFilm film = new TextureFilm( TX_W, TX_H, SIZE, SIZE );
+
+		public static boolean has( int image ){
+			return SLOT.containsKey( image );
+		}
+		public static RectF rect( int image ){
+			return film.get( SLOT.get( image ) );
+		}
 	}
 
 	//현대 물품 (MOD_ARMOR)
@@ -928,9 +954,9 @@ public class ItemSpriteSheet {
 	public static final int PADDED_JACKET     = MOD_ARMOR+1;
 	public static final int LEATHER_JACKET    = MOD_ARMOR+2;
 	static{
-		assignItemRect(HOODIE,            14, 12);
-		assignItemRect(PADDED_JACKET,     14, 12);
-		assignItemRect(LEATHER_JACKET,    14, 12);
+		assignItemRect(HOODIE, 14, 12);
+		assignItemRect(PADDED_JACKET, 14, 12);
+		assignItemRect(LEATHER_JACKET, 14, 12);
 	}
 
 	//for smaller 8x8 icons that often accompany an item sprite
