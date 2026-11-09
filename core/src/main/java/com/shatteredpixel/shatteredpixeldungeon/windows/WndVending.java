@@ -80,8 +80,8 @@ public class WndVending extends Window {
 		drops = new Group();
 		add( drops );
 
-		RenderedTextBlock head = PixelScene.renderTextBlock( Messages.get( this, "title" ), 8 );
-		head.hardlight( 0xC8323C );
+		RenderedTextBlock head = PixelScene.renderTextBlock( Messages.get( this, "title_" + ModernLevel.vendingKind( cell ) ), 8 );
+		head.hardlight( ModernLevel.VENDING_COLOR[ModernLevel.vendingKind( cell )] );
 		head.setPos( (W - head.width()) / 2f, 3 + (14 - head.height()) / 2f );
 		PixelScene.align( head );
 		add( head );
@@ -91,7 +91,7 @@ public class WndVending extends Window {
 			final int slot = i;
 			int sx = 6 + (i % 4) * 22, sy = 19 + (i / 4) * 44;
 
-			Item drink = ModernLevel.vendingDrink( i );
+			Item drink = ModernLevel.vendingDrink( cell, i );
 			ItemSprite spr = new ItemSprite( drink );
 			spr.x = sx + (22 - spr.width()) / 2f;
 			spr.y = sy + 21 - spr.height();
@@ -189,7 +189,7 @@ public class WndVending extends Window {
 		int[] stock = level.vendingStock( cell );
 		for (int i = 0; i < SLOTS; i++){
 			int sx = 6 + (i % 4) * 22, sy = 19 + (i / 4) * 44;
-			int p = ModernLevel.vendingPrice( i );
+			int p = ModernLevel.vendingPrice( cell, i );
 			ModernDigits pr = prices[i];
 			if (stock[i] <= 0){
 				pr.text( "SOLD", 0xD02828 );
@@ -242,12 +242,12 @@ public class WndVending extends Window {
 
 	private void describe( int i ){
 		Sample.INSTANCE.play( Assets.Sounds.CLICK );
-		GameScene.show( new WndInfoItem( ModernLevel.vendingDrink( i ) ) );
+		GameScene.show( new WndInfoItem( ModernLevel.vendingDrink( cell, i ) ) );
 	}
 
 	private void select( int i ){
 		int[] stock = level.vendingStock( cell );
-		int p = ModernLevel.vendingPrice( i );
+		int p = ModernLevel.vendingPrice( cell, i );
 		if (stock[i] <= 0){
 			Sample.INSTANCE.play( Assets.Sounds.CLICK );
 			flash( "SOL" );
@@ -265,7 +265,7 @@ public class WndVending extends Window {
 		//기계가 움직이는 소리 뒤에 덜컹
 		Sample.INSTANCE.playDelayed( Assets.Sounds.STURDY, 0.35f, 0.8f );
 
-		Item drink = ModernLevel.vendingDrink( i );
+		Item drink = ModernLevel.vendingDrink( cell, i );
 		ItemSprite spr = new ItemSprite( drink );
 		int n = outlet.size() + falling.size();
 		spr.x = OUT_X + 6 + (n % 5) * 14 + (12 - spr.width()) / 2f;

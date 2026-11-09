@@ -568,23 +568,52 @@ public class ModernLevel extends Level {
 	//==== 자판기 ====
 
 	//음료 순서: 생수, 보리차, 사이다, 콜라, 캔커피, 식혜, 포도알 주스, 본스터
-	private static final int[] VENDING_BASE = { 10, 15, 20, 20, 20, 25, 25, 40 };
+	//자판기 종류별 진열 상품 8칸과 기본 가격 (도시 그림의 자판기 위치 순서)
+	public static final int VENDING_SLOTS = 8;
+	private static final int[][] VENDING_POS = { {10, 9}, {32, 9}, {53, 9}, {24, 26}, {11, 38}, {54, 38} };
+	@SuppressWarnings("unchecked")
+	private static final Class<? extends Item>[][] VENDING_GOODS = new Class[][]{
+		//0 음료 자판기 (빨강, 편의점 옆)
+		{ BottledWater.class, BarleyTea.class, Cider.class, Cola.class, CanCoffee.class, Sikhye.class, GrapeJuice.class, Bonster.class },
+		//1 커피·우유 자판기 (파랑, 카페 옆)
+		{ CupCoffee.class, CanCoffee.class, CafeLatte.class, IcedAmericano.class, BananaMilk.class, StrawberryMilk.class, BottledWater.class, Bonster.class },
+		//2 탄산·에너지 자판기 (빨강, 옷가게 옆)
+		{ IonDrink.class, Cola.class, Cider.class, GrapeJuice.class, BottledWater.class, BarleyTea.class, ChocoBar.class, Bonster.class },
+		//3 간식 자판기 (초록, 광장)
+		{ PotatoChips.class, ChocoBar.class, Macaron.class, Croissant.class, Pudding.class, Waffle.class, HotBar.class, BubbleTea.class },
+		//4 건강 자판기 (초록, 공원)
+		{ BottledWater.class, BarleyTea.class, IonDrink.class, Sikhye.class, Bandage.class, PainPatch.class, EyeDrops.class, HandWarmer.class },
+		//5 야식 자판기 (빨강, 먹자골목)
+		{ CupRamen.class, TriangleKimbap.class, HotBar.class, PotatoChips.class, Cola.class, Cider.class, Sikhye.class, BottledWater.class },
+	};
+	private static final int[][] VENDING_BASE = {
+		{ 10, 15, 20, 20, 20, 25, 25, 40 },
+		{ 20, 20, 25, 25, 25, 25, 10, 40 },
+		{ 20, 20, 20, 25, 10, 15, 15, 40 },
+		{ 15, 15, 15, 20, 20, 25, 20, 30 },
+		{ 10, 15, 20, 25, 20, 25, 25, 15 },
+		{ 25, 20, 20, 15, 20, 20, 25, 10 },
+	};
+	//자판기 종류별 이름과 글자 색
+	public static final int[] VENDING_COLOR = { 0xC8323C, 0x2E6EC8, 0xC8323C, 0x3C9658, 0x3C9658, 0xC8323C };
 
-	public static Item vendingDrink( int i ){
-		switch (i){
-			case 0: default: return new BottledWater();
-			case 1: return new BarleyTea();
-			case 2: return new Cider();
-			case 3: return new Cola();
-			case 4: return new CanCoffee();
-			case 5: return new Sikhye();
-			case 6: return new GrapeJuice();
-			case 7: return new Bonster();
+	public static int vendingKind( int cell ){
+		if (Dungeon.level == null) return 0;
+		int w = Dungeon.level.width();
+		int x = cell % w, y = cell / w;
+		for (int k = 0; k < VENDING_POS.length; k++){
+			if (VENDING_POS[k][0] == x && VENDING_POS[k][1] == y) return k;
 		}
+		return 0;
 	}
 
-	public static int vendingPrice( int i ){
-		return VENDING_BASE[i] * (Dungeon.depth / 5 + 1);
+	public static Item vendingDrink( int cell, int i ){
+		Item it = com.watabou.utils.Reflection.newInstance( VENDING_GOODS[vendingKind( cell )][i] );
+		return it == null ? new BottledWater() : it;
+	}
+
+	public static int vendingPrice( int cell, int i ){
+		return VENDING_BASE[vendingKind( cell )][i] * (Dungeon.depth / 5 + 1);
 	}
 
 	//자판기마다 칸별 재고 (처음 열 때 정해짐)
@@ -593,7 +622,7 @@ public class ModernLevel extends Level {
 	public int[] vendingStock( int cell ){
 		int[] st = vending.get( cell );
 		if (st == null){
-			st = new int[VENDING_BASE.length];
+			st = new int[VENDING_SLOTS];
 			for (int i = 0; i < st.length; i++) st[i] = Random.IntRange( 2, 5 );
 			st[Random.Int( st.length )] = 0;     //하나는 품절
 			vending.put( cell, st );
@@ -704,7 +733,7 @@ public class ModernLevel extends Level {
 			} else if (ck.equals( "fountain" )){
 				tossCoin();
 			} else if (ck.startsWith( "stall_" )){
-				ModernClerk v = clerk( ModernClerk.Shop.valueOf( ck.substring( 6 ).toUpperCase() ) );
+				ModernClerk v = findClerk( ModernClerk.Shop.valueOf( ck.substring( 6 ).toUpperCase() ) );
 				if (v != null) {
 					v.say( v.line( "prop" ) );
 					v.openShop( null );
@@ -832,12 +861,12 @@ public class ModernLevel extends Level {
 		super.storeInBundle( bundle );
 		bundle.put( ARRIVAL, arrival );
 		int[] cells = new int[vending.size()];
-		int[] flat = new int[vending.size() * VENDING_BASE.length];
+		int[] flat = new int[vending.size() * VENDING_SLOTS];
 		int k = 0;
 		for (Integer c : vending.keySet()){
 			cells[k] = c;
 			int[] st = vending.get( c );
-			for (int i = 0; i < VENDING_BASE.length; i++) flat[k * VENDING_BASE.length + i] = i < st.length ? st[i] : 0;
+			for (int i = 0; i < VENDING_SLOTS; i++) flat[k * VENDING_SLOTS + i] = i < st.length ? st[i] : 0;
 			k++;
 		}
 		bundle.put( VEND_CELLS, cells );
@@ -853,9 +882,9 @@ public class ModernLevel extends Level {
 			int[] cells = bundle.getIntArray( VEND_CELLS );
 			int[] flat = bundle.getIntArray( VEND_STOCK );
 			for (int k = 0; k < cells.length; k++){
-				int[] st = new int[VENDING_BASE.length];
+				int[] st = new int[VENDING_SLOTS];
 				for (int i = 0; i < st.length; i++){
-					int idx = k * VENDING_BASE.length + i;
+					int idx = k * VENDING_SLOTS + i;
 					st[i] = flat != null && idx < flat.length ? flat[idx] : 0;
 				}
 				vending.put( cells[k], st );

@@ -402,7 +402,144 @@ public class PrisonBossLevel extends Level {
 	public Group addVisuals() {
 		super.addVisuals();
 		PrisonLevel.addPrisonVisuals(this, visuals);
+		if (state == State.WON) addRiftVisuals();
 		return visuals;
+	}
+
+	//==== 모드: 텐구를 쓰러뜨리면 왼쪽 아래 빈 감방에 현대 세계로 이어지는 차원의 균열이 열림 ====
+
+	private static final Rect riftRoom = startCells[2];
+	private static final Point riftPoint = new Point(7, 16);
+
+	public int riftCell(){
+		return pointToCell(riftPoint);
+	}
+
+	private void openRift(){
+		//감방 안 철창 치우기
+		Painter.fill(this, riftRoom, 1, Terrain.EMPTY);
+		for (int x = riftRoom.left+1; x < riftRoom.right-1; x++){
+			for (int y = riftRoom.top+1; y < riftRoom.bottom-1; y++){
+				GameScene.updateMap(x + y*width());
+			}
+		}
+		Painter.set(this, riftPoint, Terrain.EMPTY_SP);
+		GameScene.updateMap(riftCell());
+
+		RiftVisual low = new RiftVisual();
+		low.pos(riftPoint.x, riftPoint.y);
+		customTiles.add(low);
+		GameScene.add(low, false);
+
+		RiftVisualTop top = new RiftVisualTop();
+		top.pos(riftPoint.x, riftPoint.y-1);
+		customWalls.add(top);
+		GameScene.add(top, true);
+
+		//균열 앞에 차원 이동 카드와 이세계 물품 하나
+		drop(new com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket(), riftCell() + width() - 1);
+		drop(otherworldItem(), riftCell() + width() + 1);
+
+		addRiftVisuals();
+		CellEmitter.get(riftCell()).burst(com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle.BURST, 20);
+	}
+
+	private static Item otherworldItem(){
+		switch (Random.Int(10)){
+			case 0: default: return new com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryMilk();
+			case 1: return new com.shatteredpixel.shatteredpixeldungeon.items.food.BananaMilk();
+			case 2: return new com.shatteredpixel.shatteredpixeldungeon.items.food.Bonster();
+			case 3: return new com.shatteredpixel.shatteredpixeldungeon.items.food.CupCoffee();
+			case 4: return new com.shatteredpixel.shatteredpixeldungeon.items.modern.TriangleKimbap();
+			case 5: return new com.shatteredpixel.shatteredpixeldungeon.items.modern.CupRamen();
+			case 6: return new com.shatteredpixel.shatteredpixeldungeon.items.modern.ChocoBar();
+			case 7: return new com.shatteredpixel.shatteredpixeldungeon.items.modern.Flashlight();
+			case 8: return new com.shatteredpixel.shatteredpixeldungeon.items.modern.HandWarmer();
+			case 9: return new com.shatteredpixel.shatteredpixeldungeon.items.modern.Bandage();
+		}
+	}
+
+	private com.watabou.noosa.particles.Emitter riftEmitter;
+
+	private void addRiftVisuals(){
+		if (visuals == null || riftEmitter != null) return;
+		riftEmitter = new com.watabou.noosa.particles.Emitter();
+		com.watabou.utils.PointF c = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.tileCenterToWorld(riftCell());
+		riftEmitter.pos(c.x - 4, c.y - 14, 8, 20);
+		riftEmitter.pour(com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle.MISSILE, 0.15f);
+		visuals.add(riftEmitter);
+	}
+
+	//균열 칸에 들어서면 차원 이동 카드로 들어갈지 물어봄
+	private void enterRift(){
+		final com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket card =
+				Dungeon.hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket.class);
+		if (card == null){
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(Messages.get(PrisonBossLevel.class, "rift_no_card"));
+			return;
+		}
+		Game.runOnRenderThread(new Callback() {
+			@Override
+			public void call() {
+				GameScene.show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
+						new com.watabou.noosa.Image(Assets.Environment.DIMENSION_RIFT, 0, 0, 16, 32),
+						Messages.get(PrisonBossLevel.class, "rift_name"),
+						Messages.get(PrisonBossLevel.class, "rift_ask"),
+						Messages.get(PrisonBossLevel.class, "rift_yes"),
+						Messages.get(PrisonBossLevel.class, "rift_no")){
+					@Override
+					protected void onSelect(int index) {
+						if (index == 0 && Dungeon.hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket.class) == card){
+							card.execute(Dungeon.hero, com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket.AC_USE);
+						}
+					}
+				});
+			}
+		});
+	}
+
+	public static class RiftVisual extends CustomTilemap {
+		{
+			texture = Assets.Environment.DIMENSION_RIFT;
+			tileW = 1;
+			tileH = 1;
+		}
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map(new int[]{1}, 1);
+			return v;
+		}
+		@Override
+		public com.watabou.noosa.Image image(int tileX, int tileY) {
+			return new com.watabou.noosa.Image(texture, 0, 0, 16, 32);
+		}
+		@Override
+		public String name(int tileX, int tileY) {
+			return Messages.get(PrisonBossLevel.class, "rift_name");
+		}
+		@Override
+		public String desc(int tileX, int tileY) {
+			return Messages.get(PrisonBossLevel.class, "rift_desc");
+		}
+	}
+
+	public static class RiftVisualTop extends CustomTilemap {
+		{
+			texture = Assets.Environment.DIMENSION_RIFT;
+			tileW = 1;
+			tileH = 1;
+		}
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map(new int[]{0}, 1);
+			return v;
+		}
+		@Override
+		public com.watabou.noosa.Image image(int tileX, int tileY) {
+			return null;
+		}
 	}
 	
 	public void progress(){
@@ -554,6 +691,9 @@ public class PrisonBossLevel extends Level {
 				
 				GameScene.flash(0x80FFFFFF);
 				Sample.INSTANCE.play(Assets.Sounds.BLAST);
+
+				//모드: 빈 감방에 차원의 균열이 열림
+				openRift();
 				
 				state = State.WON;
 				Game.runOnRenderThread(new Callback() {
@@ -586,6 +726,11 @@ public class PrisonBossLevel extends Level {
 					
 					if (cellToPoint(ch.pos).y <= startHallway.top+1){
 						progress();
+					}
+					break;
+				case WON:
+					if (ch.pos == riftCell()){
+						enterRift();
 					}
 					break;
 			}
