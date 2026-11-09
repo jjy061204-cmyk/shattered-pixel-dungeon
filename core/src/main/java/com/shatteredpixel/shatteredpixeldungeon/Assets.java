@@ -29,6 +29,7 @@ public class Assets {
 		public static final String SPECKS       = "effects/specks.png";
 		public static final String SPELL_ICONS  = "effects/spell_icons.png";
 		public static final String TEXT_ICONS   = "effects/text_icons.png";
+		public static final String RIFT_SLASH   = "effects/rift_slash.png";
 	}
 
 	public static class Environment {

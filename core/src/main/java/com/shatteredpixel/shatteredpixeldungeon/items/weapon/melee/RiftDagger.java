@@ -14,7 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.RiftTear;
+import com.shatteredpixel.shatteredpixeldungeon.effects.RiftSlash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -60,10 +60,10 @@ public class RiftDagger extends Dagger {
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 		damage = super.proc( attacker, defender, damage );
-		//맞은 자리에 균열이 찢어졌다 닫힘
+		//맞은 자리를 가르는 반투명 일자 참격
 		if (defender.sprite != null && defender.sprite.visible) {
-			RiftTear.at( defender.sprite, 0.9f );
-			defender.sprite.emitter().burst( PurpleParticle.BURST, 8 );
+			RiftSlash.at( defender.sprite, 0.8f );
+			defender.sprite.emitter().burst( PurpleParticle.BURST, 4 );
 		}
 		return damage;
 	}
@@ -75,8 +75,13 @@ public class RiftDagger extends Dagger {
 		PointF fromP = hero.sprite != null ? hero.sprite.center() : null;
 		sneakAbility( hero, target, 6, 2 + buffedLvl(), this );
 		if (hero.pos != from) {
-			if (fromP != null) RiftTear.at( fromP.x, fromP.y, 1.2f );
-			RiftTear.at( hero.sprite, 1.2f );
+			//지나온 길을 따라 공간을 가른 참격
+			if (fromP != null && hero.sprite != null) {
+				PointF toP = hero.sprite.center();
+				float ang = (float) Math.toDegrees( Math.atan2( toP.y - fromP.y, toP.x - fromP.x ) );
+				RiftSlash.at( (fromP.x + toP.x) / 2f, (fromP.y + toP.y) / 2f, ang,
+						Math.max( 0.6f, (float) Math.hypot( toP.x - fromP.x, toP.y - fromP.y ) / 40f ) );
+			}
 			CellEmitter.center( from ).burst( PurpleParticle.BURST, 12 );
 			CellEmitter.center( hero.pos ).burst( PurpleParticle.BURST, 12 );
 			Sample.INSTANCE.play( Assets.Sounds.TELEPORT, 0.8f, 1.2f );
