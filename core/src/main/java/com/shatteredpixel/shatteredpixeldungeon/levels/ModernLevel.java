@@ -16,25 +16,21 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.ModernClerk;
 import com.shatteredpixel.shatteredpixeldungeon.items.DimensionTicket;
-import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
-import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Hoodie;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherJacket;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.PaddedJacket;
+import com.shatteredpixel.shatteredpixeldungeon.items.modern.*;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crowbar;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.BananaMilk;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Bonster;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Bungeoppang;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Butter;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.CupCoffee;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Pudding;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryCake;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryMilk;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
@@ -51,6 +47,7 @@ import java.util.HashMap;
 //- 귀환의 신호기, 워프 신호기 등 다른 층간 순간이동은 막혀 있음 (Dungeon.interfloorTeleportAllowed 참고)
 //- 큰길 위쪽에 편의점·카페·약국·서점, 아래쪽에 철물점·분수 광장·옷가게
 //- 물건은 바닥에 늘어놓지 않고, 계산대 점원에게 말을 걸어 메뉴판에서 삼 (ModernClerk 참고)
+//- 가게마다 던전 물건 대신 현대 물품을 팖 (items/modern 참고)
 public class ModernLevel extends Level {
 
 	//현대 세계 층이 쓰는 분기 번호 (0: 본 던전, 1: 광산·금고)
@@ -324,23 +321,24 @@ public class ModernLevel extends Level {
 
 	@Override
 	protected void createItems() {
-		int floorSet = Math.min( 4, Dungeon.depth / 5 );
 
-		//편의점: 음료 하나는 1+1 행사
+		//편의점: 음료 하나는 1+1 행사, 차원 이동 카드도 판매
 		ModernClerk conv = clerks[0];
 		if (conv != null) {
 			ArrayList<Item> drinks = new ArrayList<>();
 			drinks.add( new BananaMilk() ); drinks.add( new StrawberryMilk() );
 			drinks.add( new CupCoffee() );  drinks.add( new Bonster() );
+			drinks.add( new IonDrink() );   drinks.add( new BottledWater().quantity(2) );
 			int onePlusOne = Random.Int( drinks.size() );
 			for (int i = 0; i < drinks.size(); i++) {
 				conv.addStock( drinks.get(i), i == onePlusOne ? ModernClerk.DEAL_ONE_PLUS_ONE : ModernClerk.DEAL_NONE );
 			}
+			conv.addStock( new TriangleKimbap().quantity(2), ModernClerk.DEAL_NONE );
+			conv.addStock( new CupRamen(), ModernClerk.DEAL_NONE );
+			conv.addStock( new ChocoBar().quantity(2), ModernClerk.DEAL_NONE );
 			conv.addStock( new Pudding(), ModernClerk.DEAL_NONE );
 			conv.addStock( new Bungeoppang().quantity(2), ModernClerk.DEAL_NONE );
 			conv.addStock( new Butter(), ModernClerk.DEAL_NONE );
-			conv.addStock( new Food(), ModernClerk.DEAL_NONE );
-			conv.addStock( new Torch(), ModernClerk.DEAL_NONE );
 			conv.addStock( new DimensionTicket(), ModernClerk.DEAL_NONE );
 		}
 
@@ -348,56 +346,52 @@ public class ModernLevel extends Level {
 		ModernClerk cafe = clerks[1];
 		if (cafe != null) {
 			ArrayList<Item> menu = new ArrayList<>();
-			menu.add( new CupCoffee() ); menu.add( new CupCoffee() );
-			menu.add( new StrawberryCake() ); menu.add( new Pudding() );
-			menu.add( new StrawberryMilk() ); menu.add( new BananaMilk() );
+			menu.add( new CupCoffee() ); menu.add( new CafeLatte() ); menu.add( new BubbleTea() );
+			menu.add( new StrawberryCake() ); menu.add( new Croissant() ); menu.add( new Macaron().quantity(2) );
+			menu.add( new Pudding() );
 			int today = Random.Int( menu.size() );
 			for (int i = 0; i < menu.size(); i++) {
 				cafe.addStock( menu.get(i), i == today ? ModernClerk.DEAL_30_OFF : ModernClerk.DEAL_NONE );
 			}
 		}
 
-		//약국: 치유 물약은 이름표가 붙어 있음(감정됨)
+		//약국: 현대 의약품
 		ModernClerk pharm = clerks[2];
 		if (pharm != null) {
-			pharm.addStock( new PotionOfHealing().identify(), ModernClerk.DEAL_NONE );
-			pharm.addStock( new PotionOfHealing().identify(), ModernClerk.DEAL_NONE );
-			for (int i = 0; i < 3; i++) {
-				pharm.addStock( Generator.randomUsingDefaults( Generator.Category.POTION ), ModernClerk.DEAL_NONE );
-			}
+			pharm.addStock( new Bandage().quantity(3), ModernClerk.DEAL_NONE );
+			pharm.addStock( new Painkiller().quantity(2), ModernClerk.DEAL_NONE );
+			pharm.addStock( new Antidote(), ModernClerk.DEAL_NONE );
+			pharm.addStock( new PainPatch().quantity(2), ModernClerk.DEAL_NONE );
+			pharm.addStock( new EyeDrops(), ModernClerk.DEAL_NONE );
 		}
 
-		//서점
+		//서점: 지도, 백과사전, 문제집, 만화책
 		ModernClerk books = clerks[3];
 		if (books != null) {
-			books.addStock( new ScrollOfIdentify(), ModernClerk.DEAL_NONE );
-			books.addStock( new ScrollOfIdentify(), ModernClerk.DEAL_NONE );
-			books.addStock( new ScrollOfRemoveCurse(), ModernClerk.DEAL_NONE );
-			for (int i = 0; i < 2; i++) {
-				books.addStock( Generator.randomUsingDefaults( Generator.Category.SCROLL ), ModernClerk.DEAL_NONE );
-			}
-			books.addStock( Generator.randomUsingDefaults( Generator.Category.STONE ), ModernClerk.DEAL_NONE );
+			books.addStock( new CityMap(), ModernClerk.DEAL_NONE );
+			books.addStock( new CityMap(), ModernClerk.DEAL_NONE );
+			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
+			books.addStock( new Encyclopedia(), ModernClerk.DEAL_NONE );
+			books.addStock( new Workbook(), ModernClerk.DEAL_NONE );
+			books.addStock( new ComicBook().quantity(2), ModernClerk.DEAL_NONE );
 		}
 
-		//철물점: 폭탄, 투척 무기, 근접 무기
+		//철물점: 손전등, 덕트 테이프, 소화기, 쇠지렛대
 		ModernClerk hard = clerks[4];
 		if (hard != null) {
-			hard.addStock( new Bomb(), ModernClerk.DEAL_NONE );
-			hard.addStock( new Bomb(), ModernClerk.DEAL_NONE );
-			MissileWeapon m = Generator.randomMissile( floorSet, true );
-			m.enchant( null ); m.cursed = false; m.level( 0 ); m.identify( false );
-			hard.addStock( m, ModernClerk.DEAL_NONE );
-			MeleeWeapon w = Generator.randomWeapon( floorSet, true );
-			w.enchant( null ); w.cursed = false; w.level( 0 ); w.identify( false );
-			hard.addStock( w, ModernClerk.DEAL_NONE );
-			hard.addStock( new Torch(), ModernClerk.DEAL_NONE );
+			hard.addStock( new Flashlight(), ModernClerk.DEAL_NONE );
+			hard.addStock( new DuctTape().quantity(2), ModernClerk.DEAL_NONE );
+			hard.addStock( new FireExtinguisher().quantity(2), ModernClerk.DEAL_NONE );
+			Crowbar bar = new Crowbar();
+			bar.enchant( null ); bar.cursed = false; bar.level( 0 ); bar.identify( false );
+			hard.addStock( bar, ModernClerk.DEAL_NONE );
 		}
 
 		//옷가게: 시즌 오프, 전 품목 20% 할인
 		ModernClerk clothes = clerks[5];
 		if (clothes != null) {
-			for (int i = 0; i < 2; i++) {
-				Armor a = Generator.randomArmor( floorSet );
+			Armor[] wear = { new Hoodie(), new PaddedJacket(), new LeatherJacket() };
+			for (Armor a : wear) {
 				a.inscribe( null ); a.cursed = false; a.level( 0 ); a.identify( false );
 				clothes.addStock( a, ModernClerk.DEAL_20_OFF );
 			}

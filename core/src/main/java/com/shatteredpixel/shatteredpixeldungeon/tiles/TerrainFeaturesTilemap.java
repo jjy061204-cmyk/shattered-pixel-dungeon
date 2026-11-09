@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastShopLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
@@ -64,6 +65,12 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 
 		if (plants.get(pos) != null){
 			return plants.get(pos).image + 7*16;
+		}
+
+		//모드: 현대 세계는 자체 타일에 가로등·자판기·쓰레기통·벤치·화단을 그려 두었으므로,
+		// 던전 지역별 석상·항아리·풀 장식을 위에 겹쳐 그리지 않음 (불탄 자국만 표시)
+		if (Dungeon.level instanceof ModernLevel && tile != Terrain.EMBERS){
+			return -1;
 		}
 
 		int stage = (Dungeon.depth-1)/5;

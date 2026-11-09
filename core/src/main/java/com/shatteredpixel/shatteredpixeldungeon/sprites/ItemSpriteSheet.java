@@ -856,7 +856,80 @@ public class ItemSpriteSheet {
 		assignItemRect(DIMENSION_RETURN_TICKET, 13, 8);
 	}
 
-	//(36~40줄은 앞으로 더 쓸 수 있도록 비워 둠)
+	private static final int MOD_FOOD2  =                                   xy(1, 36);  //16 slots
+	private static final int MOD_ARMOR  =                                   xy(1, 37);  //16 slots
+
+	//(38~40줄은 앞으로 더 쓸 수 있도록 비워 둠)
+
+	//현대 물품 (MOD_FOOD)
+	public static final int TRIANGLE_KIMBAP   = MOD_FOOD+8;
+	public static final int CUP_RAMEN         = MOD_FOOD+9;
+	public static final int CHOCO_BAR         = MOD_FOOD+10;
+	public static final int BOTTLED_WATER     = MOD_FOOD+11;
+	public static final int ION_DRINK         = MOD_FOOD+12;
+	public static final int CAFE_LATTE        = MOD_FOOD+13;
+	public static final int CROISSANT         = MOD_FOOD+14;
+	public static final int MACARON           = MOD_FOOD+15;
+	static{
+		assignItemRect(TRIANGLE_KIMBAP,   14, 10);
+		assignItemRect(CUP_RAMEN,         13, 11);
+		assignItemRect(CHOCO_BAR,         15, 6);
+		assignItemRect(BOTTLED_WATER,     10, 13);
+		assignItemRect(ION_DRINK,         10, 13);
+		assignItemRect(CAFE_LATTE,        14, 11);
+		assignItemRect(CROISSANT,         15, 8);
+		assignItemRect(MACARON,           14, 11);
+	}
+
+	//현대 물품 (MOD_WEAPON)
+	public static final int CROWBAR           = MOD_WEAPON+1;
+	static{
+		assignItemRect(CROWBAR,           15, 16);
+	}
+
+	//현대 물품 (MOD_MISC)
+	public static final int BANDAGE           = MOD_MISC+2;
+	public static final int PAINKILLER        = MOD_MISC+3;
+	public static final int ANTIDOTE          = MOD_MISC+4;
+	public static final int PAIN_PATCH        = MOD_MISC+5;
+	public static final int EYE_DROPS         = MOD_MISC+6;
+	public static final int CITY_MAP          = MOD_MISC+7;
+	public static final int ENCYCLOPEDIA      = MOD_MISC+8;
+	public static final int WORKBOOK          = MOD_MISC+9;
+	public static final int COMIC_BOOK        = MOD_MISC+10;
+	public static final int FLASHLIGHT        = MOD_MISC+11;
+	public static final int DUCT_TAPE         = MOD_MISC+12;
+	public static final int FIRE_EXTINGUISHER = MOD_MISC+13;
+	static{
+		assignItemRect(BANDAGE,           16, 7);
+		assignItemRect(PAINKILLER,        14, 9);
+		assignItemRect(ANTIDOTE,          10, 11);
+		assignItemRect(PAIN_PATCH,        14, 7);
+		assignItemRect(EYE_DROPS,         10, 11);
+		assignItemRect(CITY_MAP,          14, 8);
+		assignItemRect(ENCYCLOPEDIA,      12, 11);
+		assignItemRect(WORKBOOK,          15, 10);
+		assignItemRect(COMIC_BOOK,        12, 10);
+		assignItemRect(FLASHLIGHT,        15, 8);
+		assignItemRect(DUCT_TAPE,         12, 9);
+		assignItemRect(FIRE_EXTINGUISHER, 13, 12);
+	}
+
+	//현대 물품 (MOD_FOOD2)
+	public static final int BUBBLE_TEA        = MOD_FOOD2+0;
+	static{
+		assignItemRect(BUBBLE_TEA,        14, 12);
+	}
+
+	//현대 물품 (MOD_ARMOR)
+	public static final int HOODIE            = MOD_ARMOR+0;
+	public static final int PADDED_JACKET     = MOD_ARMOR+1;
+	public static final int LEATHER_JACKET    = MOD_ARMOR+2;
+	static{
+		assignItemRect(HOODIE,            14, 11);
+		assignItemRect(PADDED_JACKET,     14, 12);
+		assignItemRect(LEATHER_JACKET,    14, 11);
+	}
 
 	//for smaller 8x8 icons that often accompany an item sprite
 	public static class Icons {
