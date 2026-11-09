@@ -67,56 +67,9 @@ public class ModernLevel extends Level {
 	// # 벽   + 유리문   s 간판(가게 이름판)   . 가게 바닥   , 도로   _ 보도
 	// L 가로등   V 자판기   T 쓰레기통   b 벤치   " 화단   ~ 분수   @ 도착 지점
 	// 가게 안쪽(10x7)은 아래 SHOP_LAYOUTS 로 따로 채움
-	private static final String[] MAP = {
-		"########################################################",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"#..........#..........#..........#..........#..........#",
-		"####s+#########s+#########s+#########s+#########s+######",
-		"#_________V__p_______m__________V__p_______P_________V_#",
-		"#__o___o____L__T___L__h__o___o___B___L__T___L__o___o___#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#__o___o____L______L__g__o___o___h___L______L__o___o___#",
-		"#__________V__k_____T_____________p_____k___V__________#",
-		"####s+######________________________________####s+######",
-		"#..........#\"\"_t________________________t_\"\"#..........#",
-		"#..........#______L______FFFFFF______L______#..........#",
-		"#..........#_________b___FFFFFF___b_________#..........#",
-		"#..........#__p__________FFFFFF__________p__#..........#",
-		"#..........#___t__L__________________L__t___#..........#",
-		"#..........#__________b____@_____b__________#..........#",
-		"#..........#\"_______T______________T_______\"#..........#",
-		"############__p___p___p__o____o__p___p___p__############",
-		"#___L___________L____T_________________L______T____L___#",
-		"#_______o___o_____m______o___o____V________o___o_______#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-		"#_______o___o_______g____o___o_____B_______o___o_______#",
-		"#_k_L___________L______________________L___________L_P_#",
-		"#t\"\"\"t\"\"\"__\"\"\"\"\"\"\"p,,,,,,,,,,,,,,,,,,pL_p___p___p___p_L#",
-		"#\"\"u\"\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u___x___x___x___x_#",
-		"#\"\"~~~~\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#\"\"~~~~u\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#\"\"~~~~\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#t\"\"\"\"\"\"b__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#__________________,,,,,,,,,,,,,,,,,,_________________V#",
-		"#t\"\"\"\"\"\"\"__\"\"\"\"\"\"t_,,,,,,,,,,,,,,,,,,__b__b__b__b__b___#",
-		"#\"\"\"\"b\"\"\"__b\"\"\"V\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#\"u\"\"\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,uL_______________L#",
-		"#\"\"\"\"\"\"\"\"__\"\"\"\"t\"\"u,,,,,,,,,,,,,,,,,,u_b__b__b__b__b___#",
-		"#\"\"\"t\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#\"\"\"\"\"\"u\"__\"u\"\"\"\"\"u,,,,,,,,,,,,,,,,,,ug_______________P#",
-		"#\"\"T\"\"\"\"\"__\"\"\"\"\"\"\"u,,,,,,,,,,,,,,,,,,u_________________#",
-		"#t\"\"\"\"t\"\"__\"\"t\"\"\"tu,,,,,,,,,,,,,,,,,,um_______T___r__Z_#",
-		"########################################################",
-	};
+	//바깥 지형은 ModernCityData (city.py 로 그린 도시 그림과 짝)
+	private static final String[] MAP = ModernCityData.TER;
+
 
 	//가게 안쪽 왼쪽 위 좌표 (위쪽 5곳, 아래쪽 2곳)
 	private static final int[][] SHOP_POS = {
@@ -292,25 +245,8 @@ public class ModernLevel extends Level {
 					case '#': default: map[cell] = Terrain.WALL; break;
 					case '+': map[cell] = Terrain.DOOR; break;
 					case '.': map[cell] = Terrain.EMPTY_SP; break;
-					case ',': map[cell] = Terrain.EMPTY; break;
 					case '_': map[cell] = Terrain.EMPTY_DECO; break;
-					case 'L': map[cell] = Terrain.STATUE; break;
-					case 'V': map[cell] = Terrain.STATUE_SP; break;
-					case 'T': map[cell] = Terrain.REGION_DECO; break;
-					case 'b': map[cell] = Terrain.REGION_DECO_ALT; break;
-					case '"': map[cell] = Terrain.GRASS; break;
-					case '~': map[cell] = Terrain.WATER; break;
-					case 't': map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = TREE_IMG; break;
-					case 'h': case 'm': case 'o': case 'p': case 'k': case 'c': case 'P': case 'r': case 'g':
-					case 'n': case 'N': case 'C': case 'D': case 'S': case 'W': case 'u': case 'Z': case 'x': case 'M':
-						map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = STREET.get( c ); break;
-					case 'B': map[cell] = Terrain.CUSTOM_DECO; props.data[cell] = BUS_IMG; break;
-					case 'F':
-						//분수: 처음 만난 F 칸이 왼쪽 위
-						if (fountainX < 0) { fountainX = x; fountainY = y; }
-						map[cell] = Terrain.CUSTOM_DECO;
-						props.data[cell] = FOUNTAIN_IMG + (x - fountainX) + (y - fountainY) * 16;
-						break;
+					case 'o': map[cell] = Terrain.CUSTOM_DECO; break;      //막힌 기물 (나무, 벤치, 노점...)
 					case 's':
 						//가게 이름판 자리 (그림은 아래에서 가게 종류에 맞춰 덧그림)
 						map[cell] = Terrain.WALL;
@@ -366,28 +302,22 @@ public class ModernLevel extends Level {
 			int matY = top < height() / 2 ? top + rowsN - 1 : top;
 			floors.data[(left + 4) + matY * width()] = 16 + o;
 		}
+		ModernGround ground = new ModernGround();
+		ground.setRect( 0, 0, width(), height() );
+		customTerrain.add( ground );
 		customTerrain.add( floors );
 
-		if (height() > 30) {
-			ModernParking lines = new ModernParking();
-			lines.setRect( PARK_X, PARK_Y, PARK_W, PARK_H );
-			customTerrain.add( lines );
-			placeParking();
-			placeStalls();
-			placeSite();
-		}
+		//도시 바깥 기물 (바닥 → 가게 바닥 → 기물 → 가게 집기 순서로 깔림)
+		ModernCity city = new ModernCity();
+		city.setRect( 0, 0, width(), height() );
+		customTerrain.add( city );
 		customTerrain.add( props );
+		//나무 잎, 가로등 머리, 천막 지붕, 줄전구는 캐릭터보다 위
+		ModernCityTop top = new ModernCityTop();
+		top.setRect( 0, 0, width(), height() );
+		customWalls.add( top );
 
-		//도로 위 중앙선, 횡단보도, 맨홀
-		ModernRoad road = new ModernRoad();
-		road.setRect( 1, 11, width() - 2, 4 );
-		customTiles.add( road );
-		//아래쪽 2차선 길
-		if (height() > 30) {
-			ModernSideRoad side = new ModernSideRoad();
-			side.setRect( 1, 28, width() - 2, 2 );
-			customTiles.add( side );
-		}
+		//도로 표시는 도시 바닥 그림(ModernGround)에 들어 있음
 
 		//가장자리는 항상 벽
 		for (int x = 0; x < width(); x++) {
@@ -490,13 +420,11 @@ public class ModernLevel extends Level {
 			mobs.add( clerk );
 			clerks[s] = clerk;
 		}
-		if (height() > 30) {
-			for (int i = 0; i < STALL_POS.length; i++) {
-				ModernClerk v = new ModernClerk( STALL_TYPES[i] );
-				v.pos = stallVendor[i];
-				mobs.add( v );
-				stallClerks[i] = v;
-			}
+		for (int i = 0; i < ModernCityData.VENDOR_X.length && i < stallClerks.length; i++) {
+			ModernClerk v = new ModernClerk( ModernClerk.Shop.valueOf( ModernCityData.VENDOR_TYPE[i] ) );
+			v.pos = ModernCityData.VENDOR_X[i] + ModernCityData.VENDOR_Y[i] * width();
+			mobs.add( v );
+			stallClerks[i] = v;
 		}
 	}
 
@@ -516,8 +444,8 @@ public class ModernLevel extends Level {
 		for (int s = 0; s < SHOP_TYPES.length; s++){
 			if (SHOP_TYPES[s] == type) return clerks[s];
 		}
-		for (int i = 0; i < STALL_TYPES.length; i++){
-			if (STALL_TYPES[i] == type) return stallClerks[i];
+		for (ModernClerk c : stallClerks){
+			if (c != null && c.shop == type) return c;
 		}
 		return null;
 	}
@@ -709,8 +637,18 @@ public class ModernLevel extends Level {
 		return null;
 	}
 
+	//도시 기물 이름 (없으면 null)
+	private int[] cityKeys;
+	public String cityKey( int cell ){
+		if (width() != ModernCityData.W || height() != ModernCityData.H) return null;
+		if (cityKeys == null) cityKeys = ModernCityData.keys();
+		if (cell < 0 || cell >= cityKeys.length || cityKeys[cell] < 0) return null;
+		return ModernCityData.KEYS[cityKeys[cell]];
+	}
+
 	//영웅이 눌러서 다가갈 수 있는 집기인지
 	public boolean isInteractive( int cell ){
+		if (cell >= 0 && cell < length() && map[cell] == Terrain.CUSTOM_DECO && cityKey( cell ) != null) return true;
 		if (cell < 0 || cell >= length()) return false;
 		if (map[cell] == Terrain.STATUE_SP) return true;      //자판기
 		if (map[cell] == Terrain.CUSTOM_DECO && isFountain( cell )) return true;
@@ -752,6 +690,32 @@ public class ModernLevel extends Level {
 	};
 
 	public void interact( final int cell ){
+		String ck = cityKey( cell );
+		if (ck != null && map[cell] == Terrain.CUSTOM_DECO){
+			if (ck.equals( "vending" )){
+				final ModernLevel lvl = this;
+				com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
+					@Override
+					public void call() {
+						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+								new com.shatteredpixel.shatteredpixeldungeon.windows.WndVending( lvl, cell ) );
+					}
+				});
+			} else if (ck.equals( "fountain" )){
+				tossCoin();
+			} else if (ck.startsWith( "stall_" )){
+				ModernClerk v = clerk( ModernClerk.Shop.valueOf( ck.substring( 6 ).toUpperCase() ) );
+				if (v != null) {
+					v.say( v.line( "prop" ) );
+					v.openShop( null );
+				} else {
+					showCity( cell, ck, "no_clerk" );
+				}
+			} else {
+				showCity( cell, ck, ck );
+			}
+			return;
+		}
 		if (isFountain( cell )){
 			tossCoin();
 			return;
@@ -813,6 +777,23 @@ public class ModernLevel extends Level {
 		}
 		clerk.say( clerk.line( "prop" ) );
 		clerk.openShop( cat );
+	}
+
+	private void showCity( final int cell, final String nameKey, final String useKey ){
+		final String title = Messages.titleCase( Messages.get( ModernLevel.class, "prop_" + nameKey + "_name" ) );
+		final String text = Messages.get( ModernLevel.class, "use_" + useKey + "_" + Random.Int( 2 ) );
+		final int[] base = ModernCityData.base();
+		final int img = base[cell];
+		com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
+			@Override
+			public void call() {
+				com.watabou.noosa.Image icon = img < 0 ? null : new com.watabou.noosa.Image( Assets.Environment.MODERN_CITY,
+						(img % 16) * 16, (img / 16) * 16, 16, 16 );
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+						new com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage(
+								icon == null ? new com.watabou.noosa.Image() : icon, title, text ) );
+			}
+		});
 	}
 
 	private void showFlavor( final int prop, final String key ){
@@ -1111,6 +1092,76 @@ public class ModernLevel extends Level {
 			return v;
 		}
 
+		@Override
+		public com.watabou.noosa.Image image( int tileX, int tileY ) {
+			return null;
+		}
+	}
+
+	//도시 바닥 (보도, 도로, 잔디, 연못...)
+	public static class ModernGround extends CustomTilemap {
+		{
+			texture = Assets.Environment.MODERN_GROUND;
+		}
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( ModernCityData.ground(), tileW );
+			return v;
+		}
+		@Override
+		public com.watabou.noosa.Image image( int tileX, int tileY ) {
+			return null;
+		}
+	}
+
+	//도시 기물 아래쪽 (캐릭터보다 아래)
+	public static class ModernCity extends CustomTilemap {
+		{
+			texture = Assets.Environment.MODERN_CITY;
+		}
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( ModernCityData.base(), tileW );
+			return v;
+		}
+		@Override
+		public com.watabou.noosa.Image image( int tileX, int tileY ) {
+			if (key( tileX, tileY ) == null) return null;
+			int img = ModernCityData.base()[tileX + tileY * tileW];
+			if (img < 0) return null;
+			return new com.watabou.noosa.Image( texture, (img % 16) * 16, (img / 16) * 16, 16, 16 );
+		}
+		private String key( int tileX, int tileY ){
+			int[] k = ModernCityData.keys();
+			int i = tileX + tileY * tileW;
+			if (i < 0 || i >= k.length || k[i] < 0) return null;
+			return ModernCityData.KEYS[k[i]];
+		}
+		@Override
+		public String name( int tileX, int tileY ) {
+			String k = key( tileX, tileY );
+			return k == null ? null : Messages.get( ModernLevel.class, "prop_" + k + "_name" );
+		}
+		@Override
+		public String desc( int tileX, int tileY ) {
+			String k = key( tileX, tileY );
+			return k == null ? null : Messages.get( ModernLevel.class, "prop_" + k + "_desc" );
+		}
+	}
+
+	//도시 기물 위쪽 (캐릭터보다 위)
+	public static class ModernCityTop extends CustomTilemap {
+		{
+			texture = Assets.Environment.MODERN_CITY_TOP;
+		}
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( ModernCityData.top(), tileW );
+			return v;
+		}
 		@Override
 		public com.watabou.noosa.Image image( int tileX, int tileY ) {
 			return null;

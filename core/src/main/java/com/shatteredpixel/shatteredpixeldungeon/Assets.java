@@ -66,6 +66,9 @@ public class Assets {
 		public static final String CAVES_BOSS       = "environment/custom_tiles/caves_boss.png";
 		public static final String CITY_QUEST       = "environment/custom_tiles/city_quest.png";
 		public static final String MODERN_ROAD      = "environment/custom_tiles/modern_road.png";
+		public static final String MODERN_GROUND   = "environment/custom_tiles/modern_ground.png";
+		public static final String MODERN_CITY     = "environment/custom_tiles/modern_city.png";
+		public static final String MODERN_CITY_TOP = "environment/custom_tiles/modern_city_top.png";
 		public static final String MODERN_FLOORS  = "environment/custom_tiles/modern_floors.png";
 		public static final String MODERN_PARKING = "environment/custom_tiles/modern_parking.png";
 		public static final String MODERN_PROPS     = "environment/custom_tiles/modern_props.png";
