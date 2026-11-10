@@ -85,6 +85,7 @@ public class Assets {
 	}
 
 	public static class Interfaces {
+		public static final String EXCALIBUR_SEAL = "interfaces/excalibur_seal.png";
 		public static final String ARCS_BG  = "interfaces/arcs1.png";
 		public static final String ARCS_FG  = "interfaces/arcs2.png";
 

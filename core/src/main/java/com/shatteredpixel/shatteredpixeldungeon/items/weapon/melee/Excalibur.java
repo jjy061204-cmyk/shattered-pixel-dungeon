@@ -11,7 +11,13 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolyFlame;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndExcaliburSeal;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.GoldSparkle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -36,6 +42,35 @@ public class Excalibur extends Greatsword {
 	public static final String AC_UNSEAL = "UNSEAL";
 	public static final int NEED_UPGRADE = 8;
 	public static final int NEED_REMOVE_CURSE = 1;
+	public static final int LOCKS = 4;                       //자물쇠 4개
+	public static final int UPGRADE_PER_LOCK = NEED_UPGRADE / LOCKS;   //자물쇠 하나에 강화 주문서 2장
+
+	//부서진 자물쇠 수 (0~4). 4개가 다 부서진 뒤 보옥을 깨면 봉인 해제
+	public int locks = 0;
+
+	//마법 저항: 원소의 반지와 같은 종류의 해로운 효과를 30% 줄임
+	public static final float MAGIC_RESIST = 0.7f;
+
+	public static float resist( Char target, Class effect ){
+		if (!(target instanceof Hero)) return 1f;
+		Hero h = (Hero) target;
+		boolean wielding = (h.belongings.weapon() instanceof Excalibur && !((Excalibur) h.belongings.weapon()).sealed);
+		if (!wielding) return 1f;
+		for (Class c : RingOfElements.RESISTS){
+			if (c.isAssignableFrom( effect )) return MAGIC_RESIST;
+		}
+		return 1f;
+	}
+
+	//적을 맞히면 적의 몸만 태우는 노란 불꽃이 붙음 (바닥·아이템으로 번지지 않음)
+	@Override
+	public int proc( Char attacker, Char defender, int damage ) {
+		if (!sealed && defender.isAlive() && !defender.isImmune( Burning.class ) && defender.alignment != attacker.alignment){
+			int lvl = Math.max( 0, buffedLvl() );
+			Buff.affect( defender, HolyFlame.class ).set( HolyFlame.DURATION, 2 + lvl / 2, 6 + lvl );
+		}
+		return super.proc( attacker, defender, damage );
+	}
 
 	//봉인 상태 (처음엔 봉인됨)
 	public boolean sealed = true;
@@ -134,9 +169,9 @@ public class Excalibur extends Greatsword {
 		if (!sealed) return super.info();
 		String info = desc();
 		if (Dungeon.hero != null){
-			info += "\n\n" + Messages.get( this, "progress",
-					count( Dungeon.hero, ScrollOfUpgrade.class ), NEED_UPGRADE,
-					count( Dungeon.hero, ScrollOfRemoveCurse.class ), NEED_REMOVE_CURSE );
+			info += "\n\n" + Messages.get( this, "progress", locks, LOCKS,
+					count( Dungeon.hero, ScrollOfUpgrade.class ),
+					count( Dungeon.hero, ScrollOfRemoveCurse.class ) );
 		}
 		return info;
 	}
@@ -210,33 +245,46 @@ public class Excalibur extends Greatsword {
 		super.execute( hero, action );
 
 		if (action.equals( AC_UNSEAL ) && sealed){
-			int up = count( hero, ScrollOfUpgrade.class );
-			int rc = count( hero, ScrollOfRemoveCurse.class );
-			if (up < NEED_UPGRADE || rc < NEED_REMOVE_CURSE){
-				GLog.w( Messages.get( this, "not_enough", up, NEED_UPGRADE, rc, NEED_REMOVE_CURSE ) );
-				return;
-			}
-
-			consume( hero, ScrollOfUpgrade.class, NEED_UPGRADE );
-			consume( hero, ScrollOfRemoveCurse.class, NEED_REMOVE_CURSE );
-
-			//같은 아이템이 그대로 깨어남
-			sealed = false;
-			cursed = false;
-			identify();
-			updateQuickslot();
-
-			Sample.INSTANCE.play( Assets.Sounds.CHAINS );
-			Sample.INSTANCE.play( Assets.Sounds.LEVELUP, 1f, 0.8f );
-			if (hero.sprite != null){
-				new Flare( 8, 40 ).color( 0xFFD860, true ).show( hero.sprite, 2.5f );
-				hero.sprite.emitter().burst( GoldSparkle.BURST, 30 );
-			}
-			GameScene.flash( 0x80FFE6A0 );
-			GLog.p( Messages.get( this, "unsealed" ) );
-
-			hero.spendAndNext( 1f );
+			GameScene.show( new WndExcaliburSeal( this ) );
 		}
+	}
+
+	public int upgradeCount( Hero hero ){
+		return count( hero, ScrollOfUpgrade.class );
+	}
+
+	public int removeCurseCount( Hero hero ){
+		return count( hero, ScrollOfRemoveCurse.class );
+	}
+
+	//강화 주문서 2장을 넣어 자물쇠 하나를 부숨
+	public boolean breakLock( Hero hero ){
+		if (!sealed || locks >= LOCKS || count( hero, ScrollOfUpgrade.class ) < UPGRADE_PER_LOCK) return false;
+		consume( hero, ScrollOfUpgrade.class, UPGRADE_PER_LOCK );
+		locks++;
+		return true;
+	}
+
+	//자물쇠가 다 부서진 뒤 저주 해제 주문서로 보옥을 깨면 봉인 해제
+	public boolean breakOrb( Hero hero ){
+		if (!sealed || locks < LOCKS || count( hero, ScrollOfRemoveCurse.class ) < NEED_REMOVE_CURSE) return false;
+		consume( hero, ScrollOfRemoveCurse.class, NEED_REMOVE_CURSE );
+		return true;
+	}
+
+	//같은 아이템이 그대로 깨어남 (보옥이 깨지는 연출이 끝난 뒤 창에서 부름)
+	public void unseal( Hero hero ){
+		sealed = false;
+		cursed = false;
+		identify();
+		updateQuickslot();
+
+		if (hero.sprite != null){
+			new Flare( 8, 40 ).color( 0xFFD860, true ).show( hero.sprite, 2.5f );
+			hero.sprite.emitter().burst( GoldSparkle.BURST, 30 );
+		}
+		GLog.p( Messages.get( this, "unsealed" ) );
+		hero.spendAndNext( 1f );
 	}
 
 	private static final String SEALED = "sealed";
@@ -245,12 +293,14 @@ public class Excalibur extends Greatsword {
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( SEALED, sealed );
+		bundle.put( "locks", locks );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		sealed = bundle.getBoolean( SEALED );
+		locks = bundle.getInt( "locks" );
 	}
 
 	@Override

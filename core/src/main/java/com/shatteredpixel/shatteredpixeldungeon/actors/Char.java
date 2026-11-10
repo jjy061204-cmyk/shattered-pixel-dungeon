@@ -1378,7 +1378,8 @@ public abstract class Char extends Actor {
 				result *= 0.5f;
 			}
 		}
-		return result * RingOfElements.resist(this, effect);
+		return result * RingOfElements.resist(this, effect)
+				* com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur.resist(this, effect); //모드: 엑스칼리버 마법 저항
 	}
 	
 	protected final HashSet<Class> immunities = new HashSet<>();

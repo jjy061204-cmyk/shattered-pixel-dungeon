@@ -1013,6 +1013,8 @@ public class ItemSpriteSheet {
 		static {
 			//그림 번호 -> { 칸 번호, 그림 크기 }
 			SLOT.put( PARFAIT, new int[]{ 0, 24 } );
+			SLOT.put( EXCALIBUR, new int[]{ 1, 20 } );
+			SLOT.put( SEALED_EXCALIBUR, new int[]{ 2, 20 } );
 		}
 
 		public static boolean has( int image ){
