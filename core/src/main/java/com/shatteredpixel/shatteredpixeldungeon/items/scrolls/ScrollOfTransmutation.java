@@ -71,6 +71,8 @@ public class ScrollOfTransmutation extends InventoryScroll {
 	protected boolean usableOnItem(Item item) {
 		//all melee weapons, except pickaxe when in a mining level
 		if (item instanceof MeleeWeapon){
+			//모드: 6티어 엑스칼리버는 바꿀 수 없음
+			if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur) return false;
 			return !(item instanceof Pickaxe && Dungeon.level instanceof MiningLevel);
 
 		//all missile weapons except untipped darts

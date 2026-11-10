@@ -210,7 +210,7 @@ public enum Catalog {
 
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T1.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T2.classes);
-		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class, ClawHammer.class); //차원 균열 단검은 5티어 목록(WEP_T5)으로 들어감
+		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class, ClawHammer.class, com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SealedExcalibur.class, com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur.class); //차원 균열 단검은 5티어 목록(WEP_T5)으로 들어감
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T3.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T4.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T5.classes);

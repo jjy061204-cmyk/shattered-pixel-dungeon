@@ -989,9 +989,13 @@ public class ItemSpriteSheet {
 	//모드 무기: 차원 균열 단검
 	public static final int RIFT_DAGGER       = MOD_WEAPON+3;
 	public static final int KNIGHT_LONGSWORD  = MOD_WEAPON+4;
+	public static final int EXCALIBUR         = MOD_WEAPON+5;   //items_hd.png 24x24
+	public static final int SEALED_EXCALIBUR  = MOD_WEAPON+6;   //items_hd.png 24x24
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);
 		assignItemRect(KNIGHT_LONGSWORD, 16, 16);
+		assignItemRect(EXCALIBUR, 16, 16);
+		assignItemRect(SEALED_EXCALIBUR, 16, 16);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);
 		assignItemRect(DAKKOCHI, 15, 12);
@@ -1009,6 +1013,8 @@ public class ItemSpriteSheet {
 		static {
 			//그림 번호 -> { 칸 번호, 그림 크기 }
 			SLOT.put( PARFAIT, new int[]{ 0, 24 } );
+			SLOT.put( EXCALIBUR, new int[]{ 1, 24 } );
+			SLOT.put( SEALED_EXCALIBUR, new int[]{ 2, 24 } );
 		}
 
 		public static boolean has( int image ){
