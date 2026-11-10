@@ -211,7 +211,7 @@ public class SanctuaryColossus extends Mob {
 		if (sprite != null) ((ColossusSprite) sprite).slam( center );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.6f, 0.6f );
 		GLog.w( Messages.get( this, "quake" ) );
-		hero.interrupt();
+		Dungeon.hero.interrupt();
 
 		spend( TICK );
 	}
