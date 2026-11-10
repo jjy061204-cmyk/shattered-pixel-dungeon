@@ -41,7 +41,7 @@ public class Excalibur extends Greatsword {
 
 	public static final String AC_UNSEAL = "UNSEAL";
 	public static final int NEED_UPGRADE = 8;
-	public static final int NEED_REMOVE_CURSE = 1;
+	public static final int NEED_REMOVE_CURSE = 3;
 	public static final int LOCKS = 4;                       //자물쇠 4개
 	public static final int UPGRADE_PER_LOCK = NEED_UPGRADE / LOCKS;   //자물쇠 하나에 강화 주문서 2장
 
@@ -68,6 +68,13 @@ public class Excalibur extends Greatsword {
 		if (!sealed && defender.isAlive() && defender.alignment != attacker.alignment){
 			int lvl = Math.max( 0, buffedLvl() );
 			Buff.affect( defender, HolyFlame.class ).set( HolyFlame.DURATION, 2 + lvl / 2, 6 + lvl );
+		}
+		//왕의 가호: 공격력의 10%만큼 방어를 무시하는 마법 피해 추가
+		if (!sealed && attacker.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class ) != null && damage > 0){
+			damage += Math.max( 1, Math.round( damage * com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.MAGIC_DMG ) );
+			if (defender.sprite != null && defender.sprite.visible){
+				defender.sprite.emitter().burst( GoldSparkle.BURST, 5 );
+			}
 		}
 		return super.proc( attacker, defender, damage );
 	}

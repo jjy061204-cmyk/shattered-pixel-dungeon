@@ -135,7 +135,7 @@ public class WndExcaliburSeal extends Window {
 		btnLock.setRect( 0, y, WIDTH, 18 );
 		y = btnLock.bottom() + 2;
 
-		btnOrb.text( Messages.get( this, "insert_remove_curse" ) );
+		btnOrb.text( Messages.get( this, "insert_remove_curse", Excalibur.NEED_REMOVE_CURSE ) );
 		btnOrb.enable( anim == NONE && sword.sealed && sword.locks >= Excalibur.LOCKS && rc >= Excalibur.NEED_REMOVE_CURSE );
 		btnOrb.setRect( 0, y, WIDTH, 18 );
 

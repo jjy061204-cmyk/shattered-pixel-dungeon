@@ -264,6 +264,8 @@ public class Hero extends Char {
 		
 		HT = 20 + 5*(lvl-1) + HTBoost;
 		float multiplier = RingOfMight.HTMultiplier(this);
+		//모드: 왕의 가호 최대 체력 +20%
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null) multiplier *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.HT_MULTI;
 		HT = Math.round(multiplier * HT);
 		
 		if (buff(ElixirOfMight.HTBoost.class) != null){
@@ -280,11 +282,6 @@ public class Hero extends Char {
 		int strBonus = 0;
 
 		strBonus += RingOfMight.strengthBonus( this );
-
-		//모드: 엑스칼리버의 가호
-		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
-			strBonus += com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.STR;
-		}
 		
 		AdrenalineSurge buff = buff(AdrenalineSurge.class);
 		if (buff != null){
@@ -671,11 +668,6 @@ public class Hero extends Char {
 
 		if (buff(HoldFast.class) != null){
 			dr += buff(HoldFast.class).armorBonus();
-		}
-
-		//모드: 엑스칼리버의 가호 (0~10 추가 방어)
-		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
-			dr += Random.NormalIntRange( 0, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.ARMOR );
 		}
 		
 		return dr;
@@ -1678,6 +1670,11 @@ public class Hero extends Char {
 		if (buff(TimekeepersHourglass.timeStasis.class) != null
 				|| buff(TimeStasis.class) != null) {
 			return;
+		}
+
+		//모드: 왕의 가호 - 받는 모든 피해 20% 감소
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
+			dmg = Math.round( dmg * com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.DAMAGE_TAKEN );
 		}
 
 		//regular damage interrupt, triggers on any damage except specific mild DOT effects

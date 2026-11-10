@@ -14,12 +14,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
 //봉인이 풀린 엑스칼리버를 주무기로 들고 있는 동안 계속 붙어 있는 버프.
-//정확성 +50%, 방어 0~10 추가, 힘 +2 (실제 계산은 Hero 쪽에서 이 버프가 있는지로 판단)
+//(실제 계산은 Hero·Excalibur 쪽에서 이 버프가 있는지로 판단)
 public class ExcaliburBlessing extends Buff {
 
-	public static final float ACCURACY = 1.5f;
-	public static final int ARMOR = 10;
-	public static final int STR = 2;
+	public static final float ACCURACY = 1.5f;       //정확성 +50%
+	public static final float DAMAGE_TAKEN = 0.8f;   //받는 모든 피해 20% 감소
+	public static final float HT_MULTI = 1.2f;       //최대 체력 +20%
+	public static final float MAGIC_DMG = 0.1f;      //공격 시 공격력의 10%만큼 마법 피해 추가
+	//+ 원소의 반지와 같은 종류의 해로운 효과 30% 감소 (Excalibur.resist)
 
 	{
 		type = buffType.POSITIVE;
@@ -38,8 +40,10 @@ public class ExcaliburBlessing extends Buff {
 		ExcaliburBlessing b = hero.buff( ExcaliburBlessing.class );
 		if (wielding && b == null){
 			Buff.affect( hero, ExcaliburBlessing.class );
+			hero.updateHT( true );     //늘어난 최대 체력만큼 체력도 채움
 		} else if (!wielding && b != null){
 			b.detach();
+			hero.updateHT( false );
 		}
 	}
 }

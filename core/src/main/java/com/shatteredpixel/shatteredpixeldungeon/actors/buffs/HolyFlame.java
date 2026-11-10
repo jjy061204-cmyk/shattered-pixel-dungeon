@@ -33,16 +33,40 @@ public class HolyFlame extends Buff {
 
 	private transient Emitter emitter;
 
+	//낙인이 남아 있을 때 또 베면 남은 턴이 늘어남 (악마에게는 더 많이)
+	public static final float EXTEND = 2f;
+	public static final float EXTEND_DEMON = 3f;
+	public static final float MAX_LEFT = 10f;
+	public static final float DEMON_DMG = 2f;
+
 	public void set( float duration, int min, int max ){
-		left = Math.max( left, duration );
+		if (left > 0){
+			left = Math.min( MAX_LEFT, left + (isDemon( target ) ? EXTEND_DEMON : EXTEND) );
+		} else {
+			left = duration;
+		}
 		this.min = Math.max( this.min, min );
 		this.max = Math.max( this.max, max );
+	}
+
+	//악마의 소굴 악마들과 요그-조스(와 그 주먹, 애벌레)
+	public static boolean isDemon( Char ch ){
+		return ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Succubus
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scorpio
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RipperDemon
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogDzewa
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogDzewa.Larva
+				|| ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 	}
 
 	@Override
 	public boolean act() {
 		if (target.isAlive()){
 			int dmg = Random.NormalIntRange( min, max );
+			//악마에게는 두 배로 타오름
+			if (isDemon( target )) dmg = Math.round( dmg * DEMON_DMG );
 			//불이 아닌 신성한 빛이라 화염 면역·저항과 상관없이 통함
 			target.damage( dmg, this );
 		}
