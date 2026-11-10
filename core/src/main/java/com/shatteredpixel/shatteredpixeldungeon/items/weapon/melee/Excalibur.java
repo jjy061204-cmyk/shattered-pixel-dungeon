@@ -177,8 +177,8 @@ public class Excalibur extends Greatsword {
 		String info = desc();
 		if (Dungeon.hero != null){
 			info += "\n\n" + Messages.get( this, "progress", locks, LOCKS,
-					count( Dungeon.hero, ScrollOfUpgrade.class ),
-					count( Dungeon.hero, ScrollOfRemoveCurse.class ) );
+					count( Dungeon.hero, ScrollOfUpgrade.class ), UPGRADE_PER_LOCK,
+					count( Dungeon.hero, ScrollOfRemoveCurse.class ), NEED_REMOVE_CURSE );
 		}
 		return info;
 	}

@@ -194,6 +194,8 @@ public class DevRemote extends Item {
 			if (m == null) return;
 			m.pos = cells.get( 0 );
 			if (m instanceof Wraith) ((Wraith) m).adjustStats( Dungeon.scalingDepth() );
+			//석상은 들고 있을 무기(갑옷 석상은 갑옷까지)를 만들어 줘야 함. 없으면 공격·사망 때 멈춤
+			if (m instanceof Statue) ((Statue) m).createWeapon( false );
 			m.state = m.HUNTING;
 		}
 		GameScene.add( m );

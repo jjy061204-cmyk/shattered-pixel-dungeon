@@ -126,7 +126,7 @@ public class WndExcaliburSeal extends Window {
 		int up = Dungeon.hero == null ? 0 : sword.upgradeCount( Dungeon.hero );
 		int rc = Dungeon.hero == null ? 0 : sword.removeCurseCount( Dungeon.hero );
 
-		status.text( Messages.get( this, "status", sword.locks, Excalibur.LOCKS, up, rc ) );
+		status.text( Messages.get( this, "status", sword.locks, Excalibur.LOCKS, up, Excalibur.UPGRADE_PER_LOCK, rc, Excalibur.NEED_REMOVE_CURSE ) );
 		status.setPos( (WIDTH - status.width()) / 2f, status.top() );
 
 		float y = status.bottom() + 4;
