@@ -19,7 +19,7 @@ import com.watabou.utils.Point;
 
 import java.util.ArrayList;
 
-//문이 하나뿐인 15x15 둥근 투기장. 문 맞은편 끝에 왕좌(보스 자리)가 있음.
+//문이 하나뿐인 15x15 둥근 투기장. 가운데에서 문 반대쪽으로 조금 들어간 자리에 왕좌(보스 자리)가 있음.
 //절차 생성 맵의 한 방에 가지처럼 붙음 (출구 방 대신)
 public class SanctuaryArenaRoom extends StandardRoom {
 
@@ -122,7 +122,7 @@ public class SanctuaryArenaRoom extends StandardRoom {
 			door = level.pointToCell( d );
 		}
 
-		Point tp = rotate( 0, -5, side );
+		Point tp = rotate( 0, -3, side );   //벽에 너무 붙으면 큰 몸이 벽 뒤로 가려지므로 조금 앞으로
 		throne = level.pointToCell( new Point( cx + tp.x, cy + tp.y ) );
 		center = level.pointToCell( new Point( cx, cy ) );
 		int[][] sp = { {-4, -1}, {4, -1}, {-4, 3}, {4, 3} };
@@ -139,7 +139,7 @@ public class SanctuaryArenaRoom extends StandardRoom {
 		int ax = Math.abs( dx ), ay = Math.abs( dy );
 		if (ax + ay > 9) return Terrain.WALL;
 		//왕좌와 그 둘레
-		if (dx == 0 && dy == -5) return Terrain.EMPTY_SP;
+		if (dx == 0 && (dy == -3 || dy == -4)) return Terrain.EMPTY_SP;
 		if (ay <= 1 && ax <= 1) return Terrain.EMPTY_SP;               //가운데 룬 원
 		if (ax == 4 && ay == 4) return Terrain.STATUE_SP;              //네 모서리 수호상
 		if ((ax == 4 && dy == -1) || (ax == 4 && dy == 3)) return Terrain.PEDESTAL; //소환 받침대

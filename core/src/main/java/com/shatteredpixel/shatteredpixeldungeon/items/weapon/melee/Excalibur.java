@@ -199,6 +199,18 @@ public class Excalibur extends Greatsword {
 		return sealed ? AC_UNSEAL : super.defaultAction();
 	}
 
+	//모드: 성소 2층 투기장에서 주우면 돌아가는 게이트가 열림
+	@Override
+	public boolean doPickUp( Hero hero, int pos ) {
+		if (super.doPickUp( hero, pos )){
+			if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel){
+				((com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel) Dungeon.level).onExcaliburTaken();
+			}
+			return true;
+		}
+		return false;
+	}
+
 	@Override
 	public boolean doEquip( Hero hero ) {
 		if (sealed){

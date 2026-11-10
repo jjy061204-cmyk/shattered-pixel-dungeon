@@ -218,6 +218,21 @@ public class SanctuaryLevel extends RegularLevel {
 		return true;
 	}
 
+	//성소에 들어온 뒤에는 수호자를 쓰러뜨리고 엑스칼리버를 손에 넣기 전까지 게이트가 닫혀 있음
+	@Override
+	public boolean activateTransition( com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero hero, LevelTransition transition ) {
+		if (transition.type == LevelTransition.Type.REGULAR_ENTRANCE && !SanctuaryQuest.completed){
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get( SanctuaryLevel.class, "gate_sealed" ) );
+			return false;
+		}
+		return super.activateTransition( hero, transition );
+	}
+
+	//1층 게이트가 아직 꺼져 있는지
+	public static boolean gateDormant(){
+		return Dungeon.level instanceof SanctuaryLevel && !SanctuaryQuest.completed;
+	}
+
 	//==== 몬스터 ====
 
 	@Override
@@ -304,7 +319,7 @@ public class SanctuaryLevel extends RegularLevel {
 			}
 		}
 		for (CustomTilemap t : level.customTiles){
-			if (t instanceof Gate){
+			if (t instanceof Gate && !gateDormant()){
 				addGateGlow( group, t.tileX + t.tileY * level.width() );
 			}
 		}
@@ -396,6 +411,7 @@ public class SanctuaryLevel extends RegularLevel {
 		}
 	}
 
+	//sanctuary_gate.png: 32x32, 왼쪽 열은 켜진 게이트, 오른쪽 열은 꺼진 게이트 (위 칸 아치 / 아래 칸)
 	public static class Gate extends CustomTilemap {
 		{
 			texture = Assets.Environment.SANCTUARY_GATE;
@@ -403,12 +419,12 @@ public class SanctuaryLevel extends RegularLevel {
 		@Override
 		public Tilemap create() {
 			Tilemap v = super.create();
-			v.map( new int[]{1}, 1 );
+			v.map( new int[]{ gateDormant() ? 3 : 2 }, 1 );
 			return v;
 		}
 		@Override
 		public Image image( int tileX, int tileY ) {
-			return new Image( texture, 0, 0, 16, 32 );
+			return new Image( texture, gateDormant() ? 16 : 0, 0, 16, 32 );
 		}
 		@Override
 		public String name( int tileX, int tileY ) {
@@ -416,7 +432,8 @@ public class SanctuaryLevel extends RegularLevel {
 		}
 		@Override
 		public String desc( int tileX, int tileY ) {
-			return Messages.get( SanctuaryLevel.class, Dungeon.branch == 0 ? "gate_desc_city" : "gate_desc" );
+			if (Dungeon.branch == 0) return Messages.get( SanctuaryLevel.class, "gate_desc_city" );
+			return Messages.get( SanctuaryLevel.class, gateDormant() ? "gate_desc_sealed" : "gate_desc" );
 		}
 	}
 
@@ -427,7 +444,7 @@ public class SanctuaryLevel extends RegularLevel {
 		@Override
 		public Tilemap create() {
 			Tilemap v = super.create();
-			v.map( new int[]{0}, 1 );
+			v.map( new int[]{ gateDormant() ? 1 : 0 }, 1 );
 			return v;
 		}
 		@Override

@@ -58,6 +58,7 @@ public class SanctuaryBossLevel extends RegularLevel {
 	private final ArrayList<Integer> summon = new ArrayList<>();
 	private boolean fightStarted = false;
 	private boolean bossDefeated = false;
+	private boolean gateOpened = false;
 
 	private SanctuaryArenaRoom arena(){
 		if (rooms == null) return null;
@@ -257,13 +258,22 @@ public class SanctuaryBossLevel extends RegularLevel {
 		Dungeon.observe();
 	}
 
-	//보스를 쓰러뜨림: 문이 열리고 투기장 가운데에 20층으로 가는 게이트가 생김
+	//보스를 쓰러뜨림: 문이 열리고 층 잠금이 풀림. 돌아가는 게이트는 엑스칼리버를 주워야 열림
 	public void onBossDefeated(){
 		if (bossDefeated) return;
 		bossDefeated = true;
 		SanctuaryQuest.bossDefeated = true;
 		unseal();
 		if (door >= 0 && map[door] == Terrain.WALL) openDoor();
+		GLog.p( Messages.get( this, "boss_down" ) );
+		playLevelMusic();
+	}
+
+	//왕좌 위의 엑스칼리버를 주움: 투기장 가운데 룬 원 위에 20층으로 돌아가는 게이트가 열림
+	public void onExcaliburTaken(){
+		if (!bossDefeated || gateOpened) return;
+		gateOpened = true;
+		SanctuaryQuest.completed = true;
 
 		if (center >= 0){
 			transitions.add( new LevelTransition( this, center, LevelTransition.Type.BRANCH_ENTRANCE,
@@ -276,11 +286,11 @@ public class SanctuaryBossLevel extends RegularLevel {
 			top.pos( center % width(), center / width() - 1 );
 			customWalls.add( top );
 			GameScene.add( top, true );
-			CellEmitter.get( center ).burst( Speck.factory( Speck.LIGHT ), 12 );
+			CellEmitter.get( center ).burst( Speck.factory( Speck.LIGHT ), 14 );
+			CellEmitter.get( center ).pour( com.shatteredpixel.shatteredpixeldungeon.effects.particles.RuneMote.FACTORY, 0.25f );
+			Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
 		}
-
 		GLog.p( Messages.get( this, "portal_open" ) );
-		playLevelMusic();
 	}
 
 	@Override
@@ -307,6 +317,7 @@ public class SanctuaryBossLevel extends RegularLevel {
 	private static final String SUMMON = "summon";
 	private static final String FIGHT = "fight";
 	private static final String DEFEATED = "defeated";
+	private static final String GATE = "gate_opened";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -319,6 +330,7 @@ public class SanctuaryBossLevel extends RegularLevel {
 		bundle.put( SUMMON, s );
 		bundle.put( FIGHT, fightStarted );
 		bundle.put( DEFEATED, bossDefeated );
+		bundle.put( GATE, gateOpened );
 	}
 
 	@Override
@@ -331,5 +343,7 @@ public class SanctuaryBossLevel extends RegularLevel {
 		if (bundle.contains( SUMMON )) for (int i : bundle.getIntArray( SUMMON )) summon.add( i );
 		fightStarted = bundle.getBoolean( FIGHT );
 		bossDefeated = bundle.getBoolean( DEFEATED );
+		//옛 저장: 이미 게이트가 열려 있었으면 그대로
+		gateOpened = bundle.contains( GATE ) ? bundle.getBoolean( GATE ) : bossDefeated;
 	}
 }

@@ -448,6 +448,33 @@ public class CityBossLevel extends Level {
 
 	//==== 모드: 이차원의 성소로 가는 고대 게이트 (임프 상점 왼쪽, 기둥 사이) ====
 
+	//성소를 끝내기 전에는, 들어가면 돌아올 수 없다고 한 번 묻고 들어감
+	@Override
+	public boolean activateTransition( final com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero hero, final LevelTransition transition ) {
+		if (transition.type == LevelTransition.Type.BRANCH_EXIT && !SanctuaryQuest.completed){
+			Game.runOnRenderThread( new Callback() {
+				@Override
+				public void call() {
+					GameScene.show( new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
+							Messages.get( SanctuaryLevel.class, "gate_enter_title" ),
+							Messages.get( SanctuaryLevel.class, "gate_enter_msg" ),
+							Messages.get( SanctuaryLevel.class, "gate_enter_yes" ),
+							Messages.get( SanctuaryLevel.class, "gate_enter_no" ) ){
+						@Override
+						protected void onSelect( int index ) {
+							if (index == 0){
+								CityBossLevel.super.activateTransition( hero, transition );
+							}
+						}
+					} );
+				}
+			} );
+			return false;
+		}
+		return super.activateTransition( hero, transition );
+	}
+
+
 	public static final int SANCT_GATE   = 2 + 15*15;
 	public static final int SANCT_BRIDGE = 3 + 15*15;
 

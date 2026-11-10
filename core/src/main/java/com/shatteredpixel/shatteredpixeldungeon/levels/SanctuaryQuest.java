@@ -26,11 +26,14 @@ public class SanctuaryQuest {
 	public static boolean given = false;
 	public static boolean bossDefeated = false;
 	public static boolean rewarded = false;
+	//보스를 쓰러뜨리고 엑스칼리버를 주움: 이제 게이트로 자유롭게 드나들 수 있음
+	public static boolean completed = false;
 
 	public static void reset(){
 		given = false;
 		bossDefeated = false;
 		rewarded = false;
+		completed = false;
 	}
 
 	//성소 1층 입구(차원 문)로 이동
@@ -52,6 +55,7 @@ public class SanctuaryQuest {
 		node.put( "given", given );
 		node.put( "boss", bossDefeated );
 		node.put( "rewarded", rewarded );
+		node.put( "completed", completed );
 		bundle.put( NODE, node );
 	}
 
@@ -64,5 +68,6 @@ public class SanctuaryQuest {
 		given = node.getBoolean( "given" );
 		bossDefeated = node.getBoolean( "boss" );
 		rewarded = node.getBoolean( "rewarded" );
+		completed = node.contains( "completed" ) ? node.getBoolean( "completed" ) : bossDefeated;
 	}
 }

@@ -469,6 +469,9 @@ public class Dungeon {
 		if (Dungeon.level.locked
 				|| Dungeon.level instanceof MiningLevel || Dungeon.level instanceof VaultLevel
 				|| Dungeon.level instanceof ModernLevel
+				|| ((Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryLevel
+					|| Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel)
+					&& !com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.completed)
 				|| (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
 			return false;
 		}

@@ -72,6 +72,12 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 		if (Dungeon.level instanceof ModernLevel && tile != Terrain.EMBERS){
 			return -1;
 		}
+		//모드: 이차원의 성소도 자체 타일에 수호상·오벨리스크·화로·이끼를 그려 두었으므로 드워프 도시 장식을 겹치지 않음
+		if ((Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryLevel
+				|| Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel)
+				&& tile != Terrain.EMBERS){
+			return -1;
+		}
 
 		int stage = (Dungeon.depth-1)/5;
 		if (Dungeon.depth == 21 && Dungeon.level instanceof LastShopLevel) stage--;
