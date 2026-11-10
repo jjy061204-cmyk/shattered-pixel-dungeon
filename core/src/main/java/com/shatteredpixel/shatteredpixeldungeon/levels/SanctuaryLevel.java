@@ -71,9 +71,9 @@ public class SanctuaryLevel extends Level {
 		"#.P____P.#......_~~~~~~~_......#``~~~~``#",
 		"#..____..+..S..._~~~~~~~_...S..+````````#",
 		"#.P____P.#......_~~~~~~~_......#````````#",
-		"#..____..#......_~~~~~~~_......#`"""````#",
-		"#.P____P.#..S..._________...S..#`"""````#",
-		"#........#.........._..........#`"""``C`#",
+		"#..____..#......_~~~~~~~_......#`hhh````#",
+		"#.P____P.#..S..._________...S..#`hhh````#",
+		"#........#.........._..........#`hhh``C`#",
 		"#........#.....................#````````#",
 		"##########..S...............S..##########",
 		"##########.....................##########",
@@ -152,7 +152,7 @@ public class SanctuaryLevel extends Level {
 					case 'P': t = Terrain.PEDESTAL; if (pedestals != null) pedestals.add( cell ); break;
 					case '+': t = Terrain.DOOR; break;
 					case '`': t = Terrain.GRASS; break;
-					case '"': t = Terrain.HIGH_GRASS; break;
+					case 'h': t = Terrain.HIGH_GRASS; break;
 					case 'B': t = Terrain.BOOKSHELF; break;
 					case '>': t = Terrain.EXIT; break;
 					case '<': t = Terrain.ENTRANCE; break;
