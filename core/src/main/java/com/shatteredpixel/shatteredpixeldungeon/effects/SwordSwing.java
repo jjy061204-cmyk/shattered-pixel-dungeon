@@ -157,7 +157,8 @@ public class SwordSwing {
 				GameScene.effect( new Blade( image, hiltX, hiltY, a.x, a.y, aim, aim, 0.035f, 0.25f, cos * back, sin * back, cos * (fwd - back), sin * (fwd - back) ) );
 				GameScene.effect( new Blade( image, hiltX, hiltY, a.x, a.y, aim, aim, 0.018f, 0.45f, cos * back, sin * back, cos * (fwd - back), sin * (fwd - back) ) );
 				GameScene.effect( new Blade( image, hiltX, hiltY, a.x, a.y, aim, aim, 0f, 1f, cos * back, sin * back, cos * (fwd - back), sin * (fwd - back) ) );
-				GameScene.effect( new Cut( b.x, b.y, dir, SWING * 0.6f, 1.25f ) );
+				//칼자국은 적 몸을 지나 뒤쪽으로 뻗게 (영웅을 덮지 않도록 앞으로 밀어 둠)
+				GameScene.effect( new Cut( b.x + cos * 10f, b.y + sin * 10f, dir, SWING * 0.6f, 0.9f ) );
 				break;
 			}
 		}
