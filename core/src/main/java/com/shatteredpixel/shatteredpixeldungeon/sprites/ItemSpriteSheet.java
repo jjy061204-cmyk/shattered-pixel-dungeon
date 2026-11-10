@@ -988,8 +988,10 @@ public class ItemSpriteSheet {
 
 	//모드 무기: 차원 균열 단검
 	public static final int RIFT_DAGGER       = MOD_WEAPON+3;
+	public static final int KNIGHT_LONGSWORD  = MOD_WEAPON+4;
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);
+		assignItemRect(KNIGHT_LONGSWORD, 16, 16);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);
 		assignItemRect(DAKKOCHI, 15, 12);
