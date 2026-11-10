@@ -37,7 +37,7 @@ public class WndExcaliburSeal extends Window {
 
 	//칼 그림(20x20) 위 자물쇠 4개와 보옥 자리
 	private static final float[][] LOCK_POS = { {8.75f, 7.25f}, {12.75f, 11.25f}, {12.75f, 3.25f}, {16.75f, 7.25f} };
-	private static final float[] ORB_POS = { 7f, 13.5f };
+	private static final float[] ORB_POS = { 6.5f, 13f };
 
 	private final Excalibur sword;
 

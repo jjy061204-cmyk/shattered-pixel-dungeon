@@ -308,6 +308,11 @@ public enum HeroClass {
 		DevChest chest = new DevChest();
 		chest.collect();
 		Dungeon.quickslot.setSlot(0, chest);
+
+		//층 이동과 몬스터·보스 소환을 하는 테스터 리모컨
+		com.shatteredpixel.shatteredpixeldungeon.items.DevRemote remote = new com.shatteredpixel.shatteredpixeldungeon.items.DevRemote();
+		remote.collect();
+		Dungeon.quickslot.setSlot(1, remote);
 	}
 
 	public String title() {
