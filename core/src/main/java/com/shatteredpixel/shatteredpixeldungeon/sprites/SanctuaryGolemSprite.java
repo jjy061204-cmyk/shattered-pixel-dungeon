@@ -20,7 +20,7 @@ import com.watabou.utils.Callback;
 //칸 순서: 0-1 대기, 2-5 걷기, 6-8 공격, 9-13 무너짐
 public abstract class SanctuaryGolemSprite extends MobSprite {
 
-	protected SanctuaryGolemSprite( int row, float runFps ){
+	protected SanctuaryGolemSprite( int row, int runFps ){
 		super();
 		texture( Assets.Sprites.SANCTUARY_GOLEMS );
 		TextureFilm frames = new TextureFilm( texture, 16, 18 );
