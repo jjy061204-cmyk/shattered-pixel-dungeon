@@ -16,14 +16,14 @@ import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 
-//sanctuary_golems.png: 16x18 칸, 줄마다 한 종류 (0 석상 병사, 1 석상 수호병, 2 룬 감시석)
+//sanctuary_golems.png: 20x20 칸, 줄마다 한 종류 (0 석상 병사, 1 석상 수호병, 2 룬 감시석)
 //칸 순서: 0-1 대기, 2-5 걷기, 6-8 공격, 9-13 무너짐
 public abstract class SanctuaryGolemSprite extends MobSprite {
 
 	protected SanctuaryGolemSprite( int row, int runFps ){
 		super();
 		texture( Assets.Sprites.SANCTUARY_GOLEMS );
-		TextureFilm frames = new TextureFilm( texture, 16, 18 );
+		TextureFilm frames = new TextureFilm( texture, 20, 20 );
 		int o = row * 16;
 
 		idle = new Animation( 2, true );
@@ -45,7 +45,7 @@ public abstract class SanctuaryGolemSprite extends MobSprite {
 
 	@Override
 	public int blood() {
-		return 0xFF9C98AC;   //돌가루
+		return 0xFF8C8E78;   //이끼 낀 돌가루
 	}
 
 	public static class Soldier extends SanctuaryGolemSprite {

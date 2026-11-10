@@ -74,10 +74,21 @@ public class DevRemote extends Item {
 	public void execute( Hero hero, String action ) {
 		super.execute( hero, action );
 		if (action.equals( AC_TRAVEL )){
+			//금고 안에서 나가 버리면 맡겨 둔 소지품이 꼬이므로 막음
+			if (inVault()) return;
 			chooseRegion( true );
 		} else if (action.equals( AC_SUMMON )){
 			chooseRegion( false );
 		}
+	}
+
+	//금고 안에서 나가 버리면 맡겨 둔 소지품이 꼬이므로 층 이동은 막음
+	private static boolean inVault(){
+		if (Dungeon.branch == 1 && Dungeon.depth >= 16 && Dungeon.depth <= 19){
+			GLog.w( txt( "vault_locked" ) );
+			return true;
+		}
+		return false;
 	}
 
 	private static String txt( String key, Object... args ){
@@ -185,6 +196,7 @@ public class DevRemote extends Item {
 			@Override
 			protected void onSelect( int index ) {
 				if (index == 0) summon( BOSSES[0] );
+				else if (inVault()) return;
 				else if (BOSS_DEPTH[index] < 0) com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel(
 						com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
 				else travel( BOSS_DEPTH[index] );   //텐구·DM-300·드워프 왕·요그는 전용 무대가 있어야 싸움이 됨

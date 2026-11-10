@@ -40,8 +40,9 @@ public class RuneMote extends PixelParticle {
 		speed.set( Random.Float( -1.5f, 1.5f ), Random.Float( -7, -3 ) );
 		lifespan = Random.Float( 1.2f, 2.2f );
 		left = lifespan;
-		if (Random.Int( 3 ) == 0){ c1 = 0x6040C0; c2 = 0xD8B8FF; }
-		else { c1 = 0x2080A0; c2 = 0xC8FFFF; }
+		//고대 룬의 빛: 대부분 청록, 가끔 금빛
+		if (Random.Int( 4 ) == 0){ c1 = 0x907020; c2 = 0xFFF0B0; }
+		else { c1 = 0x1F7F78; c2 = 0xC8FFF4; }
 	}
 
 	@Override

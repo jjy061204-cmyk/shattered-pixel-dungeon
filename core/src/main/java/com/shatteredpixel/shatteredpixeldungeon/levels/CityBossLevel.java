@@ -442,7 +442,48 @@ public class CityBossLevel extends Level {
 	public Group addVisuals( ) {
 		super.addVisuals();
 		CityLevel.addCityVisuals(this, visuals);
+		if (hasSanctuaryGate()) SanctuaryLevel.addGateGlow( visuals, SANCT_GATE );
 		return visuals;
+	}
+
+	//==== 모드: 이차원의 성소로 가는 고대 게이트 (임프 상점 왼쪽, 기둥 사이) ====
+
+	public static final int SANCT_GATE   = 2 + 15*15;
+	public static final int SANCT_BRIDGE = 3 + 15*15;
+
+	public boolean hasSanctuaryGate(){
+		for (LevelTransition t : transitions){
+			if (t.type == LevelTransition.Type.BRANCH_EXIT) return true;
+		}
+		return false;
+	}
+
+	public void installSanctuaryGate(){
+		if (hasSanctuaryGate()) return;
+
+		set( SANCT_GATE, Terrain.EMPTY_SP );
+		set( SANCT_BRIDGE, Terrain.EMPTY_SP );
+		GameScene.updateMap( SANCT_GATE );
+		GameScene.updateMap( SANCT_BRIDGE );
+
+		transitions.add( new LevelTransition( this, SANCT_GATE, LevelTransition.Type.BRANCH_EXIT,
+				SanctuaryQuest.DEPTH, SanctuaryLevel.BRANCH, LevelTransition.Type.REGULAR_ENTRANCE ) );
+
+		SanctuaryLevel.Gate g = new SanctuaryLevel.Gate();
+		g.pos( SANCT_GATE % width(), SANCT_GATE / width() );
+		customTiles.add( g );
+		GameScene.add( g, false );
+		SanctuaryLevel.GateTop top = new SanctuaryLevel.GateTop();
+		top.pos( SANCT_GATE % width(), SANCT_GATE / width() - 1 );
+		customWalls.add( top );
+		GameScene.add( top, true );
+
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( SANCT_GATE ).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 12 );
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( SANCT_GATE ).pour(
+				com.shatteredpixel.shatteredpixeldungeon.effects.particles.RuneMote.FACTORY, 0.25f );
+		com.watabou.noosa.audio.Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
+		Dungeon.observe();
 	}
 
 	@Override

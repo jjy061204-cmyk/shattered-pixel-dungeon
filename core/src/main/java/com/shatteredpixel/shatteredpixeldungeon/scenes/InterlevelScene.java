@@ -647,7 +647,8 @@ public class InterlevelScene extends PixelScene {
 			Level level = Dungeon.newLevel();
 			Dungeon.switchLevel( level, -1 );
 		} else {
-			if (curTransition.destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
+			if (curTransition.destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20
+				&& (curTransition.destBranch == 1 || Dungeon.branch == 1)) { //모드: 동료는 금고에만 못 데려감 (성소는 같이 감)
 				//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 				// perhaps holding allies could be a property of the transition?
 			} else {
@@ -691,7 +692,8 @@ public class InterlevelScene extends PixelScene {
 	}
 
 	private void ascend() throws IOException {
-		if (curTransition.destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
+		if (curTransition.destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20
+				&& (curTransition.destBranch == 1 || Dungeon.branch == 1)) { //모드: 동료는 금고에만 못 데려감 (성소는 같이 감)
 			//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 			// perhaps holding allies could be a property of the transition?
 		} else {

@@ -12,13 +12,13 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
 
-//sanctuary_colossus.png: 28x28 칸. 0-1 대기, 2-5 걷기, 6-8 내려치기, 9-13 무너짐
+//sanctuary_colossus.png: 32x32 칸. 0-1 대기, 2-5 걷기, 6-8 내려치기, 9-13 무너짐
 public class ColossusSprite extends MobSprite {
 
 	public ColossusSprite() {
 		super();
 		texture( Assets.Sprites.SANCTUARY_COLOSSUS );
-		TextureFilm frames = new TextureFilm( texture, 28, 28 );
+		TextureFilm frames = new TextureFilm( texture, 32, 32 );
 
 		idle = new Animation( 2, true );
 		idle.frames( frames, 0, 0, 0, 1 );
@@ -47,6 +47,6 @@ public class ColossusSprite extends MobSprite {
 
 	@Override
 	public int blood() {
-		return 0xFF9C98AC;
+		return 0xFF8C8E78;
 	}
 }

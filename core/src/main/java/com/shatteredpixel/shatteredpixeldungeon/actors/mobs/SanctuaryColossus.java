@@ -20,7 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.GoldSparkle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.quest.GolemHeart;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -193,16 +193,15 @@ public class SanctuaryColossus extends Mob {
 	public void die( Object cause ) {
 		super.die( cause );
 
-		//보상: 골렘의 심장 + 성소의 보물
+		//보상: 성소 깊은 곳에 봉인돼 있던 엑스칼리버 + 성소의 보물
 		ArrayList<Item> drops = new ArrayList<>();
-		drops.add( new GolemHeart() );
-		drops.add( Generator.random( Random.Int( 2 ) == 0 ? Generator.Category.WEAPON : Generator.Category.ARMOR ) );
+		drops.add( new Excalibur() );
 		drops.add( Generator.random( Random.Int( 2 ) == 0 ? Generator.Category.RING : Generator.Category.WAND ) );
 		drops.add( Generator.random( Generator.Category.ARTIFACT ) );
 		for (Item it : drops){
 			if (it == null) continue;
 			int cell = pos;
-			for (int t = 0; t < 10; t++){
+			for (int t = 0; t < 10 && !(it instanceof Excalibur); t++){
 				int c = pos + PathFinder.NEIGHBOURS9[Random.Int( 9 )];
 				if (Dungeon.level.passable[c]) { cell = c; break; }
 			}
@@ -216,6 +215,7 @@ public class SanctuaryColossus extends Mob {
 			}
 		}
 
+		GLog.p( Messages.get( this, "excalibur" ) );
 		GameScene.bossSlain();
 		yell( Messages.get( this, "defeated" ) );
 		if (Dungeon.level instanceof SanctuaryBossLevel){

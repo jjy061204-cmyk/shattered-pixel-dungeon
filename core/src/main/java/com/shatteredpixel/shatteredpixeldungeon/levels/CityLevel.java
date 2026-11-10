@@ -162,6 +162,10 @@ public class CityLevel extends RegularLevel {
 								Dungeon.hero.live(); //clears all non-persist buffs, resets hunger/regen
 								hero.HP = hero.HT; //full heal
 
+								//모드: 테스터의 상자·리모컨은 금고 안으로 가져감
+								boolean devChest = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevChest.class) != null;
+								boolean devRemote = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevRemote.class) != null;
+
 								EscapeCrystal crystal = hero.belongings.getItem(EscapeCrystal.class);
 								if (crystal == null) {
 									crystal = new EscapeCrystal();
@@ -172,6 +176,16 @@ public class CityLevel extends RegularLevel {
 									crystal.storeHeroBelongings(Dungeon.hero);
 								}
 								crystal.collect();
+								if (devChest && hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevChest.class) == null){
+									com.shatteredpixel.shatteredpixeldungeon.items.Item chest = new com.shatteredpixel.shatteredpixeldungeon.items.DevChest();
+									chest.collect();
+									Dungeon.quickslot.setSlot(0, chest);
+								}
+								if (devRemote && hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevRemote.class) == null){
+									com.shatteredpixel.shatteredpixeldungeon.items.Item remote = new com.shatteredpixel.shatteredpixeldungeon.items.DevRemote();
+									remote.collect();
+									Dungeon.quickslot.setSlot(1, remote);
+								}
 								hero.belongings.armor = new ClothArmor();
 								hero.belongings.armor.identify();
 								hero.updateHT( false );

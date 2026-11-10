@@ -22,9 +22,18 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ImpSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage;
+import com.watabou.noosa.Game;
+import com.watabou.utils.Callback;
 
 public class ImpShopkeeper extends Shopkeeper {
 
@@ -49,38 +58,36 @@ public class ImpShopkeeper extends Shopkeeper {
 		return super.act();
 	}
 
-	//==== 모드: 이차원의 성소 퀘스트 (20층) ====
+	//==== 모드: 이차원의 성소로 가는 게이트 (20층) ====
+	//임프가 드워프 금고에서 찾은 이차원 게이트 장치를, 원하면 상점 옆에 설치해 줌
 
 	private static String txt( String key, Object... args ){
-		return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( ImpShopkeeper.class, key, args );
+		return Messages.get( ImpShopkeeper.class, key, args );
+	}
+
+	private static CityBossLevel cityLevel(){
+		return Dungeon.level instanceof CityBossLevel ? (CityBossLevel) Dungeon.level : null;
 	}
 
 	@Override
-	public boolean interact( com.shatteredpixel.shatteredpixeldungeon.actors.Char c ) {
-		if (c != Dungeon.hero
-				|| Dungeon.depth != com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.DEPTH
-				|| Dungeon.branch != 0){
+	public boolean interact( Char c ) {
+		if (c != Dungeon.hero || cityLevel() == null || Dungeon.branch != 0){
 			return super.interact( c );
 		}
-		final ImpShopkeeper imp = this;
-		com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
+		Game.runOnRenderThread( new Callback() {
 			@Override
 			public void call() {
-				final boolean hasHeart = Dungeon.hero.belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.quest.GolemHeart.class ) != null;
-				String quest = hasHeart && !com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.rewarded
-						? txt( "sanct_give_heart" ) : txt( "sanct_option" );
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-						new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions( sprite(),
-								com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase( name() ),
-								txt( "sanct_menu" ), txt( "sanct_shop" ), quest ){
+				final boolean installed = cityLevel() != null && cityLevel().hasSanctuaryGate();
+				GameScene.show( new WndOptions( sprite(), Messages.titleCase( name() ),
+						txt( "sanct_menu" ), txt( "sanct_shop" ), txt( installed ? "sanct_option_after" : "sanct_option" ) ){
 					@Override
 					protected void onSelect( int index ) {
 						if (index == 0){
 							ImpShopkeeper.super.interact( Dungeon.hero );
-						} else if (hasHeart && !com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.rewarded){
-							giveHeart();
+						} else if (installed){
+							aboutGate();
 						} else {
-							offerSanctuary();
+							offerGate();
 						}
 					}
 				});
@@ -89,43 +96,25 @@ public class ImpShopkeeper extends Shopkeeper {
 		return true;
 	}
 
-	//퀘스트 설명 + 보내 달라고 하기
-	private void offerSanctuary(){
-		String body;
-		if (!com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.given){
-			body = txt( "sanct_intro" );
-		} else if (!com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.bossDefeated){
-			body = txt( "sanct_again" );
-		} else {
-			body = txt( "sanct_after" );
-		}
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-				new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions( sprite(),
-						txt( "sanct_title" ), body, txt( "sanct_go" ), txt( "sanct_later" ) ){
+	//금고에서 찾은 장치 이야기 + 설치해 줄까?
+	private void offerGate(){
+		GameScene.show( new WndOptions( sprite(), txt( "sanct_title" ), txt( "sanct_intro" ),
+				txt( "sanct_install" ), txt( "sanct_later" ) ){
 			@Override
 			protected void onSelect( int index ) {
-				if (index == 0){
-					com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.given = true;
-					com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel(
-							com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryLevel.BRANCH );
+				if (index == 0 && cityLevel() != null){
+					SanctuaryQuest.given = true;
+					cityLevel().installSanctuaryGate();
+					yell( txt( "sanct_installed_yell" ) );
+					GLog.p( txt( "sanct_installed" ) );
 				}
 			}
 		});
 	}
 
-	//골렘의 심장을 건네고 보상 받기
-	private void giveHeart(){
-		com.shatteredpixel.shatteredpixeldungeon.items.Item heart = Dungeon.hero.belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.quest.GolemHeart.class );
-		if (heart == null) return;
-		heart.detachAll( Dungeon.hero.belongings.backpack );
-		com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.rewarded = true;
-		int gold = com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.REWARD_GOLD;
-		Dungeon.gold += gold;
-		com.shatteredpixel.shatteredpixeldungeon.Statistics.goldCollected += gold;
-		com.watabou.noosa.audio.Sample.INSTANCE.play( com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.GOLD );
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-				new com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage( sprite(),
-						com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase( name() ),
-						txt( "sanct_thanks", gold ) ) );
+	//이미 설치한 뒤에는 성소 이야기만
+	private void aboutGate(){
+		String body = SanctuaryQuest.bossDefeated ? txt( "sanct_after" ) : txt( "sanct_again" );
+		GameScene.show( new WndTitledMessage( sprite(), txt( "sanct_title" ), body ) );
 	}
 }

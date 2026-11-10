@@ -16,7 +16,8 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
-//20층 임프에게 받는 퀘스트: 이차원의 성소 2층의 거대 골렘을 쓰러뜨리고 심장을 가져오기
+//20층 임프가 드워프 금고에서 찾은 이차원 게이트 장치를 상점 옆에 설치해 주면(given) 성소로 드나들 수 있음.
+//성소 2층 투기장의 거대 골렘을 쓰러뜨리면(bossDefeated) 봉인된 엑스칼리버를 얻음
 public class SanctuaryQuest {
 
 	public static final int DEPTH = 20;

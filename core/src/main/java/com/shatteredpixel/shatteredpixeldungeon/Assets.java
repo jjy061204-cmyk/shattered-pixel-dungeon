@@ -48,6 +48,7 @@ public class Assets {
 		public static final String TILES_SANCTUARY = "environment/tiles_sanctuary.png";
 		public static final String WATER_SANCTUARY = "environment/water_sanctuary.png";
 		public static final String SANCTUARY_RUNE  = "environment/custom_tiles/sanctuary_rune.png";
+		public static final String SANCTUARY_GATE  = "environment/custom_tiles/sanctuary_gate.png";
 		public static final String TILES_MODERN = "environment/tiles_modern.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 

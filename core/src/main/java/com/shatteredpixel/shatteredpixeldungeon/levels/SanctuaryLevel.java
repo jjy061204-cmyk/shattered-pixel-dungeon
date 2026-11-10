@@ -1,5 +1,5 @@
 /*
- * Shattered Pixel Dungeon 모드: 이차원의 성소 1층 (외곽 회랑)
+ * Shattered Pixel Dungeon 모드: 이차원의 성소 1층 (절차 생성)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,7 +11,6 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RuneSentinel;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.StoneSoldier;
@@ -24,6 +23,51 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.painters.SanctuaryPainter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.sanctuary.SanctuaryGateRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.ArmoryRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.CryptRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.GardenRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.LibraryRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MagicWellRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.PoolRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.RunestoneRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SacrificeRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SentryRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.StatueRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.StorageRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.TreasuryRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.AquariumRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.CircleWallRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.EmptyRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.HallwayRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.LibraryRingRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.PillarsRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.PlantsRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.RingRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.RitualRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.RuinsRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.SegmentedLibraryRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.SegmentedRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.SkullsRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StandardRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StatuesRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StripedRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StudyRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.WaterBridgeRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.exit.ExitRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.CorrosionTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.DisintegrationTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.FlashingTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.FrostTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GuardianTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.RockfallTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.StormTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.SummoningTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WarpingTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WeakeningTrap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
@@ -32,69 +76,24 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.Tilemap;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.particles.Emitter;
-import com.watabou.utils.Bundle;
+import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
-//20층 임프의 퀘스트로 들어오는 이차원의 성소 1층.
-//남쪽 도착실(차원 문) → 대전당(공허 웅덩이) → 북쪽 관문실(2층 계단)
-//서쪽 성유물실(받침대), 동쪽 공허 정원(상자), 북서·북동 서고, 남서·남동 무너진 제단
-//석상 골렘들이 지키며, 강화 주문서·힘의 물약을 뺀 아이템이 곳곳에 놓여 있음
-public class SanctuaryLevel extends Level {
+//이차원의 성소 1층: 드워프와는 아무 관계 없는 아주 오래된 유적.
+//일반 층처럼 방을 이어 붙여 만들고, 입구에는 20층으로 돌아가는 고대 게이트가 서 있음.
+//강화 주문서·힘의 물약은 나오지 않음
+public class SanctuaryLevel extends RegularLevel {
 
 	public static final int BRANCH = 7;
 
 	{
-		color1 = 0x6a4bd8;
-		color2 = 0x88e8ff;
+		color1 = 0x4f7a46;
+		color2 = 0x9ff3e8;
 	}
-
-	private static final String[] MAP = {
-		"#########################################",
-		"#########################################",
-		"#############...............#############",
-		"##BBBBBBBB###.S...__>__...S.###BBBBBBBB##",
-		"##........###....._____.....###........##",
-		"##........+...S..._____...S...+........##",
-		"##........###...............###........##",
-		"##........###.S...........S.###........##",
-		"##........###...............###........##",
-		"##........#########...#########........##",
-		"###################.+.###################",
-		"##########...,.,.,.,.,.,.,.,...##########",
-		"##########..S...............S..##########",
-		"#........#.....................#````````#",
-		"#........#.........._..........#``````C`#",
-		"#.P____P.#..S..._________...S..#``~~~~``#",
-		"#..____..#......_~~~~~~~_......#``~~~~``#",
-		"#.P____P.#......_~~~~~~~_......#``~~~~``#",
-		"#..____..+..S..._~~~~~~~_...S..+````````#",
-		"#.P____P.#......_~~~~~~~_......#````````#",
-		"#..____..#......_~~~~~~~_......#`hhh````#",
-		"#.P____P.#..S..._________...S..#`hhh````#",
-		"#........#.........._..........#`hhh``C`#",
-		"#........#.....................#````````#",
-		"##########..S...............S..##########",
-		"##########.....................##########",
-		"###########+.######...######.+###########",
-		"###########..######...######..###########",
-		"###,,,,,,,,,,######...######,,,,,,,,,,###",
-		"###,,,,,,,,,,##S.........S##,,,,,,,,,,###",
-		"###,,......,,##...........##,,......,,###",
-		"###,,..S...,,##..._____...##,,...S..,,###",
-		"###,,..._..,,....._____...##,,.._...,,###",
-		"###,,......,,.....__O__.....,,......,,###",
-		"###,,,,,,,,,,##..._____...##,,,,,,,,,,###",
-		"###,,,,,,,,,,##..._____...##,,,,,,,,,,###",
-		"###############S.........S###############",
-		"#########################################",
-		"#########################################"
-	};
-
-	private int portal = -1, exitCell = -1;
-	private final ArrayList<Integer> pedestals = new ArrayList<>();
-	private final ArrayList<Integer> chests = new ArrayList<>();
 
 	@Override
 	public String tilesTex() {
@@ -108,120 +107,134 @@ public class SanctuaryLevel extends Level {
 
 	@Override
 	public void playLevelMusic() {
-		Music.INSTANCE.playTracks( HallsLevel.HALLS_TRACK_LIST, HallsLevel.HALLS_TRACK_CHANCES, false );
+		Music.INSTANCE.playTracks( CavesLevel.CAVES_TRACK_LIST, CavesLevel.CAVES_TRACK_CHANCES, false );
+	}
+
+	//==== 방 구성 ====
+
+	//성소 분위기에 맞는 일반 방 (낭떠러지가 생기는 방은 뺌: 떨어지면 엉뚱한 층으로 가므로)
+	private static final Class<?>[] STD_ROOMS = {
+			StatuesRoom.class, RuinsRoom.class, RitualRoom.class, PillarsRoom.class,
+			RingRoom.class, HallwayRoom.class, CircleWallRoom.class, SegmentedRoom.class,
+			LibraryRingRoom.class, SegmentedLibraryRoom.class, AquariumRoom.class, PlantsRoom.class,
+			WaterBridgeRoom.class, StudyRoom.class, SkullsRoom.class, StripedRoom.class, EmptyRoom.class
+	};
+	private static final float[] STD_CHANCES = {
+			9, 8, 6, 6,
+			5, 5, 4, 4,
+			3, 2, 3, 4,
+			2, 2, 2, 2, 3
+	};
+
+	//열쇠 문이 있어도 같은 층(20층) 열쇠로 열림. 구덩이·함정방·수정 열쇠 방은 뺌
+	private static final Class<?>[] SPECIALS = {
+			GardenRoom.class, LibraryRoom.class, MagicWellRoom.class, RunestoneRoom.class,
+			StatueRoom.class, TreasuryRoom.class, StorageRoom.class, PoolRoom.class,
+			SentryRoom.class, CryptRoom.class, ArmoryRoom.class, SacrificeRoom.class
+	};
+
+	public static StandardRoom randomStandard(){
+		return (StandardRoom) Reflection.newInstance( STD_ROOMS[Random.chances( STD_CHANCES )] );
+	}
+
+	protected static void addStandards( ArrayList<Room> rooms, int count ){
+		for (int i = 0; i < count; i++) {
+			StandardRoom s;
+			do {
+				s = randomStandard();
+			} while (!s.setSizeCat( count - i ));
+			i += s.sizeFactor() - 1;
+			rooms.add( s );
+		}
+	}
+
+	@Override
+	protected ArrayList<Room> initRooms() {
+		ArrayList<Room> rooms = new ArrayList<>();
+		rooms.add( roomEntrance = new SanctuaryGateRoom() );
+		rooms.add( roomExit = ExitRoom.createExit() );
+
+		addStandards( rooms, standardRooms( false ) );
+
+		ArrayList<Class<?>> specials = new ArrayList<>( Arrays.asList( SPECIALS ) );
+		Random.shuffle( specials );
+		int n = specialRooms( false );
+		for (int i = 0; i < n && !specials.isEmpty(); i++){
+			rooms.add( (Room) Reflection.newInstance( specials.remove( 0 ) ) );
+		}
+		return rooms;
+	}
+
+	@Override
+	protected int standardRooms( boolean forceMax ) {
+		if (forceMax) return 7;
+		return 5 + Random.chances( new float[]{1, 3, 1} );
+	}
+
+	@Override
+	protected int specialRooms( boolean forceMax ) {
+		if (forceMax) return 3;
+		return 2 + Random.chances( new float[]{2, 1} );
+	}
+
+	@Override
+	protected Painter painter() {
+		return new SanctuaryPainter()
+				.setWater( 0.25f, 4 )
+				.setGrass( 0.30f, 3 )
+				.setTraps( nTraps(), trapClasses(), trapChances() );
+	}
+
+	@Override
+	protected int nTraps() {
+		return Random.NormalIntRange( 2, 4 );
+	}
+
+	@Override
+	protected Class<?>[] trapClasses() {
+		return new Class[]{ RockfallTrap.class, GuardianTrap.class, FlashingTrap.class, DisintegrationTrap.class,
+				FrostTrap.class, StormTrap.class, CorrosionTrap.class, WeakeningTrap.class,
+				SummoningTrap.class, WarpingTrap.class };
+	}
+
+	@Override
+	protected float[] trapChances() {
+		return new float[]{ 4, 4, 3, 3,
+				2, 2, 2, 2,
+				1, 1 };
 	}
 
 	@Override
 	protected boolean build() {
-		parse( this, MAP, pedestals, chests );
-		for (int i = 0; i < length(); i++){
-			char c = MAP[i / width()].charAt( i % width() );
-			if (c == 'O') portal = i;
-			if (c == '>') exitCell = i;
-		}
-
-		//차원 문: 20층 입구로 돌아감
-		transitions.add( new LevelTransition( this, portal, LevelTransition.Type.REGULAR_ENTRANCE,
-				SanctuaryQuest.DEPTH, 0, LevelTransition.Type.REGULAR_ENTRANCE ) );
-		//북쪽 계단: 2층 수호자의 방
-		transitions.add( new LevelTransition( this, exitCell, LevelTransition.Type.REGULAR_EXIT,
-				SanctuaryQuest.DEPTH, SanctuaryBossLevel.BRANCH, LevelTransition.Type.REGULAR_ENTRANCE ) );
-
-		addRune( this, portal );
-		addPortal( this, portal );
-
-		feeling = Feeling.NONE;
-		return true;
-	}
-
-	//글자 지도 → 지형 (두 층이 같이 씀)
-	static void parse( Level level, String[] map, ArrayList<Integer> pedestals, ArrayList<Integer> chests ){
-		level.setSize( map[0].length(), map.length );
-		for (int y = 0; y < map.length; y++){
-			for (int x = 0; x < map[y].length(); x++){
-				int cell = x + y * level.width();
-				int t;
-				switch (map[y].charAt( x )){
-					case '#': default: t = Terrain.WALL; break;
-					case '.': t = Terrain.EMPTY; break;
-					case ',': t = Terrain.EMPTY_DECO; break;
-					case '_': case 'O': case 'o': case 'T': t = Terrain.EMPTY_SP; break;
-					case 'C': t = Terrain.EMPTY_SP; if (chests != null) chests.add( cell ); break;
-					case '~': t = Terrain.WATER; break;
-					case 'S': t = Terrain.STATUE; break;
-					case 'P': t = Terrain.PEDESTAL; if (pedestals != null) pedestals.add( cell ); break;
-					case '+': t = Terrain.DOOR; break;
-					case '`': t = Terrain.GRASS; break;
-					case 'h': t = Terrain.HIGH_GRASS; break;
-					case 'B': t = Terrain.BOOKSHELF; break;
-					case '>': t = Terrain.EXIT; break;
-					case '<': t = Terrain.ENTRANCE; break;
-				}
-				level.map[cell] = t;
+		if (!super.build()) return false;
+		//북쪽 계단은 성소 2층으로
+		for (LevelTransition t : transitions){
+			if (t.type == LevelTransition.Type.REGULAR_EXIT){
+				t.destDepth = SanctuaryQuest.DEPTH;
+				t.destBranch = SanctuaryBossLevel.BRANCH;
+				t.destType = LevelTransition.Type.REGULAR_ENTRANCE;
 			}
 		}
-	}
-
-	//가운데 3x3 룬 원 그림
-	static void addRune( Level level, int center ){
-		RuneCircle rune = new RuneCircle();
-		rune.setRect( center % level.width() - 1, center / level.width() - 1, 3, 3 );
-		level.customTiles.add( rune );
-	}
-
-	//세로로 찢어진 차원 문 그림 (아래 칸은 바닥 위, 위 칸은 캐릭터보다 위)
-	static void addPortal( Level level, int cell ){
-		Portal p = new Portal();
-		p.pos( cell % level.width(), cell / level.width() );
-		level.customTiles.add( p );
-		PortalTop top = new PortalTop();
-		top.pos( cell % level.width(), cell / level.width() - 1 );
-		level.customWalls.add( top );
+		return true;
 	}
 
 	//==== 몬스터 ====
 
 	@Override
 	public int mobLimit() {
-		return 9;
+		return 7 + Random.Int( 3 );
 	}
 
 	@Override
 	public Mob createMob() {
+		return randomGolem();
+	}
+
+	public static Mob randomGolem(){
 		int r = Random.Int( 20 );
 		if (r < 9) return new StoneSoldier();
 		if (r < 14) return new StoneWarden();
 		return new RuneSentinel();
-	}
-
-	//도착실 안이나 차원 문 가까이에는 나타나지 않음
-	private boolean spawnable( int cell ){
-		if (!passable[cell] || solid[cell] || Actor.findChar( cell ) != null || findMob( cell ) != null) return false;
-		if (portal >= 0 && distance( cell, portal ) <= 6) return false;
-		return true;
-	}
-
-	@Override
-	protected void createMobs() {
-		int n = mobLimit();
-		int tries = 0;
-		while (n > 0 && tries++ < 2000){
-			int cell = Random.Int( length() );
-			if (!spawnable( cell )) continue;
-			Mob m = createMob();
-			m.pos = cell;
-			mobs.add( m );
-			n--;
-		}
-	}
-
-	@Override
-	public int randomRespawnCell( com.shatteredpixel.shatteredpixeldungeon.actors.Char ch ) {
-		for (int tries = 0; tries < 300; tries++){
-			int cell = Random.Int( length() );
-			if (spawnable( cell ) && !heroFOV[cell]) return cell;
-		}
-		return -1;
 	}
 
 	//==== 아이템 (강화 주문서·힘의 물약 제외) ====
@@ -234,45 +247,33 @@ public class SanctuaryLevel extends Level {
 		return it;
 	}
 
-	private int freeCell( int x0, int y0, int x1, int y1 ){
-		for (int t = 0; t < 200; t++){
-			int cell = Random.IntRange( x0, x1 ) + Random.IntRange( y0, y1 ) * width();
-			if (passable[cell] && map[cell] != Terrain.PEDESTAL && heaps.get( cell ) == null) return cell;
+	protected void dropAt( Item it, Heap.Type type ){
+		int cell = randomDropCell();
+		if (cell < 0 || it == null) return;
+		if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+			map[cell] = Terrain.GRASS;
+			losBlocking[cell] = false;
 		}
-		return -1;
-	}
-
-	private void place( Item it, int cell ){
-		if (it != null && cell >= 0) drop( it, cell );
+		drop( it, cell ).type = type;
 	}
 
 	@Override
 	protected void createItems() {
-		//성유물실 받침대 8개 중 4개에 귀한 물건
-		ArrayList<Integer> ped = new ArrayList<>( pedestals );
-		Generator.Category[] relic = { Generator.Category.WAND, Generator.Category.RING,
-				Generator.Category.ARTIFACT, Generator.Category.WEAPON, Generator.Category.ARMOR };
-		for (int i = 0; i < 4 && !ped.isEmpty(); i++){
-			int cell = ped.remove( Random.Int( ped.size() ) );
-			place( loot( relic[Random.Int( relic.length )] ), cell );
+		int n = 5 + Random.chances( new float[]{3, 4, 2} );
+		for (int i = 0; i < n; i++){
+			Heap.Type type = Random.Int( 5 ) == 0 ? Heap.Type.CHEST
+					: (Random.Int( 8 ) == 0 ? Heap.Type.SKELETON : Heap.Type.HEAP);
+			dropAt( loot( null ), type );
 		}
-		//공허 정원의 상자 2개
-		for (int c : chests){
-			drop( loot( null ), c ).type = Heap.Type.CHEST;
+		dropAt( Generator.random( Generator.Category.FOOD ), Heap.Type.HEAP );
+		for (int i = 0; i < 2; i++){
+			dropAt( new Gold().random(), Heap.Type.HEAP );
 		}
-		//서고 두 곳
-		place( loot( Generator.Category.SCROLL ), freeCell( 2, 4, 9, 9 ) );
-		place( loot( Generator.Category.SCROLL ), freeCell( 31, 4, 38, 9 ) );
-		//무너진 제단 두 곳
-		place( loot( Generator.Category.POTION ), freeCell( 5, 30, 10, 33 ) );
-		place( loot( Generator.Category.POTION ), freeCell( 30, 30, 35, 33 ) );
-		//대전당과 관문실 곳곳
-		for (int i = 0; i < 6; i++){
-			place( loot( null ), i < 4 ? freeCell( 10, 11, 30, 25 ) : freeCell( 13, 2, 27, 8 ) );
+		//특수 방이 남긴 열쇠 등
+		for (Item item : itemsToSpawn){
+			dropAt( item, Heap.Type.HEAP );
 		}
-		for (int i = 0; i < 3; i++){
-			place( new Gold().random(), freeCell( 10, 11, 30, 25 ) );
-		}
+		itemsToSpawn.clear();
 	}
 
 	//==== 그림 효과 ====
@@ -280,20 +281,41 @@ public class SanctuaryLevel extends Level {
 	@Override
 	public Group addVisuals() {
 		super.addVisuals();
-		addVoidMotes( this, visuals );
+		addSanctuaryVisuals( this, visuals );
 		return visuals;
 	}
 
-	static void addVoidMotes( Level level, Group group ){
+	//물 위 빛 알갱이, 룬 벽의 희미한 빛, 게이트의 빛
+	public static void addSanctuaryVisuals( Level level, Group group ){
 		for (int i = 0; i < level.length(); i++){
-			if (level.map[i] == Terrain.WATER && Random.Int( 3 ) == 0){
+			if (level.map[i] == Terrain.WATER && Random.Int( 4 ) == 0){
 				Emitter e = new Emitter();
 				e.pos( (i % level.width()) * DungeonTilemap.SIZE, (i / level.width()) * DungeonTilemap.SIZE,
 						DungeonTilemap.SIZE, DungeonTilemap.SIZE );
-				e.pour( RuneMote.FACTORY, Random.Float( 0.5f, 0.9f ) );
+				e.pour( RuneMote.FACTORY, Random.Float( 0.6f, 1.1f ) );
+				group.add( e );
+			} else if (level.map[i] == Terrain.WALL_DECO && i + level.width() < level.length()
+					&& !com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTileSheet.wallStitcheable( level.map[i + level.width()] )){
+				Emitter e = new Emitter();
+				PointF p = DungeonTilemap.tileCenterToWorld( i );
+				e.pos( p.x - 3, p.y - 2, 6, 6 );
+				e.pour( RuneMote.FACTORY, 1.4f );
 				group.add( e );
 			}
 		}
+		for (CustomTilemap t : level.customTiles){
+			if (t instanceof Gate){
+				addGateGlow( group, t.tileX + t.tileY * level.width() );
+			}
+		}
+	}
+
+	public static void addGateGlow( Group group, int cell ){
+		Emitter e = new Emitter();
+		PointF p = DungeonTilemap.tileCenterToWorld( cell );
+		e.pos( p.x - 4, p.y - 12, 8, 14 );
+		e.pour( RuneMote.FACTORY, 0.25f );
+		group.add( e );
 	}
 
 	@Override
@@ -311,7 +333,11 @@ public class SanctuaryLevel extends Level {
 			case Terrain.WATER: return Messages.get( SanctuaryLevel.class, "water_name" );
 			case Terrain.STATUE: case Terrain.STATUE_SP: return Messages.get( SanctuaryLevel.class, "statue_name" );
 			case Terrain.BOOKSHELF: return Messages.get( SanctuaryLevel.class, "bookshelf_name" );
-			case Terrain.GRASS: case Terrain.HIGH_GRASS: return Messages.get( SanctuaryLevel.class, "grass_name" );
+			case Terrain.GRASS: case Terrain.HIGH_GRASS: case Terrain.FURROWED_GRASS:
+				return Messages.get( SanctuaryLevel.class, "grass_name" );
+			case Terrain.REGION_DECO: case Terrain.REGION_DECO_ALT:
+				return Messages.get( SanctuaryLevel.class, "region_deco_name" );
+			case Terrain.WALL_DECO: return Messages.get( SanctuaryLevel.class, "wall_deco_name" );
 			default: return fallback;
 		}
 	}
@@ -321,17 +347,38 @@ public class SanctuaryLevel extends Level {
 			case Terrain.WATER: return Messages.get( SanctuaryLevel.class, "water_desc" );
 			case Terrain.STATUE: case Terrain.STATUE_SP: return Messages.get( SanctuaryLevel.class, "statue_desc" );
 			case Terrain.BOOKSHELF: return Messages.get( SanctuaryLevel.class, "bookshelf_desc" );
-			case Terrain.GRASS: case Terrain.HIGH_GRASS: return Messages.get( SanctuaryLevel.class, "grass_desc" );
+			case Terrain.GRASS: case Terrain.HIGH_GRASS: case Terrain.FURROWED_GRASS:
+				return Messages.get( SanctuaryLevel.class, "grass_desc" );
 			case Terrain.EMPTY_SP: return Messages.get( SanctuaryLevel.class, "floor_sp_desc" );
 			case Terrain.EMPTY_DECO: return Messages.get( SanctuaryLevel.class, "deco_desc" );
 			case Terrain.PEDESTAL: return Messages.get( SanctuaryLevel.class, "pedestal_desc" );
 			case Terrain.EXIT: return Messages.get( SanctuaryLevel.class, "exit_desc" );
-			case Terrain.ENTRANCE: return Messages.get( SanctuaryLevel.class, "entrance_desc" );
+			case Terrain.ENTRANCE: case Terrain.ENTRANCE_SP: return Messages.get( SanctuaryLevel.class, "entrance_desc" );
+			case Terrain.REGION_DECO: case Terrain.REGION_DECO_ALT:
+				return Messages.get( SanctuaryLevel.class, "region_deco_desc" );
+			case Terrain.WALL_DECO: return Messages.get( SanctuaryLevel.class, "wall_deco_desc" );
 			default: return fallback;
 		}
 	}
 
 	//==== 그림 타일 ====
+
+	//가운데 3x3 룬 원
+	public static void addRune( Level level, int center ){
+		RuneCircle rune = new RuneCircle();
+		rune.setRect( center % level.width() - 1, center / level.width() - 1, 3, 3 );
+		level.customTiles.add( rune );
+	}
+
+	//고대 게이트 (아래 칸은 바닥 위, 위 칸 아치는 캐릭터보다 위)
+	public static void addGate( Level level, int cell ){
+		Gate g = new Gate();
+		g.pos( cell % level.width(), cell / level.width() );
+		level.customTiles.add( g );
+		GateTop top = new GateTop();
+		top.pos( cell % level.width(), cell / level.width() - 1 );
+		level.customWalls.add( top );
+	}
 
 	public static class RuneCircle extends CustomTilemap {
 		{
@@ -349,9 +396,9 @@ public class SanctuaryLevel extends Level {
 		}
 	}
 
-	public static class Portal extends CustomTilemap {
+	public static class Gate extends CustomTilemap {
 		{
-			texture = Assets.Environment.DIMENSION_RIFT;
+			texture = Assets.Environment.SANCTUARY_GATE;
 		}
 		@Override
 		public Tilemap create() {
@@ -365,17 +412,17 @@ public class SanctuaryLevel extends Level {
 		}
 		@Override
 		public String name( int tileX, int tileY ) {
-			return Messages.get( SanctuaryLevel.class, "portal_name" );
+			return Messages.get( SanctuaryLevel.class, "gate_name" );
 		}
 		@Override
 		public String desc( int tileX, int tileY ) {
-			return Messages.get( SanctuaryLevel.class, "portal_desc" );
+			return Messages.get( SanctuaryLevel.class, Dungeon.branch == 0 ? "gate_desc_city" : "gate_desc" );
 		}
 	}
 
-	public static class PortalTop extends CustomTilemap {
+	public static class GateTop extends CustomTilemap {
 		{
-			texture = Assets.Environment.DIMENSION_RIFT;
+			texture = Assets.Environment.SANCTUARY_GATE;
 		}
 		@Override
 		public Tilemap create() {
@@ -389,32 +436,7 @@ public class SanctuaryLevel extends Level {
 		}
 	}
 
-	private static final String PORTAL = "portal";
-	private static final String EXIT_CELL = "exit_cell";
-	private static final String PEDESTALS = "pedestals";
-	private static final String CHESTS = "chests";
-
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( PORTAL, portal );
-		bundle.put( EXIT_CELL, exitCell );
-		int[] p = new int[pedestals.size()];
-		for (int i = 0; i < p.length; i++) p[i] = pedestals.get( i );
-		bundle.put( PEDESTALS, p );
-		int[] c = new int[chests.size()];
-		for (int i = 0; i < c.length; i++) c[i] = chests.get( i );
-		bundle.put( CHESTS, c );
-	}
-
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		portal = bundle.getInt( PORTAL );
-		exitCell = bundle.getInt( EXIT_CELL );
-		pedestals.clear();
-		if (bundle.contains( PEDESTALS )) for (int i : bundle.getIntArray( PEDESTALS )) pedestals.add( i );
-		chests.clear();
-		if (bundle.contains( CHESTS )) for (int i : bundle.getIntArray( CHESTS )) chests.add( i );
-	}
+	//옛 버전(손으로 그린 성소)의 저장 파일 호환용
+	public static class Portal extends Gate {}
+	public static class PortalTop extends GateTop {}
 }
