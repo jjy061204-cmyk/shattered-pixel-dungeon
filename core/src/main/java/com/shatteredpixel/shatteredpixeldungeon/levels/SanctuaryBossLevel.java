@@ -170,12 +170,15 @@ public class SanctuaryBossLevel extends Level {
 		if (fightStarted) return;
 		fightStarted = true;
 		seal();
-		set( door, Terrain.WALL );
-		GameScene.updateMap( door );
-		CellEmitter.get( door ).burst( Speck.factory( Speck.ROCK ), 10 );
-		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
-		Dungeon.observe();
-		GLog.w( Messages.get( this, "sealed" ) );
+		//영웅이 투기장 안에 있을 때만 문을 막음 (밖에서 먼저 쏴서 깨우면 문은 열린 채로 둠)
+		if (inArena( Dungeon.hero.pos ) && Actor.findChar( door ) == null){
+			set( door, Terrain.WALL );
+			GameScene.updateMap( door );
+			CellEmitter.get( door ).burst( Speck.factory( Speck.ROCK ), 10 );
+			Sample.INSTANCE.play( Assets.Sounds.ROCKS );
+			Dungeon.observe();
+			GLog.w( Messages.get( this, "sealed" ) );
+		}
 		playLevelMusic();
 	}
 

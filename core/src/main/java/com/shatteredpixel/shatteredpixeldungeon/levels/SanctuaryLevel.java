@@ -196,7 +196,7 @@ public class SanctuaryLevel extends Level {
 
 	//도착실 안이나 차원 문 가까이에는 나타나지 않음
 	private boolean spawnable( int cell ){
-		if (!passable[cell] || solid[cell] || Actor.findChar( cell ) != null) return false;
+		if (!passable[cell] || solid[cell] || Actor.findChar( cell ) != null || findMob( cell ) != null) return false;
 		if (portal >= 0 && distance( cell, portal ) <= 6) return false;
 		return true;
 	}
