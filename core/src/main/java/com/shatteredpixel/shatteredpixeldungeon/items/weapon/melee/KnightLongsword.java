@@ -32,6 +32,17 @@ public class KnightLongsword extends Longsword {
 		tier = 5;
 	}
 
+	//공격력: 4티어 장검보다 1씩만 높음 (최소 5, 최대 26, 강화당 +1/+5) — 부가 능력의 대가
+	@Override
+	public int min( int lvl ) {
+		return 5 + lvl;
+	}
+
+	@Override
+	public int max( int lvl ) {
+		return 26 + lvl * 5;
+	}
+
 	private int comboTarget = -1;
 	private int combo = 0;
 	private float comboTime = -100;
