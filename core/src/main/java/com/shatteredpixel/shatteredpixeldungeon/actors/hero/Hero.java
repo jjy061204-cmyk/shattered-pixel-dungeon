@@ -280,6 +280,11 @@ public class Hero extends Char {
 		int strBonus = 0;
 
 		strBonus += RingOfMight.strengthBonus( this );
+
+		//모드: 엑스칼리버의 가호
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
+			strBonus += com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.STR;
+		}
 		
 		AdrenalineSurge buff = buff(AdrenalineSurge.class);
 		if (buff != null){
@@ -515,6 +520,10 @@ public class Hero extends Char {
 		
 		float accuracy = 1;
 		accuracy *= RingOfAccuracy.accuracyMultiplier( this );
+		//모드: 엑스칼리버의 가호
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
+			accuracy *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.ACCURACY;
+		}
 		
 		//precise assault and liquid agility
 		if (!(wep instanceof MissileWeapon)) {
@@ -662,6 +671,11 @@ public class Hero extends Char {
 
 		if (buff(HoldFast.class) != null){
 			dr += buff(HoldFast.class).armorBonus();
+		}
+
+		//모드: 엑스칼리버의 가호 (0~10 추가 방어)
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
+			dr += Random.NormalIntRange( 0, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.ARMOR );
 		}
 		
 		return dr;
@@ -850,6 +864,9 @@ public class Hero extends Char {
 		
 		//calls to dungeon.observe will also update hero's local FOV.
 		fieldOfView = Dungeon.level.heroFOV;
+
+		//모드: 엑스칼리버를 들고 있으면 가호 버프
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.update( this );
 
 		if (buff(Endure.EndureTracker.class) != null){
 			buff(Endure.EndureTracker.class).endEnduring();

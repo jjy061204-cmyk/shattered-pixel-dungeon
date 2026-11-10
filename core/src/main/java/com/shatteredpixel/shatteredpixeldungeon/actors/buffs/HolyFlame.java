@@ -13,12 +13,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.YellowFlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
-import com.watabou.noosa.Image;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-//적의 몸만 태우는 노란 불꽃. 일반 불처럼 바닥·풀·아이템으로 번지지 않음
+//성광의 낙인: 엑스칼리버에 베인 적의 몸에 새겨지는 신성한 빛.
+//불 계열이 아니라 화염 면역인 적에게도 통하고, 바닥·풀·아이템으로 번지지 않음
 public class HolyFlame extends Buff {
 
 	public static final float DURATION = 3f;
@@ -43,7 +43,8 @@ public class HolyFlame extends Buff {
 	public boolean act() {
 		if (target.isAlive()){
 			int dmg = Random.NormalIntRange( min, max );
-			target.damage( Math.round( dmg * target.resist( Burning.class ) ), this );
+			//불이 아닌 신성한 빛이라 화염 면역·저항과 상관없이 통함
+			target.damage( dmg, this );
 		}
 		left -= TICK;
 		if (left <= 0 || !target.isAlive()){
@@ -55,12 +56,7 @@ public class HolyFlame extends Buff {
 
 	@Override
 	public int icon() {
-		return BuffIndicator.FIRE;
-	}
-
-	@Override
-	public void tintIcon( Image icon ) {
-		icon.hardlight( 1f, 0.9f, 0.3f );
+		return BuffIndicator.RADIANT_BRAND;
 	}
 
 	@Override

@@ -136,6 +136,8 @@ public class BuffIndicator extends Component {
 	public static final int MANY_POWER  = 83;
 	public static final int SEAL_SHIELD = 84;
 	public static final int THROWN_WEP  = 85;
+	public static final int RADIANT_BRAND = 86;   //모드: 성광의 낙인
+	public static final int EXCALIBUR   = 87;     //모드: 엑스칼리버의 가호
 
 	public static final int SIZE_SMALL  = 7;
 	public static final int SIZE_LARGE  = 16;

@@ -30,7 +30,7 @@ public class YellowFlameParticle extends PixelParticle.Shrinking {
 	public YellowFlameParticle() {
 		super();
 		lifespan = 0.6f;
-		acc.set( 0, -80 );
+		acc.set( 0, -60 );
 	}
 
 	public void reset( float x, float y ) {
@@ -38,7 +38,7 @@ public class YellowFlameParticle extends PixelParticle.Shrinking {
 		this.x = x;
 		this.y = y;
 		left = lifespan;
-		size = 4;
+		size = 3;
 		speed.set( 0 );
 	}
 
@@ -47,6 +47,6 @@ public class YellowFlameParticle extends PixelParticle.Shrinking {
 		super.update();
 		float p = left / lifespan;
 		am = p > 0.8f ? (1 - p) * 5 : 1;
-		color( ColorMath.interpolate( 0xFFB020, 0xFFF4A0, p ) );
+		color( ColorMath.interpolate( 0xFFD040, 0xFFFFF0, p ) );   //하얀 금빛 (신성한 빛)
 	}
 }

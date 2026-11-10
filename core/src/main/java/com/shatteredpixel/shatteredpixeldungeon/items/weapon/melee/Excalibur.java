@@ -65,7 +65,7 @@ public class Excalibur extends Greatsword {
 	//적을 맞히면 적의 몸만 태우는 노란 불꽃이 붙음 (바닥·아이템으로 번지지 않음)
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
-		if (!sealed && defender.isAlive() && !defender.isImmune( Burning.class ) && defender.alignment != attacker.alignment){
+		if (!sealed && defender.isAlive() && defender.alignment != attacker.alignment){
 			int lvl = Math.max( 0, buffedLvl() );
 			Buff.affect( defender, HolyFlame.class ).set( HolyFlame.DURATION, 2 + lvl / 2, 6 + lvl );
 		}
