@@ -45,6 +45,7 @@ public class KnightLongsword extends Longsword {
 
 	private int comboTarget = -1;
 	private int combo = 0;
+	private int swingStep = 0;   //1타 → 2타 → 3타 → 1타 ... 이펙트 순서
 	private float comboTime = -100;
 
 	//연속 1단계당 추가 피해: 3 (+강화 2번마다 1)
@@ -65,6 +66,7 @@ public class KnightLongsword extends Longsword {
 		} else {
 			combo = 0;
 		}
+		swingStep = combo > 0 ? (swingStep + 1) % 3 : 0;
 		comboTarget = defender.id();
 		comboTime = Actor.now();
 
@@ -77,7 +79,7 @@ public class KnightLongsword extends Longsword {
 
 		//실험 기능: 검을 휘두르는 모습
 		if (attacker.sprite != null && defender.sprite != null){
-			SwordSwing.play( attacker.sprite, defender.sprite, image, 2.5f, 12.5f, -45f );
+			SwordSwing.play( attacker.sprite, defender.sprite, image, 2.5f, 12.5f, -45f, swingStep );
 		}
 
 		return super.proc( attacker, defender, damage );
