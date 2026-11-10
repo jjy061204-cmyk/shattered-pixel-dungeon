@@ -64,6 +64,8 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.HallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.LastLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
@@ -278,6 +280,7 @@ public class Dungeon {
 		Wandmaker.Quest.reset();
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
+		com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.reset();
 
 		hero = new Hero();
 		hero.live();
@@ -374,6 +377,12 @@ public class Dungeon {
 		} else if (branch == ModernLevel.BRANCH) {
 			//모드: 현대 세계 층
 			level = new ModernLevel();
+		} else if (branch == SanctuaryLevel.BRANCH) {
+			//모드: 이차원의 성소 1층
+			level = new SanctuaryLevel();
+		} else if (branch == SanctuaryBossLevel.BRANCH) {
+			//모드: 이차원의 성소 2층 (수호자의 방)
+			level = new SanctuaryBossLevel();
 		} else {
 			level = new DeadEndLevel();
 		}
@@ -668,6 +677,7 @@ public class Dungeon {
 			Wandmaker	.Quest.storeInBundle( quests );
 			Blacksmith	.Quest.storeInBundle( quests );
 			Imp			.Quest.storeInBundle( quests );
+			com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.storeInBundle( quests );
 			bundle.put( QUESTS, quests );
 			
 			SpecialRoom.storeRoomsInBundle( bundle );
@@ -774,11 +784,13 @@ public class Dungeon {
 				Wandmaker.Quest.restoreFromBundle( quests );
 				Blacksmith.Quest.restoreFromBundle( quests );
 				Imp.Quest.restoreFromBundle( quests );
+				com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.restoreFromBundle( quests );
 			} else {
 				Ghost.Quest.reset();
 				Wandmaker.Quest.reset();
 				Blacksmith.Quest.reset();
 				Imp.Quest.reset();
+				com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.reset();
 			}
 			
 			SpecialRoom.restoreRoomsFromBundle(bundle);

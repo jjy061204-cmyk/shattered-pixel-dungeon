@@ -53,12 +53,14 @@ public class DevRemote extends Item {
 		{ Ghoul.class, Elemental.FireElemental.class, Elemental.FrostElemental.class, Elemental.ShockElemental.class, Elemental.ChaosElemental.class, Warlock.class, Monk.class, Senior.class, Golem.class },
 		{ Succubus.class, Eye.class, Scorpio.class, Acidic.class, RipperDemon.class, DemonSpawner.class },
 		//특수 몬스터와 중간 보스
-		{ FetidRat.class, GnollTrickster.class, GreatCrab.class, Mimic.class, GoldenMimic.class, CrystalMimic.class, EbonyMimic.class, Statue.class, ArmoredStatue.class, Wraith.class, TormentedSpirit.class, RotLasher.class }
+		{ FetidRat.class, GnollTrickster.class, GreatCrab.class, Mimic.class, GoldenMimic.class, CrystalMimic.class, EbonyMimic.class, Statue.class, ArmoredStatue.class, Wraith.class, TormentedSpirit.class, RotLasher.class },
+		//이차원의 성소
+		{ StoneSoldier.class, StoneWarden.class, RuneSentinel.class }
 	};
 
 	//보스: 그 자리 소환이 되는 보스(구)와, 전용 무대가 있어야 하는 보스(그 층으로 이동)
-	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class };
-	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25 };
+	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class, SanctuaryColossus.class };
+	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1 };   //-1: 이차원의 성소 2층
 
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
@@ -86,9 +88,9 @@ public class DevRemote extends Item {
 	private void chooseRegion( final boolean travel ){
 		String[] regions;
 		if (travel){
-			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "depth_26" ) };
+			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "depth_26" ), txt( "sanctuary" ) };
 		} else {
-			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "bosses" ) };
+			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "bosses" ) };
 		}
 		GameScene.show( new WndOptions( new ItemSprite( this ), txt( travel ? "travel_title" : "summon_title" ),
 				txt( travel ? "travel_msg" : "summon_msg", Dungeon.depth ), regions ){
@@ -96,9 +98,10 @@ public class DevRemote extends Item {
 			protected void onSelect( int index ) {
 				if (travel){
 					if (index == 5) travel( 26 );
+					else if (index == 6) chooseSanctuary();
 					else chooseDepth( index );
 				} else {
-					if (index == 6) chooseBoss();
+					if (index == 7) chooseBoss();
 					else chooseMob( index );
 				}
 			}
@@ -120,6 +123,23 @@ public class DevRemote extends Item {
 			@Override
 			protected boolean enabled( int index ) {
 				return region * 5 + index + 1 != Dungeon.depth || Dungeon.branch != 0;
+			}
+		});
+	}
+
+	//이차원의 성소 1·2층으로 바로 이동 (테스트용)
+	private void chooseSanctuary(){
+		GameScene.show( new WndOptions( new ItemSprite( this ), txt( "sanctuary" ), txt( "pick_depth" ),
+				txt( "sanctuary_1" ), txt( "sanctuary_2" ) ){
+			@Override
+			protected void onSelect( int index ) {
+				if (Dungeon.level != null && Dungeon.level.locked){
+					GLog.w( txt( "locked" ) );
+					return;
+				}
+				com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel( index == 0
+						? com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryLevel.BRANCH
+						: com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
 			}
 		});
 	}
@@ -147,7 +167,7 @@ public class DevRemote extends Item {
 		for (int i = 0; i < list.length; i++){
 			names[i] = Messages.titleCase( ((Mob) Reflection.newInstance( list[i] )).name() );
 		}
-		GameScene.show( new WndOptions( new ItemSprite( this ), group < 5 ? txt( "region_" + group ) : txt( "special" ), txt( "pick_mob" ), names ){
+		GameScene.show( new WndOptions( new ItemSprite( this ), group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : txt( "sanctuary" )), txt( "pick_mob" ), names ){
 			@Override
 			protected void onSelect( int index ) {
 				summon( list[index] );
@@ -159,12 +179,14 @@ public class DevRemote extends Item {
 		String[] names = new String[BOSSES.length];
 		for (int i = 0; i < BOSSES.length; i++){
 			String n = Messages.titleCase( ((Mob) Reflection.newInstance( BOSSES[i] )).name() );
-			names[i] = i == 0 ? txt( "boss_here", n ) : txt( "boss_floor", n, BOSS_DEPTH[i] );
+			names[i] = i == 0 ? txt( "boss_here", n ) : (BOSS_DEPTH[i] < 0 ? txt( "boss_sanctuary", n ) : txt( "boss_floor", n, BOSS_DEPTH[i] ));
 		}
 		GameScene.show( new WndOptions( new ItemSprite( this ), txt( "bosses" ), txt( "boss_msg" ), names ){
 			@Override
 			protected void onSelect( int index ) {
 				if (index == 0) summon( BOSSES[0] );
+				else if (BOSS_DEPTH[index] < 0) com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel(
+						com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
 				else travel( BOSS_DEPTH[index] );   //텐구·DM-300·드워프 왕·요그는 전용 무대가 있어야 싸움이 됨
 			}
 		});

@@ -978,6 +978,7 @@ public class ItemSpriteSheet {
 	public static final int SWEET_POTATO      = MOD_MISC2+9;
 	public static final int CHESTNUTS         = MOD_MISC2+10;
 	public static final int DEV_REMOTE        = MOD_MISC2+11;   //테스터 리모컨
+	public static final int GOLEM_HEART       = MOD_MISC2+12;   //이차원의 성소 퀘스트
 	static{
 		assignItemRect(BURN_OINTMENT, 13, 9);
 		assignItemRect(MOTION_PILL, 12, 10);
@@ -1004,6 +1005,7 @@ public class ItemSpriteSheet {
 		assignItemRect(SWEET_POTATO, 15, 9);
 		assignItemRect(CHESTNUTS, 14, 9);
 		assignItemRect(DEV_REMOTE, 16, 16);
+		assignItemRect(GOLEM_HEART, 16, 16);
 	}
 
 	//==== 촘촘한(고해상도) 아이템 ====

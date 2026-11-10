@@ -45,6 +45,9 @@ public class Assets {
 		public static final String TILES_PRISON = "environment/tiles_prison.png";
 		public static final String TILES_CAVES  = "environment/tiles_caves.png";
 		public static final String TILES_CITY   = "environment/tiles_city.png";
+		public static final String TILES_SANCTUARY = "environment/tiles_sanctuary.png";
+		public static final String WATER_SANCTUARY = "environment/water_sanctuary.png";
+		public static final String SANCTUARY_RUNE  = "environment/custom_tiles/sanctuary_rune.png";
 		public static final String TILES_MODERN = "environment/tiles_modern.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
@@ -283,6 +286,8 @@ public class Assets {
 		public static final String ITEMS        = "sprites/items.png";
 		//모드: 32x32로 그린 실험용 아이템 그림
 		public static final String ITEMS_HD     = "sprites/items_hd.png";
+		public static final String SANCTUARY_GOLEMS   = "sprites/sanctuary_golems.png";
+		public static final String SANCTUARY_COLOSSUS = "sprites/sanctuary_colossus.png";
 		//모드: 현대 세계 가게 화면, 자판기 화면 그림
 		public static final String MODERN_UI    = "sprites/modern_ui.png";
 		public static final String VENDING_UI   = "sprites/vending_ui.png";
