@@ -243,9 +243,9 @@ public class SanctuaryBossLevel extends RegularLevel {
 		if (altar >= 0){
 			drop( new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur(), altar );
 			//제단 곁에 놓인 유물: 룬 성갑의 문장
-			for (int n : com.watabou.utils.PathFinder.NEIGHBOURS8){
-				if (map[altar + n] == Terrain.EMPTY_SP){
-					drop( new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis(), altar + n );
+			for (int nb : com.watabou.utils.PathFinder.NEIGHBOURS8){
+				if (map[altar + nb] == Terrain.EMPTY_SP){
+					drop( new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis(), altar + nb );
 					break;
 				}
 			}
