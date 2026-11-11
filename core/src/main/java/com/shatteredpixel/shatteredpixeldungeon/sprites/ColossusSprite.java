@@ -40,6 +40,7 @@ public class ColossusSprite extends MobSprite {
 	private Emitter coreGlow;
 	private Emitter chargeMotes;
 	private int[] blastCells;
+	private float stillTime = 0;
 
 	public ColossusSprite() {
 		super();
@@ -111,6 +112,13 @@ public class ColossusSprite extends MobSprite {
 	@Override
 	public void update() {
 		super.update();
+		//걸음이 멈추면 대기 자세로 돌아감 (기본 스프라이트는 다음 행동 전까지 걷는 동작을 계속 되풀이함)
+		if (curAnim == run && !isMoving){
+			stillTime += com.watabou.noosa.Game.elapsed;
+			if (stillTime > 0.3f) idle();
+		} else {
+			stillTime = 0;
+		}
 		if (coreGlow != null){
 			coreGlow.pos( x + 26, y + 29, 12, 11 );
 			coreGlow.visible = visible;
