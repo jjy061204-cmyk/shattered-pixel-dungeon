@@ -71,7 +71,7 @@ public class RuneAegis extends Item {
 		}
 		RuneAegisCooldown cd = hero.buff( RuneAegisCooldown.class );
 		if (cd != null){
-			GLog.w( Messages.get( this, "cooldown", (int)Math.ceil( cd.cooldown() ) ) );
+			GLog.w( Messages.get( this, "cooldown", cd.left ) );
 			return;
 		}
 
@@ -86,7 +86,7 @@ public class RuneAegis extends Item {
 			@Override
 			public void call() {
 				Buff.prolong( hero, RuneAegisForm.class, RuneAegisForm.DURATION );
-				Buff.prolong( hero, RuneAegisCooldown.class, RuneAegisForm.DURATION + RuneAegisCooldown.DURATION );
+				Buff.affect( hero, RuneAegisCooldown.class ).left = (int)(RuneAegisForm.DURATION + RuneAegisCooldown.DURATION);
 				Buff.affect( hero, Barrier.class ).setShield( Math.round( hero.HT * 0.3f ) );
 
 				if (hero.sprite instanceof HeroSprite){
@@ -112,7 +112,7 @@ public class RuneAegis extends Item {
 	public String status() {
 		if (Dungeon.hero == null) return null;
 		RuneAegisCooldown cd = Dungeon.hero.buff( RuneAegisCooldown.class );
-		return cd == null ? null : Integer.toString( (int)Math.ceil( cd.cooldown() ) );
+		return cd == null ? null : Integer.toString( cd.left );
 	}
 
 	@Override
