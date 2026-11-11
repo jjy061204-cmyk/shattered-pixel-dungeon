@@ -55,7 +55,8 @@ public class SanctuaryBossLevel extends RegularLevel {
 	}
 
 	private int throne = -1, door = -1, center = -1;
-	private final ArrayList<Integer> summon = new ArrayList<>();
+	private int vaultDoor = -1, altar = -1;
+	private final ArrayList<Integer> mirrors = new ArrayList<>();
 	private boolean fightStarted = false;
 	private boolean bossDefeated = false;
 	private boolean gateOpened = false;
@@ -147,13 +148,20 @@ public class SanctuaryBossLevel extends RegularLevel {
 		throne = a.throne;
 		door = a.door;
 		center = a.center;
-		summon.clear();
-		summon.addAll( a.summon );
+		vaultDoor = a.vaultDoor;
+		altar = a.altar;
+		mirrors.clear();
+		mirrors.addAll( a.mirrors );
 		return true;
 	}
 
-	public ArrayList<Integer> summonCells(){
-		return summon;
+	//거상의 광선을 되쏘는 룬 거울 수호상인지
+	public boolean isMirror( int cell ){
+		return mirrors.contains( cell );
+	}
+
+	public ArrayList<Integer> mirrorCells(){
+		return mirrors;
 	}
 
 	//==== 몬스터 ====
@@ -206,6 +214,11 @@ public class SanctuaryBossLevel extends RegularLevel {
 			if (cell >= 0) drop( item, cell );
 		}
 		itemsToSpawn.clear();
+
+		//금고 제단에 꽂혀 있는 봉인된 엑스칼리버
+		if (altar >= 0){
+			drop( new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur(), altar );
+		}
 	}
 
 	//==== 보스전 ====
@@ -265,6 +278,17 @@ public class SanctuaryBossLevel extends RegularLevel {
 		SanctuaryQuest.bossDefeated = true;
 		unseal();
 		if (door >= 0 && map[door] == Terrain.WALL) openDoor();
+		//단상 뒤 금고가 열림
+		if (vaultDoor >= 0){
+			set( vaultDoor, Terrain.EMPTY_SP );
+			GameScene.updateMap( vaultDoor );
+			CellEmitter.get( vaultDoor ).burst( Speck.factory( Speck.ROCK ), 12 );
+			CellEmitter.get( vaultDoor ).burst( com.shatteredpixel.shatteredpixeldungeon.effects.particles.RuneMote.FACTORY, 16 );
+			Sample.INSTANCE.play( Assets.Sounds.ROCKS );
+			Sample.INSTANCE.play( Assets.Sounds.UNLOCK );
+			com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.shake( 2, 0.8f );
+			Dungeon.observe();
+		}
 		GLog.p( Messages.get( this, "boss_down" ) );
 		playLevelMusic();
 	}
@@ -302,19 +326,23 @@ public class SanctuaryBossLevel extends RegularLevel {
 
 	@Override
 	public String tileName( int tile ) {
+		if (tile == Terrain.STATUE_SP) return Messages.get( this, "mirror_name" );
 		return SanctuaryLevel.name( tile, super.tileName( tile ) );
 	}
 
 	@Override
 	public String tileDesc( int tile ) {
 		if (tile == Terrain.ENTRANCE) return Messages.get( this, "entrance_desc" );
+		if (tile == Terrain.STATUE_SP) return Messages.get( this, "mirror_desc" );
 		return SanctuaryLevel.desc( tile, super.tileDesc( tile ) );
 	}
 
 	private static final String THRONE = "throne";
 	private static final String DOOR = "door";
 	private static final String CENTER = "center";
-	private static final String SUMMON = "summon";
+	private static final String MIRRORS = "mirrors";
+	private static final String VAULT = "vault_door";
+	private static final String ALTAR = "altar";
 	private static final String FIGHT = "fight";
 	private static final String DEFEATED = "defeated";
 	private static final String GATE = "gate_opened";
@@ -325,9 +353,11 @@ public class SanctuaryBossLevel extends RegularLevel {
 		bundle.put( THRONE, throne );
 		bundle.put( DOOR, door );
 		bundle.put( CENTER, center );
-		int[] s = new int[summon.size()];
-		for (int i = 0; i < s.length; i++) s[i] = summon.get( i );
-		bundle.put( SUMMON, s );
+		int[] s = new int[mirrors.size()];
+		for (int i = 0; i < s.length; i++) s[i] = mirrors.get( i );
+		bundle.put( MIRRORS, s );
+		bundle.put( VAULT, vaultDoor );
+		bundle.put( ALTAR, altar );
 		bundle.put( FIGHT, fightStarted );
 		bundle.put( DEFEATED, bossDefeated );
 		bundle.put( GATE, gateOpened );
@@ -339,8 +369,10 @@ public class SanctuaryBossLevel extends RegularLevel {
 		throne = bundle.getInt( THRONE );
 		door = bundle.getInt( DOOR );
 		center = bundle.getInt( CENTER );
-		summon.clear();
-		if (bundle.contains( SUMMON )) for (int i : bundle.getIntArray( SUMMON )) summon.add( i );
+		mirrors.clear();
+		if (bundle.contains( MIRRORS )) for (int i : bundle.getIntArray( MIRRORS )) mirrors.add( i );
+		vaultDoor = bundle.contains( VAULT ) ? bundle.getInt( VAULT ) : -1;
+		altar = bundle.contains( ALTAR ) ? bundle.getInt( ALTAR ) : -1;
 		fightStarted = bundle.getBoolean( FIGHT );
 		bossDefeated = bundle.getBoolean( DEFEATED );
 		//옛 저장: 이미 게이트가 열려 있었으면 그대로

@@ -24,43 +24,62 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.PointF;
 
-//sanctuary_colossus.png: 48x48 칸, 48프레임
-// 0-5 대기(숨쉬기·핵 맥동·룬 바퀴 회전), 6-13 걷기, 14-19 주먹질, 20-27 대지 강타,
-// 28-31 룬 광선 충전, 32-35 발사, 36-47 쓰러짐(금 감·무릎 꿇음·돌무더기로 무너짐)
+//sanctuary_colossus.png: 48x48 칸, 59프레임
+// 0-7 대기 / 8-15 걷기 / 16-22 내려찍기 / 23-26 바위 뽑기 / 27-28 바위 들고 버팀 / 29-32 던지기
+// 33-36 룬 광선 충전 / 37-40 발사 / 41-42 과부하로 휘청 / 43-46 기절 / 47-58 쓰러짐
 public class ColossusSprite extends MobSprite {
 
 	private Animation charging;
 	private Animation blast;
+	private Animation lift;
+	private Animation hold;
+	private Animation hurl;
+	private Animation stagger;
+	private Animation stunned;
 
 	private Emitter coreGlow;
 	private Emitter chargeMotes;
-	private int blastPos = -1;
+	private int[] blastCells;
 
 	public ColossusSprite() {
 		super();
 		texture( Assets.Sprites.SANCTUARY_COLOSSUS );
 		TextureFilm frames = new TextureFilm( texture, 48, 48 );
 
-		idle = new Animation( 6, true );
-		idle.frames( frames, 0, 1, 2, 3, 4, 5 );
+		idle = new Animation( 7, true );
+		idle.frames( frames, 0, 1, 2, 3, 4, 5, 6, 7 );
 
-		run = new Animation( 9, true );
-		run.frames( frames, 6, 7, 8, 9, 10, 11, 12, 13 );
+		run = new Animation( 10, true );
+		run.frames( frames, 8, 9, 10, 11, 12, 13, 14, 15 );
 
-		attack = new Animation( 13, false );
-		attack.frames( frames, 14, 15, 16, 17, 18, 19 );
+		attack = new Animation( 14, false );
+		attack.frames( frames, 16, 17, 17, 18, 19, 20, 20, 21, 22 );
 
-		zap = new Animation( 11, false );
-		zap.frames( frames, 20, 21, 22, 23, 24, 25, 26, 27 );
+		zap = attack.clone();
+
+		lift = new Animation( 9, false );
+		lift.frames( frames, 23, 24, 24, 25, 26 );
+
+		hold = new Animation( 5, true );
+		hold.frames( frames, 27, 28 );
+
+		hurl = new Animation( 12, false );
+		hurl.frames( frames, 29, 29, 30, 31, 31, 32 );
 
 		charging = new Animation( 10, true );
-		charging.frames( frames, 28, 29, 30, 31 );
+		charging.frames( frames, 33, 34, 35, 36 );
 
 		blast = new Animation( 12, false );
-		blast.frames( frames, 32, 33, 34, 35 );
+		blast.frames( frames, 37, 38, 39, 40 );
+
+		stagger = new Animation( 7, false );
+		stagger.frames( frames, 41, 41, 42 );
+
+		stunned = new Animation( 6, true );
+		stunned.frames( frames, 43, 44, 45, 46 );
 
 		die = new Animation( 9, false );
-		die.frames( frames, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 );
+		die.frames( frames, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58 );
 
 		play( idle );
 	}
@@ -81,17 +100,19 @@ public class ColossusSprite extends MobSprite {
 			chargeMotes.on = false;
 		}
 
-		if (ch instanceof SanctuaryColossus && ((SanctuaryColossus) ch).isCharging()){
-			play( charging );
+		if (ch instanceof SanctuaryColossus){
+			SanctuaryColossus c = (SanctuaryColossus) ch;
+			if (c.isOverloaded()) play( stunned );
+			else if (c.isCharging()) play( charging );
+			else if (c.isHoldingRock()) play( hold );
 		}
 	}
 
 	@Override
 	public void update() {
 		super.update();
-		//가슴 핵 둘레에서 빛 알갱이가 피어오름
 		if (coreGlow != null){
-			coreGlow.pos( x + (flipHorizontal ? 18 : 18), y + 15, 12, 11 );
+			coreGlow.pos( x + 18, y + 15, 12, 11 );
 			coreGlow.visible = visible;
 		}
 		if (chargeMotes != null){
@@ -102,9 +123,28 @@ public class ColossusSprite extends MobSprite {
 
 	@Override
 	public void play( Animation anim ) {
-		if (chargeMotes != null) chargeMotes.on = anim == charging;
-		if (coreGlow != null && anim != die) coreGlow.on = true;
+		if (chargeMotes != null) chargeMotes.on = anim == charging || anim == stunned;
 		super.play( anim );
+	}
+
+	//다른 동작 중에는 대기 자세로 돌아가지 않게
+	@Override
+	public void idle() {
+		if (ch instanceof SanctuaryColossus && ch.isAlive()){
+			SanctuaryColossus c = (SanctuaryColossus) ch;
+			if (c.isOverloaded()) { play( stunned ); return; }
+			if (c.isCharging()) { play( charging ); return; }
+			if (c.isHoldingRock()) { play( hold ); return; }
+		}
+		super.idle();
+	}
+
+	public void forceIdle(){
+		play( idle );
+	}
+
+	public PointF corePoint(){
+		return new PointF( x + width / 2f, y + 21.5f );
 	}
 
 	//룬 광선 모으기
@@ -115,58 +155,88 @@ public class ColossusSprite extends MobSprite {
 	}
 
 	//룬 광선 발사 (애니메이션이 끝나면 광선이 나감)
-	public void blast( int target ){
-		blastPos = target;
-		turnTo( ch.pos, target );
+	public void blast( int[] cells ){
+		blastCells = cells;
 		play( blast );
 	}
 
-	//대지 강타: 두 팔을 들어 내려침
-	public void slam( int target ){
+	//바닥의 바위를 뽑아 머리 위로
+	public void liftRock( int target ){
 		turnTo( ch.pos, target );
-		play( zap );
+		play( lift );
+		if (visible){
+			Sample.INSTANCE.play( Assets.Sounds.ROCKS, 0.7f, 0.7f );
+			bottomEmitter().burst( Speck.factory( Speck.ROCK ), 8 );
+		}
 	}
 
-	public PointF corePoint(){
-		return new PointF( x + width / 2f, y + 21.5f );
+	public void hurlRock( int target ){
+		turnTo( ch.pos, target );
+		play( hurl );
+	}
+
+	//과부하: 휘청이다 무릎을 꿇음
+	public void overload(){
+		play( stagger );
+		if (visible){
+			emitter().burst( RuneMote.FACTORY, 30 );
+			PixelScene.shake( 3, 0.7f );
+		}
+	}
+
+	//되돌아온 광선
+	public void reflect( int mirror ){
+		if (parent == null) return;
+		PointF from = DungeonTilemap.raisedTileCenterToWorld( mirror );
+		Beam b = new Beam.DeathRay( from, corePoint() );
+		b.hardlight( 0xFFFFFF );
+		parent.add( b );
+		Beam b2 = new Beam.LightRay( from, corePoint() );
+		b2.hardlight( 0x40E8D8 );
+		parent.add( b2 );
 	}
 
 	@Override
 	public void onComplete( Animation anim ) {
-		if (anim == zap){
-			//내려치는 순간 화면 흔들림 + 먼지
-			if (visible){
-				PixelScene.shake( 3, 0.6f );
-				Sample.INSTANCE.play( Assets.Sounds.ROCKS );
-				bottomEmitter().burst( Speck.factory( Speck.ROCK ), 10 );
-			}
-			idle();
+		if (anim == lift){
+			play( hold );
 			return;
 		}
+		if (anim == hurl){
+			super.idle();
+			return;
+		}
+		if (anim == stagger){
+			play( stunned );
+			return;
+		}
+		if (anim == attack && visible){
+			//내려찍는 순간
+			PixelScene.shake( 2, 0.3f );
+			Sample.INSTANCE.play( Assets.Sounds.ROCKS, 0.6f, 1.2f );
+		}
 		if (anim == blast){
-			idle();
-			if (blastPos >= 0){
-				PointF end = Actor.findChar( blastPos ) != null
-						? Actor.findChar( blastPos ).sprite.center()
-						: DungeonTilemap.raisedTileCenterToWorld( blastPos );
-				Beam beam = new Beam.LightRay( corePoint(), end );
-				beam.hardlight( 0x40E8D8 );
-				parent.add( beam );
-				Beam core = new Beam.DeathRay( corePoint(), end );
-				core.hardlight( 0xC8FFF4 );
-				parent.add( core );
+			super.idle();
+			if (blastCells != null && parent != null){
+				for (int c : blastCells){
+					Char at = Actor.findChar( c );
+					PointF end = at != null && at.sprite != null ? at.sprite.center() : DungeonTilemap.raisedTileCenterToWorld( c );
+					Beam beam = new Beam.LightRay( corePoint(), end );
+					beam.hardlight( 0x40E8D8 );
+					parent.add( beam );
+					Beam core = new Beam.DeathRay( corePoint(), end );
+					core.hardlight( 0xC8FFF4 );
+					parent.add( core );
+				}
 				Sample.INSTANCE.play( Assets.Sounds.RAY );
 				PixelScene.shake( 2, 0.4f );
 			}
-			blastPos = -1;
+			blastCells = null;
 			if (ch instanceof SanctuaryColossus){
 				((SanctuaryColossus) ch).resolveBeam();
+				ch.next();
 			}
-			ch.next();
 			return;
-		}
-		if (anim == die){
-			if (coreGlow != null) coreGlow.on = false;
 		}
 		super.onComplete( anim );
 	}

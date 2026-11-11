@@ -19,17 +19,21 @@ import com.watabou.utils.Point;
 
 import java.util.ArrayList;
 
-//문이 하나뿐인 15x15 둥근 투기장. 가운데에서 문 반대쪽으로 조금 들어간 자리에 왕좌(보스 자리)가 있음.
-//절차 생성 맵의 한 방에 가지처럼 붙음 (출구 방 대신)
+//문이 하나뿐인 23x23 수호자의 대전당.
+//문에서 모자이크 길이 가운데 룬 원을 지나 단상(왕좌)까지 이어지고, 양옆으로 룬샘 수로와 돌기둥이 늘어섬.
+//네 곳의 룬 거울 수호상은 거상의 광선을 되쏘는 장치. 단상 뒤 벽 너머에는 엑스칼리버가 꽂힌 제단이 있는 금고가 숨어 있음
 public class SanctuaryArenaRoom extends StandardRoom {
 
-	public static final int SIZE = 15;
+	public static final int SIZE = 23;
+	private static final int HALF = SIZE / 2;
 
 	//칠해진 뒤 레벨이 읽어 가는 칸들
 	public int throne = -1;
 	public int center = -1;
 	public int door = -1;
-	public final ArrayList<Integer> summon = new ArrayList<>();
+	public int vaultDoor = -1;
+	public int altar = -1;
+	public final ArrayList<Integer> mirrors = new ArrayList<>();
 
 	@Override
 	public float[] sizeCatProbs() {
@@ -47,13 +51,12 @@ public class SanctuaryArenaRoom extends StandardRoom {
 		return super.maxConnections( direction );
 	}
 
-	//문은 각 변의 가운데 근처(±2)에만
+	//문은 각 변의 가운데 근처(±1)에만
 	@Override
 	public boolean canConnect( Point p ) {
 		if (!super.canConnect( p )) return false;
-		int mid = SIZE / 2;
-		if (p.x == left || p.x == right) return Math.abs( p.y - (top + mid) ) <= 2;
-		return Math.abs( p.x - (left + mid) ) <= 2;
+		if (p.x == left || p.x == right) return Math.abs( p.y - (top + HALF) ) <= 1;
+		return Math.abs( p.x - (left + HALF) ) <= 1;
 	}
 
 	//입구 방과 바로 붙지는 않게
@@ -99,15 +102,18 @@ public class SanctuaryArenaRoom extends StandardRoom {
 			d.set( Door.Type.UNLOCKED );
 		}
 
-		int cx = left + SIZE / 2, cy = top + SIZE / 2;
-		summon.clear();
+		int cx = left + HALF, cy = top + HALF;
+		mirrors.clear();
 
 		//문이 아래쪽에 있다고 보고 그린 뒤 돌려서 찍음
-		for (int oy = -6; oy <= 6; oy++){
-			for (int ox = -6; ox <= 6; ox++){
+		for (int oy = -HALF + 1; oy <= HALF - 1; oy++){
+			for (int ox = -HALF + 1; ox <= HALF - 1; ox++){
 				int t = tileAt( ox, oy );
 				Point p = rotate( ox, oy, side );
 				Painter.set( level, cx + p.x, cy + p.y, t );
+				if (t == Terrain.STATUE_SP){
+					mirrors.add( level.pointToCell( new Point( cx + p.x, cy + p.y ) ) );
+				}
 			}
 		}
 
@@ -116,38 +122,62 @@ public class SanctuaryArenaRoom extends StandardRoom {
 			Point step = new Point( d.x == left ? 1 : d.x == right ? -1 : 0, d.y == top ? 1 : d.y == bottom ? -1 : 0 );
 			Point c = new Point( d.x + step.x, d.y + step.y );
 			for (int i = 0; i < 3 && interior( c ); i++){
-				if (level.map[level.pointToCell( c )] == Terrain.WALL) Painter.set( level, c, Terrain.EMPTY );
+				if (level.map[level.pointToCell( c )] == Terrain.WALL) Painter.set( level, c, Terrain.EMPTY_SP );
 				c.offset( step );
 			}
 			door = level.pointToCell( d );
 		}
 
-		Point tp = rotate( 0, -3, side );   //벽에 너무 붙으면 큰 몸이 벽 뒤로 가려지므로 조금 앞으로
-		throne = level.pointToCell( new Point( cx + tp.x, cy + tp.y ) );
-		center = level.pointToCell( new Point( cx, cy ) );
-		int[][] sp = { {-4, -1}, {4, -1}, {-4, 3}, {4, 3} };
-		for (int[] s : sp){
-			Point q = rotate( s[0], s[1], side );
-			summon.add( level.pointToCell( new Point( cx + q.x, cy + q.y ) ) );
-		}
+		throne = cellAt( level, cx, cy, 0, -4, side );
+		center = cellAt( level, cx, cy, 0, 2, side );
+		vaultDoor = cellAt( level, cx, cy, 0, -7, side );
+		altar = cellAt( level, cx, cy, 0, -9, side );
 
 		SanctuaryLevel.addRune( level, center );
 	}
 
+	private static int cellAt( Level level, int cx, int cy, int x, int y, int side ){
+		Point p = rotate( x, y, side );
+		return level.pointToCell( new Point( cx + p.x, cy + p.y ) );
+	}
+
 	//문이 아래(+y)에 있을 때의 모양
 	private static int tileAt( int dx, int dy ){
-		int ax = Math.abs( dx ), ay = Math.abs( dy );
-		if (ax + ay > 9) return Terrain.WALL;
-		//왕좌와 그 둘레
-		if (dx == 0 && (dy == -3 || dy == -4)) return Terrain.EMPTY_SP;
-		if (ay <= 1 && ax <= 1) return Terrain.EMPTY_SP;               //가운데 룬 원
-		if (ax == 4 && ay == 4) return Terrain.STATUE_SP;              //네 모서리 수호상
-		if ((ax == 4 && dy == -1) || (ax == 4 && dy == 3)) return Terrain.PEDESTAL; //소환 받침대
-		if (dy == -6 && ax == 2) return Terrain.REGION_DECO;           //왕좌 양옆 뒤 오벨리스크
-		double r = Math.sqrt( dx * dx + dy * dy );
-		if (r >= 3.5 && r < 4.5) return Terrain.EMPTY_SP;              //고리 모양 길
-		if (dy == -5 && ax <= 2) return Terrain.EMPTY_SP;
-		if (ax + ay == 9) return Terrain.EMPTY_DECO;                   //가장자리 부서진 바닥
+		int ax = Math.abs( dx );
+
+		//---- 단상 뒤 금고 (벽 한 줄로 막혀 있음) ----
+		if (dy <= -8){
+			if (ax > 3) return Terrain.WALL;
+			if (dx == 0 && dy == -9) return Terrain.PEDESTAL;          //엑스칼리버 제단
+			if (ax == 3 && dy == -10) return Terrain.REGION_DECO_ALT;  //화로
+			if (ax == 3 && dy == -8) return Terrain.REGION_DECO;       //오벨리스크
+			return Terrain.EMPTY_SP;
+		}
+		if (dy == -7) return Terrain.WALL;
+
+		//---- 대전당 (모서리를 깎은 팔각) ----
+		int d = ax + Math.abs( dy - 2 );
+		if (d > 15) return Terrain.WALL;
+
+		//단상
+		if (dy <= -4 && ax <= 4){
+			if (ax == 4 && dy == -6) return Terrain.REGION_DECO;       //오벨리스크
+			if (ax == 2 && dy == -6) return Terrain.REGION_DECO_ALT;   //화로
+			return Terrain.EMPTY_SP;
+		}
+		//가운데 길 (문 → 룬 원 → 단상)
+		if (ax <= 1) return Terrain.EMPTY_SP;
+		//룬 거울 수호상 넷
+		if (ax == 6 && (dy == -2 || dy == 6)) return Terrain.STATUE_SP;
+		//돌기둥 열
+		if (ax == 9 && (dy == -1 || dy == 2 || dy == 5)) return Terrain.WALL;
+		if (ax == 4 && dy == 9) return Terrain.WALL;
+		//길 양옆 룬샘 수로
+		if (ax == 3 && dy >= 4 && dy <= 8) return Terrain.WATER;
+		//길을 따라 선 화로
+		if (ax == 3 && (dy == 3 || dy == 9)) return Terrain.REGION_DECO_ALT;
+		//가장자리 부서진 바닥
+		if (d == 15) return Terrain.EMPTY_DECO;
 		return Terrain.EMPTY;
 	}
 

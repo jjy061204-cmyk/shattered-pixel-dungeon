@@ -13,16 +13,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.GoldSparkle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.RuneMote;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -30,35 +29,36 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ColossusSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-//성소의 수호 거상. 봉인된 엑스칼리버를 지키는 마지막 수호자.
+//성소의 수호 거상. 금고의 엑스칼리버를 지키는 마지막 수호자. 부하 없이 1대 1로 싸움.
 //
-// 1단계 (체력 2/3 이상) 각성
-//   - 묵직한 주먹질
-//   - 대지 강타: 두 팔을 들어 내려치면, 영웅 둘레 표시된 칸에 1~3턴 뒤 돌이 떨어짐 (한 칸은 항상 비어 있음)
-// 2단계 (2/3 ~ 1/3) 핵 개방
-//   - 들어설 때 받침대에서 룬 감시석 둘을 불러냄
-//   - 룬 광선: 한 턴 동안 핵에 빛을 모으며(청록 표시) 일직선을 겨눈 뒤 발사. 줄 위의 모두가 맞음
-//     모으는 동안은 핵이 드러나 받는 피해 1.5배
-// 3단계 (1/3 이하) 폭주
-//   - 들어설 때 석상 병사 둘을 불러냄, 더 빠르게 공격·이동
-//   - 대지 강타 때 자기 둘레 2칸에도 충격파 돌이 떨어짐 (틈 있음), 기술 대기시간 짧아짐
+// 기믹 - 봉인의 갑주: 평소에는 받는 피해가 1/4로 줄어듦.
+//   거상이 룬 광선을 모을 때(겨눈 줄은 고정됨) 그 줄 끝에 '룬 거울 수호상'이 있으면, 광선이 되돌아와 핵이 과부하됨.
+//   과부하된 동안(8턴)은 무릎을 꿇고 움직이지 못하며 피해를 온전히 받음.
+//   → 거상과 거울 사이에 서서 광선을 끌어낸 뒤 옆으로 피하는 것이 공략법
+//
+// 공격
+//   - 내려찍기: 맞으면 멀리 튕겨 나감 (붙어서 버티기 어렵게)
+//   - 룬 광선: 한 턴 겨눈 뒤 일직선 관통. 체력 절반 이하에서는 세 갈래 부채꼴
+//   - 바위 던지기: 바닥의 바위를 뽑아 한 턴 뒤 표시한 칸에 던짐 (가운데 큰 피해, 둘레 절반). 절반 이하에서는 두 개
 public class SanctuaryColossus extends Mob {
 
 	{
 		spriteClass = ColossusSprite.class;
 
-		HP = HT = 500;
-		defenseSkill = 20;
+		HP = HT = 450;
+		defenseSkill = 18;
 
 		EXP = 60;
 		maxLvl = -2;
@@ -69,18 +69,24 @@ public class SanctuaryColossus extends Mob {
 		properties.add( Property.INORGANIC );
 	}
 
+	private static final int OVERLOAD_TURNS = 8;
+
 	private boolean awake = false;
 	private int phase = 1;
-	private int quakeCD = 3;
-	private int beamCD = 2;
+	private int beamCD = 3;
+	private int rockCD = 1;
+	private int lastSkill = 0;   //1: 바위, 2: 광선
 	private boolean beamCharging = false;
-	private int beamTarget = -1;
-	private int lastSkill = 0;   //1: 강타, 2: 광선
-	private Ballistica beamPath;
+	private int[] beamTargets = new int[0];
+	private boolean rockHeld = false;
+	private int[] rockTargets = new int[0];
+	private int overload = 0;
+
+	private ArrayList<Ballistica> beamPaths;
 
 	@Override
 	public int damageRoll() {
-		return phase >= 3 ? Random.NormalIntRange( 28, 42 ) : Random.NormalIntRange( 25, 38 );
+		return Random.NormalIntRange( 22, 34 );
 	}
 
 	@Override
@@ -90,32 +96,25 @@ public class SanctuaryColossus extends Mob {
 
 	@Override
 	public int drRoll() {
-		return super.drRoll() + Random.NormalIntRange( 0, 14 );
+		return super.drRoll() + Random.NormalIntRange( 0, 10 );
 	}
 
 	@Override
-	public float attackDelay() {
-		return super.attackDelay() * (phase >= 3 ? 0.7f : 1f);
+	public int defenseSkill( Char enemy ) {
+		return overload > 0 ? 0 : super.defenseSkill( enemy );
 	}
 
-	@Override
-	public float speed() {
-		return super.speed() * (phase >= 3 ? 1.25f : 1f);
+	public boolean isAwake(){ return awake; }
+	public boolean isCharging(){ return beamCharging; }
+	public boolean isHoldingRock(){ return rockHeld; }
+	public boolean isOverloaded(){ return overload > 0; }
+	public int phase(){ return phase; }
+
+	private ColossusSprite spr(){
+		return sprite instanceof ColossusSprite ? (ColossusSprite) sprite : null;
 	}
 
-	public boolean isAwake(){
-		return awake;
-	}
-
-	public boolean isCharging(){
-		return beamCharging;
-	}
-
-	public int phase(){
-		return phase;
-	}
-
-	//투기장에 들어온 영웅을 보고 깨어남
+	//대전당에 들어온 영웅을 보고 깨어남
 	public void awaken(){
 		if (awake) return;
 		awake = true;
@@ -124,6 +123,7 @@ public class SanctuaryColossus extends Mob {
 		target = Dungeon.hero.pos;
 		BossHealthBar.assignBoss( this );
 		yell( Messages.get( this, "notice" ) );
+		GLog.w( Messages.get( this, "hint" ) );
 		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 		PixelScene.shake( 2, 0.8f );
 		if (sprite != null){
@@ -142,94 +142,52 @@ public class SanctuaryColossus extends Mob {
 			return true;
 		}
 
-		if (beamCharging){
-			return fireBeam();
+		if (overload > 0){
+			overload--;
+			if (overload == 0){
+				if (spr() != null) spr().forceIdle();
+				if (sprite != null) sprite.showStatus( CharSprite.WARNING, Messages.get( this, "recovered" ) );
+				beamCD = Math.max( beamCD, 2 );
+			}
+			spend( TICK );
+			return true;
 		}
 
-		if (quakeCD > 0) quakeCD--;
+		if (beamCharging) return fireBeam();
+		if (rockHeld) return throwRocks();
+
 		if (beamCD > 0) beamCD--;
+		if (rockCD > 0) rockCD--;
 
 		Char hero = Dungeon.hero;
-		boolean sees = hero.isAlive() && hero.invisible <= 0 && Dungeon.level.heroFOV[pos];
+		boolean sees = hero.isAlive() && hero.invisible <= 0
+				&& fieldOfView != null && fieldOfView.length == Dungeon.level.length() && fieldOfView[hero.pos];
 		int dist = Dungeon.level.distance( pos, hero.pos );
 
-		boolean beamReady = phase >= 2 && beamCD <= 0 && sees && dist >= 2;
-		boolean quakeReady = quakeCD <= 0 && sees && dist <= 7;
+		boolean beamReady = beamCD <= 0 && sees && dist >= 2;
+		boolean rockReady = rockCD <= 0 && sees && dist >= 2;
 
-		if (beamReady && (!quakeReady || lastSkill != 2)){
+		if (beamReady && (!rockReady || lastSkill != 2)){
 			chargeBeam( hero.pos );
 			return true;
 		}
-		if (quakeReady){
-			quake();
+		if (rockReady){
+			liftRocks( hero.pos );
 			return true;
 		}
 		return super.act();
 	}
 
-	//==== 대지 강타 ====
+	//==== 내려찍기: 멀리 튕겨 냄 ====
 
-	private void quake(){
-		lastSkill = 1;
-		quakeCD = phase >= 3 ? 4 : 6;
-
-		Char hero = Dungeon.hero;
-		int center = hero.pos;
-
-		//영웅 둘레 2칸: 가까울수록 많이 떨어짐. 한 칸은 반드시 비워 둠
-		int safe;
-		int tries = 20;
-		do {
-			safe = center + PathFinder.NEIGHBOURS8[Random.Int( 8 )];
-		} while (tries-- > 0 && (Dungeon.level.solid[safe] || safe == pos));
-
-		ArrayList<Integer> cells = new ArrayList<>();
-		for (int i = 0; i < Dungeon.level.length(); i++){
-			if (Dungeon.level.solid[i] || i == pos || i == safe) continue;
-			int d = Dungeon.level.distance( center, i );
-			if (d <= 2 && Random.Int( 1 + d ) == 0){
-				cells.add( i );
-			}
+	@Override
+	public int attackProc( Char enemy, int damage ) {
+		damage = super.attackProc( enemy, damage );
+		if (enemy.isAlive()){
+			Ballistica away = new Ballistica( enemy.pos, enemy.pos + (enemy.pos - pos), Ballistica.MAGIC_BOLT );
+			WandOfBlastWave.throwChar( enemy, away, 3, false, false, this );
 		}
-		//폭주: 자기 둘레 2칸에도 충격파 (한 칸 걸러 하나씩)
-		if (phase >= 3){
-			int k = 0;
-			for (int i = 0; i < Dungeon.level.length(); i++){
-				if (Dungeon.level.solid[i] || cells.contains( i ) || i == safe) continue;
-				if (Dungeon.level.distance( pos, i ) == 2 && (k++ % 2 == 0)){
-					cells.add( i );
-				}
-			}
-		}
-
-		float delay = GameMath.gate( 2 * TICK, (float)Math.ceil( hero.cooldown() ) + TICK, 3 * TICK );
-		for (int c : cells){
-			GameScene.targetedCell( c, delay );
-		}
-		Buff.append( this, QuakeRocks.class, delay ).setRockPositions( cells );
-
-		if (sprite != null) ((ColossusSprite) sprite).slam( center );
-		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.6f, 0.6f );
-		GLog.w( Messages.get( this, "quake" ) );
-		Dungeon.hero.interrupt();
-
-		spend( TICK );
-	}
-
-	//2턴 뒤 떨어지는 돌
-	public static class QuakeRocks extends DelayedRockFall {
-		@Override
-		public void affectChar( Char ch ) {
-			if (ch instanceof SanctuaryColossus || ch instanceof StoneSoldier
-					|| ch instanceof StoneWarden || ch instanceof RuneSentinel) return;
-			ch.damage( Random.NormalIntRange( 14, 22 ), this );
-			if (ch.isAlive()){
-				Buff.prolong( ch, Cripple.class, 3f );
-			} else if (ch == Dungeon.hero){
-				Dungeon.fail( target );
-				GLog.n( Messages.get( SanctuaryColossus.class, "rock_kill" ) );
-			}
-		}
+		return damage;
 	}
 
 	//==== 룬 광선 ====
@@ -239,61 +197,197 @@ public class SanctuaryColossus extends Mob {
 	private void chargeBeam( int target ){
 		lastSkill = 2;
 		beamCharging = true;
-		beamTarget = target;
 
-		Ballistica aim = new Ballistica( pos, target, Ballistica.STOP_SOLID );
+		ArrayList<Integer> targets = new ArrayList<>();
+		targets.add( target );
+		if (phase >= 2){
+			int w = Dungeon.level.width();
+			double ang = Math.atan2( target / w - pos / w, target % w - pos % w );
+			for (double off : new double[]{ -0.45, 0.45 }){
+				int tx = pos % w + (int)Math.round( Math.cos( ang + off ) * 7 );
+				int ty = pos / w + (int)Math.round( Math.sin( ang + off ) * 7 );
+				if (tx < 1 || ty < 1 || tx >= w - 1 || ty >= Dungeon.level.height() - 1) continue;
+				int c = tx + ty * w;
+				if (c != pos && !targets.contains( c )) targets.add( c );
+			}
+		}
+		beamTargets = new int[targets.size()];
+		for (int i = 0; i < beamTargets.length; i++) beamTargets[i] = targets.get( i );
+
 		float delay = GameMath.gate( TICK, (float)Math.ceil( Dungeon.hero.cooldown() ), 2 * TICK );
-		for (int c : aim.subPath( 1, aim.dist )){
-			TargetedCell t = GameScene.targetedCell( c, delay );
-			if (t != null) t.hardlight( 0x40E8D8 );
+		for (int t : beamTargets){
+			Ballistica aim = new Ballistica( pos, t, Ballistica.STOP_SOLID );
+			for (int c : aim.subPath( 1, aim.dist )){
+				TargetedCell tc = GameScene.targetedCell( c, delay );
+				if (tc != null) tc.hardlight( 0x40E8D8 );
+			}
+			//줄 끝이 룬 거울이면 거울이 반짝임
+			int m = mirrorBehind( aim );
+			if (m >= 0) CellEmitter.center( m ).burst( GoldSparkle.BURST, 8 );
 		}
 
-		if (sprite != null){
-			((ColossusSprite) sprite).charge( target );
-			sprite.showStatus( CharSprite.WARNING, Messages.get( this, "core_open" ) );
-		}
+		if (spr() != null) spr().charge( target );
 		GLog.w( Messages.get( this, "beam_charge" ) );
 		Dungeon.hero.interrupt();
 		spend( delay );
 	}
 
+	private int mirrorBehind( Ballistica b ){
+		if (!(Dungeon.level instanceof SanctuaryBossLevel)) return -1;
+		if (b.path.size() > b.dist + 1){
+			int c = b.path.get( b.dist + 1 );
+			if (((SanctuaryBossLevel) Dungeon.level).isMirror( c )) return c;
+		}
+		return -1;
+	}
+
 	private boolean fireBeam(){
 		beamCharging = false;
-		beamCD = phase >= 3 ? 4 : 6;
-		beamPath = new Ballistica( pos, beamTarget, Ballistica.STOP_SOLID );
-		spend( attackDelay() );
+		beamCD = phase >= 2 ? 4 : 5;
+		beamPaths = new ArrayList<>();
+		int[] ends = new int[beamTargets.length];
+		boolean seen = Dungeon.level.heroFOV[pos];
+		for (int i = 0; i < beamTargets.length; i++){
+			Ballistica b = new Ballistica( pos, beamTargets[i], Ballistica.STOP_SOLID );
+			beamPaths.add( b );
+			ends[i] = b.collisionPos;
+			seen = seen || Dungeon.level.heroFOV[b.collisionPos];
+		}
+		spend( TICK );
 
-		if (sprite != null && sprite.visible
-				&& (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[beamPath.collisionPos])){
-			((ColossusSprite) sprite).blast( beamPath.collisionPos );
+		if (spr() != null && sprite.visible && seen){
+			spr().blast( ends );
 			return false;
 		} else {
-			if (sprite != null) sprite.idle();
 			resolveBeam();
 			return true;
 		}
 	}
 
-	//광선이 지나간 줄 위의 모두에게 피해 (골렘은 제외)
+	//광선이 지나간 줄 위의 모두에게 피해. 룬 거울에 닿은 광선은 되돌아와 핵을 과부하시킴
 	public void resolveBeam(){
-		if (beamPath == null) return;
-		for (int c : beamPath.subPath( 1, beamPath.dist )){
-			if (Dungeon.level.heroFOV[c]){
-				CellEmitter.center( c ).burst( RuneMote.FACTORY, 3 );
+		if (beamPaths == null) return;
+		int mirror = -1;
+		for (Ballistica b : beamPaths){
+			for (int c : b.subPath( 1, b.dist )){
+				if (Dungeon.level.heroFOV[c]) CellEmitter.center( c ).burst( RuneMote.FACTORY, 3 );
+				Char ch = Actor.findChar( c );
+				if (ch == null || ch == this) continue;
+				ch.damage( Random.NormalIntRange( 30, 42 ), new RuneBeam() );
+				if (ch.sprite != null && Dungeon.level.heroFOV[c]) ch.sprite.flash();
+				if (ch == Dungeon.hero && !ch.isAlive()){
+					Dungeon.fail( this );
+					GLog.n( Messages.get( this, "beam_kill" ) );
+				}
 			}
-			Char ch = Actor.findChar( c );
-			if (ch == null || ch == this || ch instanceof StoneSoldier
-					|| ch instanceof StoneWarden || ch instanceof RuneSentinel) continue;
+			int m = mirrorBehind( b );
+			if (m >= 0) mirror = m;
+		}
+		beamPaths = null;
+		beamTargets = new int[0];
+		if (mirror >= 0 && isAlive()) startOverload( mirror );
+	}
 
-			ch.damage( Random.NormalIntRange( 26, 38 ), new RuneBeam() );
-			if (ch.sprite != null && Dungeon.level.heroFOV[c]) ch.sprite.flash();
-			if (ch == Dungeon.hero && !ch.isAlive()){
-				Dungeon.fail( this );
-				GLog.n( Messages.get( this, "beam_kill" ) );
+	private void startOverload( int mirror ){
+		overload = OVERLOAD_TURNS;
+		rockHeld = false;
+		beamCharging = false;
+		CellEmitter.center( mirror ).burst( GoldSparkle.BURST, 14 );
+		Sample.INSTANCE.play( Assets.Sounds.SHATTER );
+		Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
+		GameScene.flash( 0x4040E8D8 );
+		if (spr() != null){
+			spr().reflect( mirror );
+			spr().overload();
+			sprite.showStatus( CharSprite.POSITIVE, Messages.get( this, "overload" ) );
+		}
+		yell( Messages.get( this, "overload_yell" ) );
+		GLog.p( Messages.get( this, "overload_log" ) );
+	}
+
+	//==== 바위 던지기 ====
+
+	private void liftRocks( int target ){
+		lastSkill = 1;
+		rockHeld = true;
+
+		ArrayList<Integer> targets = new ArrayList<>();
+		targets.add( target );
+		if (phase >= 2){
+			ArrayList<Integer> around = new ArrayList<>();
+			for (int i = 0; i < Dungeon.level.length(); i++){
+				if (Dungeon.level.distance( target, i ) == 2 && Dungeon.level.passable[i] && i != pos) around.add( i );
+			}
+			if (!around.isEmpty()) targets.add( Random.element( around ) );
+		}
+		rockTargets = new int[targets.size()];
+		for (int i = 0; i < rockTargets.length; i++) rockTargets[i] = targets.get( i );
+
+		float delay = GameMath.gate( TICK, (float)Math.ceil( Dungeon.hero.cooldown() ), 2 * TICK );
+		for (int t : rockTargets){
+			GameScene.targetedCell( t, delay );
+			for (int n : PathFinder.NEIGHBOURS8){
+				if (!Dungeon.level.solid[t + n]){
+					TargetedCell tc = GameScene.targetedCell( t + n, delay );
+					if (tc != null) tc.alpha( 0.5f );
+				}
 			}
 		}
-		beamPath = null;
-		beamTarget = -1;
+
+		if (spr() != null) spr().liftRock( target );
+		GLog.w( Messages.get( this, "rock_lift" ) );
+		Dungeon.hero.interrupt();
+		spend( delay );
+	}
+
+	private boolean throwRocks(){
+		rockHeld = false;
+		rockCD = phase >= 2 ? 3 : 4;
+		spend( TICK );
+
+		final int[] targets = rockTargets;
+		rockTargets = new int[0];
+		if (targets.length == 0) return true;
+
+		if (spr() != null && sprite.visible && sprite.parent != null){
+			spr().hurlRock( targets[0] );
+			Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 0.7f );
+			for (int i = 0; i < targets.length; i++){
+				final boolean last = i == targets.length - 1;
+				final int cell = targets[i];
+				((MissileSprite) sprite.parent.recycle( MissileSprite.class ))
+						.reset( sprite, cell, new GnollGeomancer.Boulder(), new Callback() {
+							@Override
+							public void call() {
+								landRock( cell );
+								if (last) next();
+							}
+						} );
+			}
+			return false;
+		} else {
+			for (int c : targets) landRock( c );
+			return true;
+		}
+	}
+
+	private void landRock( int cell ){
+		Splash.at( cell, 0x8C8E78, 20 );
+		CellEmitter.get( cell ).burst( Speck.factory( Speck.ROCK ), 8 );
+		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
+		PixelScene.shake( 3, 0.5f );
+
+		for (int n : PathFinder.NEIGHBOURS9){
+			Char ch = Actor.findChar( cell + n );
+			if (ch == null || ch == this) continue;
+			int dmg = Random.NormalIntRange( 26, 38 );
+			if (n != 0) dmg /= 2;
+			ch.damage( dmg, new GnollGeomancer.Boulder() );
+			if (ch == Dungeon.hero && !ch.isAlive()){
+				Dungeon.fail( this );
+				GLog.n( Messages.get( this, "rock_kill" ) );
+			}
+		}
 	}
 
 	//==== 피해와 단계 ====
@@ -301,95 +395,48 @@ public class SanctuaryColossus extends Mob {
 	@Override
 	public void damage( int dmg, Object src ) {
 		if (!awake) awaken();
-		//빛을 모으는 동안은 핵이 드러나 있음
-		if (beamCharging && dmg > 0){
-			dmg = Math.round( dmg * 1.5f );
+		if (overload <= 0 && dmg > 0){
+			//봉인의 갑주
+			dmg = Math.max( 1, Math.round( dmg * 0.25f ) );
+			if (sprite != null && Random.Int( 3 ) == 0){
+				sprite.showStatus( CharSprite.NEUTRAL, Messages.get( this, "armored" ) );
+			}
 		}
 		super.damage( dmg, src );
 		if (!isAlive()) return;
-		if (phase == 1 && HP <= HT * 2 / 3){
-			enterPhase( 2 );
-		}
-		if (phase == 2 && HP <= HT / 3){
-			enterPhase( 3 );
-		}
-	}
-
-	private void enterPhase( int p ){
-		phase = p;
-		if (p == 2){
+		if (phase == 1 && HP <= HT / 2){
+			phase = 2;
 			yell( Messages.get( this, "phase2" ) );
-			beamCD = Math.min( beamCD, 1 );
-			summon( 2, true );
-		} else if (p == 3){
-			yell( Messages.get( this, "phase3" ) );
-			quakeCD = Math.min( quakeCD, 2 );
-			summon( 2, false );
 			BossHealthBar.bleed( true );
-		}
-		PixelScene.shake( 3, 0.8f );
-		GameScene.flash( 0x3040E8D8 );
-		if (sprite != null){
-			sprite.emitter().burst( RuneMote.FACTORY, 30 );
-			sprite.emitter().burst( GoldSparkle.BURST, 16 );
-		}
-	}
-
-	//받침대에서 석상을 불러냄
-	private void summon( int count, boolean sentinels ){
-		ArrayList<Integer> spots = new ArrayList<>();
-		if (Dungeon.level instanceof SanctuaryBossLevel){
-			for (int c : ((SanctuaryBossLevel) Dungeon.level).summonCells()){
-				if (Actor.findChar( c ) == null && Dungeon.level.passable[c]) spots.add( c );
+			PixelScene.shake( 3, 0.8f );
+			GameScene.flash( 0x3040E8D8 );
+			if (sprite != null){
+				sprite.emitter().burst( RuneMote.FACTORY, 30 );
+				sprite.emitter().burst( GoldSparkle.BURST, 16 );
 			}
 		}
-		if (spots.isEmpty()){
-			for (int n : PathFinder.NEIGHBOURS8){
-				int c = pos + n;
-				if (Actor.findChar( c ) == null && Dungeon.level.passable[c]) spots.add( c );
-			}
-		}
-		for (int i = 0; i < count && !spots.isEmpty(); i++){
-			int c = spots.remove( Random.Int( spots.size() ) );
-			Mob m = sentinels ? new RuneSentinel() : new StoneSoldier();
-			m.pos = c;
-			m.state = m.HUNTING;
-			GameScene.add( m, 1f );
-			CellEmitter.get( c ).burst( Speck.factory( Speck.ROCK ), 8 );
-			if (m.sprite != null) m.sprite.emitter().burst( GoldSparkle.BURST, 8 );
-		}
-		Sample.INSTANCE.play( Assets.Sounds.CHALLENGE );
 	}
 
 	@Override
 	public void die( Object cause ) {
 		super.die( cause );
 
-		//보상: 왕좌를 지키던 봉인된 엑스칼리버 (쓰러진 자리) + 성소의 보물
+		//성소의 보물 (엑스칼리버는 열린 금고의 제단에)
 		ArrayList<Item> drops = new ArrayList<>();
-		drops.add( new Excalibur() );
 		drops.add( Generator.random( Random.Int( 2 ) == 0 ? Generator.Category.RING : Generator.Category.WAND ) );
 		drops.add( Generator.random( Generator.Category.ARTIFACT ) );
 		for (Item it : drops){
 			if (it == null) continue;
 			int cell = pos;
-			for (int t = 0; t < 10 && !(it instanceof Excalibur); t++){
+			for (int t = 0; t < 10; t++){
 				int c = pos + PathFinder.NEIGHBOURS9[Random.Int( 9 )];
 				if (Dungeon.level.passable[c]) { cell = c; break; }
 			}
 			Dungeon.level.drop( it, cell ).sprite.drop( pos );
 		}
 
-		//남아 있는 석상들도 함께 무너짐
-		for (Mob m : Dungeon.level.mobs.toArray( new Mob[0] )){
-			if (m != this && (m instanceof StoneSoldier || m instanceof RuneSentinel || m instanceof StoneWarden)){
-				m.die( null );
-			}
-		}
-
 		yell( Messages.get( this, "defeated" ) );
 		GameScene.bossSlain();
-		GLog.p( Messages.get( this, "excalibur" ) );
 		if (Dungeon.level instanceof SanctuaryBossLevel){
 			((SanctuaryBossLevel) Dungeon.level).onBossDefeated();
 		}
@@ -402,10 +449,13 @@ public class SanctuaryColossus extends Mob {
 
 	private static final String AWAKE = "awake";
 	private static final String PHASE = "phase";
-	private static final String QUAKE = "quake_cd";
 	private static final String BEAM_CD = "beam_cd";
+	private static final String ROCK_CD = "rock_cd";
 	private static final String CHARGING = "charging";
-	private static final String BEAM_TARGET = "beam_target";
+	private static final String BEAM_TARGETS = "beam_targets";
+	private static final String ROCK_HELD = "rock_held";
+	private static final String ROCK_TARGETS = "rock_targets";
+	private static final String OVERLOAD = "overload";
 	private static final String LAST = "last_skill";
 
 	@Override
@@ -413,10 +463,13 @@ public class SanctuaryColossus extends Mob {
 		super.storeInBundle( bundle );
 		bundle.put( AWAKE, awake );
 		bundle.put( PHASE, phase );
-		bundle.put( QUAKE, quakeCD );
 		bundle.put( BEAM_CD, beamCD );
+		bundle.put( ROCK_CD, rockCD );
 		bundle.put( CHARGING, beamCharging );
-		bundle.put( BEAM_TARGET, beamTarget );
+		bundle.put( BEAM_TARGETS, beamTargets );
+		bundle.put( ROCK_HELD, rockHeld );
+		bundle.put( ROCK_TARGETS, rockTargets );
+		bundle.put( OVERLOAD, overload );
 		bundle.put( LAST, lastSkill );
 	}
 
@@ -424,16 +477,20 @@ public class SanctuaryColossus extends Mob {
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		awake = bundle.getBoolean( AWAKE );
-		phase = Math.max( 1, bundle.getInt( PHASE ) );
-		quakeCD = bundle.getInt( QUAKE );
+		phase = Math.max( 1, Math.min( 2, bundle.getInt( PHASE ) ) );
 		beamCD = bundle.getInt( BEAM_CD );
+		rockCD = bundle.getInt( ROCK_CD );
 		beamCharging = bundle.getBoolean( CHARGING );
-		beamTarget = bundle.contains( BEAM_TARGET ) ? bundle.getInt( BEAM_TARGET ) : -1;
+		beamTargets = bundle.contains( BEAM_TARGETS ) ? bundle.getIntArray( BEAM_TARGETS ) : new int[0];
+		rockHeld = bundle.getBoolean( ROCK_HELD );
+		rockTargets = bundle.contains( ROCK_TARGETS ) ? bundle.getIntArray( ROCK_TARGETS ) : new int[0];
+		overload = bundle.getInt( OVERLOAD );
 		lastSkill = bundle.getInt( LAST );
-		if (beamCharging && beamTarget < 0) beamCharging = false;
+		if (beamCharging && beamTargets.length == 0) beamCharging = false;
+		if (rockHeld && rockTargets.length == 0) rockHeld = false;
 		if (awake){
 			BossHealthBar.assignBoss( this );
-			if (phase >= 3) BossHealthBar.bleed( true );
+			if (phase >= 2) BossHealthBar.bleed( true );
 		}
 	}
 }
