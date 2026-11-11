@@ -289,6 +289,8 @@ public class Assets {
 		public static final String ITEMS_HD     = "sprites/items_hd.png";
 		public static final String SANCTUARY_GOLEMS   = "sprites/sanctuary_golems.png";
 		public static final String SANCTUARY_COLOSSUS = "sprites/sanctuary_colossus.png";
+		public static final String RUNE_AEGIS_HERO = "sprites/rune_aegis_hero.png";
+		public static final String RUNE_AEGIS_PARTS = "sprites/rune_aegis_parts.png";
 		//모드: 현대 세계 가게 화면, 자판기 화면 그림
 		public static final String MODERN_UI    = "sprites/modern_ui.png";
 		public static final String VENDING_UI   = "sprites/vending_ui.png";

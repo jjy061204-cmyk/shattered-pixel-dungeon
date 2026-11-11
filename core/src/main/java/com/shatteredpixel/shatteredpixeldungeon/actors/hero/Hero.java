@@ -297,6 +297,7 @@ public class Hero extends Char {
 		int strBonus = 0;
 
 		strBonus += RingOfMight.strengthBonus( this );
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class) != null) strBonus += com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.STR_BONUS;
 		
 		AdrenalineSurge buff = buff(AdrenalineSurge.class);
 		if (buff != null){
@@ -532,6 +533,8 @@ public class Hero extends Char {
 		
 		float accuracy = 1;
 		accuracy *= RingOfAccuracy.accuracyMultiplier( this );
+		//모드: 룬 성갑
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class) != null) accuracy *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.ACCURACY;
 		//모드: 엑스칼리버의 가호
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
 			accuracy *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.ACCURACY;
@@ -665,6 +668,7 @@ public class Hero extends Char {
 	@Override
 	public int drRoll() {
 		int dr = super.drRoll();
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class) != null) dr += Random.NormalIntRange( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.DR_BONUS / 2, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.DR_BONUS );
 
 		if (belongings.armor() != null) {
 			int armDr = Random.NormalIntRange( belongings.armor().DRMin(), belongings.armor().DRMax());
@@ -1686,6 +1690,9 @@ public class Hero extends Char {
 				|| buff(TimeStasis.class) != null) {
 			return;
 		}
+
+		//모드: 룬 성갑 - 받는 모든 피해 감소
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class) != null) dmg = Math.round( dmg * com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.DAMAGE_TAKEN );
 
 		//모드: 왕의 가호 - 받는 모든 피해 20% 감소
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){

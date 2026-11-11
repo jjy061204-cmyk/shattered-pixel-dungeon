@@ -979,6 +979,7 @@ public class ItemSpriteSheet {
 	public static final int CHESTNUTS         = MOD_MISC2+10;
 	public static final int DEV_REMOTE        = MOD_MISC2+11;   //테스터 리모컨
 	public static final int GOLEM_HEART       = MOD_MISC2+12;   //성소 보스가 남기는 심장
+	public static final int RUNE_AEGIS        = MOD_MISC2+14;   //룬 성갑의 문장
 	public static final int RUNE_CRYSTAL      = MOD_MISC2+13;   //성소 고유 투척 수정
 	static{
 		assignItemRect(BURN_OINTMENT, 13, 9);
@@ -1008,6 +1009,7 @@ public class ItemSpriteSheet {
 		assignItemRect(DEV_REMOTE, 16, 16);
 		assignItemRect(GOLEM_HEART, 16, 16);
 		assignItemRect(RUNE_CRYSTAL, 16, 16);
+		assignItemRect(RUNE_AEGIS, 16, 16);
 	}
 
 	//==== 촘촘한(고해상도) 아이템 ====
