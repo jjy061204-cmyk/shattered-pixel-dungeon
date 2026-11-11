@@ -245,7 +245,10 @@ public class SanctuaryBossLevel extends RegularLevel {
 			//제단 곁에 놓인 유물: 룬 성갑의 문장
 			for (int nb : com.watabou.utils.PathFinder.NEIGHBOURS8){
 				if (map[altar + nb] == Terrain.EMPTY_SP){
-					drop( new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis(), altar + nb );
+					com.shatteredpixel.shatteredpixeldungeon.items.Item aegis = new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis();
+					aegis.cursed = false;
+					aegis.cursedKnown = true;
+					drop( aegis, altar + nb );
 					break;
 				}
 			}
