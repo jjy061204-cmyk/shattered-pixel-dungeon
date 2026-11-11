@@ -53,6 +53,12 @@ public class RuneCrystal extends Item {
 	}
 
 	@Override
+	public String desc() {
+		return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( this, "desc" ) + "\n\n"
+				+ com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( this, "category" );
+	}
+
+	@Override
 	public boolean isUpgradable() {
 		return false;
 	}

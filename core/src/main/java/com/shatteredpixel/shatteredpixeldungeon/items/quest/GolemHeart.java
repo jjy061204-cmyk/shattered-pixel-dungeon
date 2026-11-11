@@ -81,7 +81,8 @@ public class GolemHeart extends Item {
 
 	@Override
 	public String desc() {
-		return Messages.get( this, "desc" ) + "\n\n" + Messages.get( this, "charges", charges );
+		return Messages.get( this, "desc" ) + "\n\n" + Messages.get( this, "charges", charges )
+				+ "\n\n" + Messages.get( this, "category" );
 	}
 
 	@Override

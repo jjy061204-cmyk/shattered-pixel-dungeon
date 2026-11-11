@@ -37,6 +37,7 @@ public class DevRemote extends Item {
 
 	public static final String AC_TRAVEL = "TRAVEL";
 	public static final String AC_SUMMON = "SUMMON";
+	public static final String AC_LEVEL = "LEVEL";
 
 	{
 		image = ItemSpriteSheet.DEV_REMOTE;
@@ -67,6 +68,7 @@ public class DevRemote extends Item {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_TRAVEL );
 		actions.add( AC_SUMMON );
+		actions.add( AC_LEVEL );
 		return actions;
 	}
 
@@ -79,7 +81,26 @@ public class DevRemote extends Item {
 			chooseRegion( true );
 		} else if (action.equals( AC_SUMMON )){
 			chooseRegion( false );
+		} else if (action.equals( AC_LEVEL )){
+			chooseLevel();
 		}
+	}
+
+	//레벨 조정: 올리기/내리기/바로 지정
+	private void chooseLevel(){
+		final int[] delta = { 1, 5, -1, -5 };
+		GameScene.show( new WndOptions( new ItemSprite( this ), txt( "level_title" ), txt( "level_msg", Dungeon.hero.lvl ),
+				"+1", "+5", "-1", "-5", txt( "level_min" ), txt( "level_max" ) ){
+			@Override
+			protected void onSelect( int index ) {
+				Hero h = Dungeon.hero;
+				int to = index < 4 ? h.lvl + delta[index] : (index == 4 ? 1 : Hero.MAX_LEVEL);
+				h.devSetLevel( to );
+				GLog.p( txt( "level_set", h.lvl, h.HT ) );
+				h.sprite.showStatus( com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.POSITIVE, txt( "level_status", h.lvl ) );
+				if (index < 4) chooseLevel();
+			}
+		} );
 	}
 
 	//금고 안에서 나가 버리면 맡겨 둔 소지품이 꼬이므로 층 이동은 막음

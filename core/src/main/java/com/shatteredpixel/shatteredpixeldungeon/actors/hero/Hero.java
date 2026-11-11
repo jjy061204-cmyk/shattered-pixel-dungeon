@@ -259,6 +259,21 @@ public class Hero extends Char {
 		visibleEnemies = new ArrayList<>();
 	}
 	
+	//모드: 테스터 리모컨의 레벨 조정
+	public void devSetLevel( int newLvl ){
+		newLvl = Math.max( 1, Math.min( MAX_LEVEL, newLvl ) );
+		int diff = newLvl - lvl;
+		if (diff == 0) return;
+		lvl = newLvl;
+		exp = 0;
+		attackSkill += diff;
+		defenseSkill += diff;
+		updateHT( true );
+		HP = Math.min( HP, HT );
+		if (diff > 0) HP = HT;
+		Item.updateQuickslot();
+	}
+
 	public void updateHT( boolean boostHP ){
 		int curHT = HT;
 		

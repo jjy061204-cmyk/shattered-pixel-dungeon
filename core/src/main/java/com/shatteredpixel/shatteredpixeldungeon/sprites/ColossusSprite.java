@@ -24,7 +24,7 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.PointF;
 
-//sanctuary_colossus.png: 48x48 칸, 59프레임
+//sanctuary_colossus.png: 64x64 칸(몸은 가운데 48x48, 둘레는 후광·비석 여백), 59프레임
 // 0-7 대기 / 8-15 걷기 / 16-22 내려찍기 / 23-26 바위 뽑기 / 27-28 바위 들고 버팀 / 29-32 던지기
 // 33-36 룬 광선 충전 / 37-40 발사 / 41-42 과부하로 휘청 / 43-46 기절 / 47-58 쓰러짐
 public class ColossusSprite extends MobSprite {
@@ -44,7 +44,7 @@ public class ColossusSprite extends MobSprite {
 	public ColossusSprite() {
 		super();
 		texture( Assets.Sprites.SANCTUARY_COLOSSUS );
-		TextureFilm frames = new TextureFilm( texture, 48, 48 );
+		TextureFilm frames = new TextureFilm( texture, 64, 64 );
 
 		idle = new Animation( 7, true );
 		idle.frames( frames, 0, 1, 2, 3, 4, 5, 6, 7 );
@@ -112,11 +112,11 @@ public class ColossusSprite extends MobSprite {
 	public void update() {
 		super.update();
 		if (coreGlow != null){
-			coreGlow.pos( x + 18, y + 15, 12, 11 );
+			coreGlow.pos( x + 26, y + 29, 12, 11 );
 			coreGlow.visible = visible;
 		}
 		if (chargeMotes != null){
-			chargeMotes.pos( x + 6, y + 6, 36, 30 );
+			chargeMotes.pos( x + 14, y + 20, 36, 30 );
 			chargeMotes.visible = visible;
 		}
 	}
@@ -144,7 +144,7 @@ public class ColossusSprite extends MobSprite {
 	}
 
 	public PointF corePoint(){
-		return new PointF( x + width / 2f, y + 21.5f );
+		return new PointF( x + width / 2f, y + 35.5f );
 	}
 
 	//룬 광선 모으기

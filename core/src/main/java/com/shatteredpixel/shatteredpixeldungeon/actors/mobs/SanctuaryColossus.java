@@ -314,25 +314,22 @@ public class SanctuaryColossus extends Mob {
 		ArrayList<Integer> targets = new ArrayList<>();
 		targets.add( target );
 		if (phase >= 2){
+			//절반 이하: 바로 옆 칸 둘에도 떨어짐 (나머지 여섯 칸은 안전)
 			ArrayList<Integer> around = new ArrayList<>();
-			for (int i = 0; i < Dungeon.level.length(); i++){
-				if (Dungeon.level.distance( target, i ) == 3 && Dungeon.level.passable[i] && i != pos) around.add( i );
+			for (int n : PathFinder.NEIGHBOURS8){
+				int c = target + n;
+				if (Dungeon.level.passable[c] && c != pos) around.add( c );
 			}
-			if (!around.isEmpty()) targets.add( Random.element( around ) );
+			Random.shuffle( around );
+			for (int i = 0; i < 2 && i < around.size(); i++) targets.add( around.get( i ) );
 		}
 		rockTargets = new int[targets.size()];
 		for (int i = 0; i < rockTargets.length; i++) rockTargets[i] = targets.get( i );
 
-		//두 턴 동안 들고 버팀: 그 사이 두 걸음이면 표시된 3x3 밖으로 벗어날 수 있음
+		//두 턴 동안 들고 버팀: 표시된 칸에서 한 걸음만 벗어나면 됨
 		float delay = 2 * TICK;
 		for (int t : rockTargets){
 			GameScene.targetedCell( t, delay );
-			for (int n : PathFinder.NEIGHBOURS8){
-				if (!Dungeon.level.solid[t + n]){
-					TargetedCell tc = GameScene.targetedCell( t + n, delay );
-					if (tc != null) tc.alpha( 0.5f );
-				}
-			}
 		}
 
 		if (spr() != null) spr().liftRock( target );
@@ -378,12 +375,10 @@ public class SanctuaryColossus extends Mob {
 		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 		PixelScene.shake( 3, 0.5f );
 
-		for (int n : PathFinder.NEIGHBOURS9){
-			Char ch = Actor.findChar( cell + n );
-			if (ch == null || ch == this) continue;
-			int dmg = Random.NormalIntRange( 26, 38 );
-			if (n != 0) dmg /= 2;
-			ch.damage( dmg, new GnollGeomancer.Boulder() );
+		//표시된 그 칸만 맞음
+		Char ch = Actor.findChar( cell );
+		if (ch != null && ch != this){
+			ch.damage( Random.NormalIntRange( 28, 40 ), new GnollGeomancer.Boulder() );
 			if (ch == Dungeon.hero && !ch.isAlive()){
 				Dungeon.fail( this );
 				GLog.n( Messages.get( this, "rock_kill" ) );
@@ -442,6 +437,21 @@ public class SanctuaryColossus extends Mob {
 		if (Dungeon.level instanceof SanctuaryBossLevel){
 			((SanctuaryBossLevel) Dungeon.level).onBossDefeated();
 		}
+	}
+
+	//살펴보기 창: 지금 갑주 상태와 공략 힌트를 함께 보여 줌
+	@Override
+	public String description() {
+		String d = super.description();
+		if (!awake) return d + "\n\n" + Messages.get( this, "state_sleep" );
+		if (overload > 0){
+			d += "\n\n" + Messages.get( this, "state_overload", overload );
+		} else {
+			d += "\n\n" + Messages.get( this, "state_armor" );
+			if (beamCharging) d += "\n" + Messages.get( this, "state_beam" );
+			else if (rockHeld) d += "\n" + Messages.get( this, "state_rock" );
+		}
+		return d + "\n\n" + Messages.get( this, "state_hint" );
 	}
 
 	@Override
