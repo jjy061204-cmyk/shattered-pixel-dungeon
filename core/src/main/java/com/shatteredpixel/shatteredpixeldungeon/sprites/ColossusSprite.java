@@ -49,7 +49,7 @@ public class ColossusSprite extends MobSprite {
 		idle = new Animation( 7, true );
 		idle.frames( frames, 0, 1, 2, 3, 4, 5, 6, 7 );
 
-		run = new Animation( 10, true );
+		run = new Animation( 8, true );
 		run.frames( frames, 8, 9, 10, 11, 12, 13, 14, 15 );
 
 		attack = new Animation( 14, false );

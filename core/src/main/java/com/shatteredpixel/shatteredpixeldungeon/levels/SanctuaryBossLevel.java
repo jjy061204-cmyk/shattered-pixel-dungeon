@@ -208,6 +208,8 @@ public class SanctuaryBossLevel extends RegularLevel {
 		int cell = randomDropCell();
 		if (cell >= 0) drop( new Gold().random(), cell );
 		cell = randomDropCell();
+		if (cell >= 0) drop( new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneCrystal().quantity( 2 ), cell );
+		cell = randomDropCell();
 		if (cell >= 0) drop( Generator.random( Generator.Category.FOOD ), cell );
 		for (Item item : itemsToSpawn){
 			cell = randomDropCell();

@@ -51,7 +51,7 @@ import java.util.ArrayList;
 // 공격
 //   - 내려찍기: 맞으면 멀리 튕겨 나감 (붙어서 버티기 어렵게)
 //   - 룬 광선: 한 턴 겨눈 뒤 일직선 관통. 체력 절반 이하에서는 세 갈래 부채꼴
-//   - 바위 던지기: 바닥의 바위를 뽑아 한 턴 뒤 표시한 칸에 던짐 (가운데 큰 피해, 둘레 절반). 절반 이하에서는 두 개
+//   - 바위 던지기: 바닥의 바위를 뽑아 두 턴 뒤 표시한 칸에 던짐 (가운데 큰 피해, 둘레 절반). 절반 이하에서는 두 개
 public class SanctuaryColossus extends Mob {
 
 	{
@@ -316,14 +316,15 @@ public class SanctuaryColossus extends Mob {
 		if (phase >= 2){
 			ArrayList<Integer> around = new ArrayList<>();
 			for (int i = 0; i < Dungeon.level.length(); i++){
-				if (Dungeon.level.distance( target, i ) == 2 && Dungeon.level.passable[i] && i != pos) around.add( i );
+				if (Dungeon.level.distance( target, i ) == 3 && Dungeon.level.passable[i] && i != pos) around.add( i );
 			}
 			if (!around.isEmpty()) targets.add( Random.element( around ) );
 		}
 		rockTargets = new int[targets.size()];
 		for (int i = 0; i < rockTargets.length; i++) rockTargets[i] = targets.get( i );
 
-		float delay = GameMath.gate( TICK, (float)Math.ceil( Dungeon.hero.cooldown() ), 2 * TICK );
+		//두 턴 동안 들고 버팀: 그 사이 두 걸음이면 표시된 3x3 밖으로 벗어날 수 있음
+		float delay = 2 * TICK;
 		for (int t : rockTargets){
 			GameScene.targetedCell( t, delay );
 			for (int n : PathFinder.NEIGHBOURS8){
@@ -425,6 +426,7 @@ public class SanctuaryColossus extends Mob {
 		ArrayList<Item> drops = new ArrayList<>();
 		drops.add( Generator.random( Random.Int( 2 ) == 0 ? Generator.Category.RING : Generator.Category.WAND ) );
 		drops.add( Generator.random( Generator.Category.ARTIFACT ) );
+		drops.add( new com.shatteredpixel.shatteredpixeldungeon.items.quest.GolemHeart() );
 		for (Item it : drops){
 			if (it == null) continue;
 			int cell = pos;

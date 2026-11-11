@@ -281,6 +281,10 @@ public class SanctuaryLevel extends RegularLevel {
 			dropAt( loot( null ), type );
 		}
 		dropAt( Generator.random( Generator.Category.FOOD ), Heap.Type.HEAP );
+		//성소 고유 아이템: 룬 수정
+		for (int i = 0; i < 2; i++){
+			dropAt( new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneCrystal().quantity( Random.IntRange( 1, 2 ) ), Heap.Type.HEAP );
+		}
 		for (int i = 0; i < 2; i++){
 			dropAt( new Gold().random(), Heap.Type.HEAP );
 		}
