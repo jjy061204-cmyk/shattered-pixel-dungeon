@@ -41,6 +41,8 @@ public class ColossusSprite extends MobSprite {
 	private Emitter chargeMotes;
 	private int[] blastCells;
 	private float stillTime = 0;
+	private Animation runA, runB;
+	private boolean leftNext = true;
 
 	public ColossusSprite() {
 		super();
@@ -50,8 +52,12 @@ public class ColossusSprite extends MobSprite {
 		idle = new Animation( 7, true );
 		idle.frames( frames, 0, 1, 2, 3, 4, 5, 6, 7 );
 
-		run = new Animation( 8, true );
-		run.frames( frames, 8, 9, 10, 11, 12, 13, 14, 15 );
+		//한 걸음(한 칸)마다 왼발·오른발을 번갈아 내딛도록 시작 발이 다른 두 벌
+		runA = new Animation( 10, true );
+		runA.frames( frames, 9, 10, 11, 12, 13, 14, 15, 8 );
+		runB = new Animation( 10, true );
+		runB.frames( frames, 13, 14, 15, 8, 9, 10, 11, 12 );
+		run = runA;
 
 		attack = new Animation( 14, false );
 		attack.frames( frames, 16, 17, 17, 18, 19, 20, 20, 21, 22 );
@@ -131,6 +137,11 @@ public class ColossusSprite extends MobSprite {
 
 	@Override
 	public void play( Animation anim ) {
+		if (anim == run && curAnim != runA && curAnim != runB){
+			run = leftNext ? runA : runB;
+			leftNext = !leftNext;
+			anim = run;
+		}
 		if (chargeMotes != null) chargeMotes.on = anim == charging || anim == stunned;
 		super.play( anim );
 	}

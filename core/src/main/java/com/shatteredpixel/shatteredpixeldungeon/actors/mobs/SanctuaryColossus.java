@@ -164,8 +164,9 @@ public class SanctuaryColossus extends Mob {
 				&& fieldOfView != null && fieldOfView.length == Dungeon.level.length() && fieldOfView[hero.pos];
 		int dist = Dungeon.level.distance( pos, hero.pos );
 
-		boolean beamReady = beamCD <= 0 && sees && dist >= 2;
-		boolean rockReady = rockCD <= 0 && sees && dist >= 2;
+		//붙어 있어도(벽에 몰려 튕겨 내지 못해도) 기술은 그대로 씀
+		boolean beamReady = beamCD <= 0 && sees;
+		boolean rockReady = rockCD <= 0 && sees;
 
 		if (beamReady && (!rockReady || lastSkill != 2)){
 			chargeBeam( hero.pos );
@@ -223,7 +224,11 @@ public class SanctuaryColossus extends Mob {
 			}
 			//줄 끝이 룬 거울이면 거울이 반짝임
 			int m = mirrorBehind( aim );
-			if (m >= 0) CellEmitter.center( m ).burst( GoldSparkle.BURST, 8 );
+			if (m >= 0){
+				CellEmitter.center( m ).burst( GoldSparkle.BURST, 14 );
+				CellEmitter.center( m ).burst( Speck.factory( Speck.LIGHT ), 6 );
+				GLog.p( Messages.get( this, "mirror_lined" ) );
+			}
 		}
 
 		if (spr() != null) spr().charge( target );
@@ -234,9 +239,15 @@ public class SanctuaryColossus extends Mob {
 
 	private int mirrorBehind( Ballistica b ){
 		if (!(Dungeon.level instanceof SanctuaryBossLevel)) return -1;
-		if (b.path.size() > b.dist + 1){
-			int c = b.path.get( b.dist + 1 );
-			if (((SanctuaryBossLevel) Dungeon.level).isMirror( c )) return c;
+		//광선이 거울 수호상에 닿거나 바로 옆 칸(둘레 모자이크 바닥)을 스치기만 해도 반사됨
+		SanctuaryBossLevel lvl = (SanctuaryBossLevel) Dungeon.level;
+		int end = Math.min( b.path.size() - 1, b.dist + 1 );
+		for (int i = 1; i <= end; i++){
+			int c = b.path.get( i );
+			if (lvl.isMirror( c )) return c;
+			for (int n : PathFinder.NEIGHBOURS8){
+				if (lvl.isMirror( c + n )) return c + n;
+			}
 		}
 		return -1;
 	}

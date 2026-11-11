@@ -155,6 +155,28 @@ public class SanctuaryBossLevel extends RegularLevel {
 		return true;
 	}
 
+	//테스터 리모컨: 거상을 왕좌에 다시 불러냄
+	public boolean devRespawnBoss(){
+		for (Mob m : mobs){
+			if (m instanceof SanctuaryColossus && m.isAlive()) return false;
+		}
+		int cell = throne;
+		if (Actor.findChar( cell ) != null){
+			for (int n : com.watabou.utils.PathFinder.NEIGHBOURS8){
+				if (passable[throne + n] && Actor.findChar( throne + n ) == null){ cell = throne + n; break; }
+			}
+		}
+		if (Actor.findChar( cell ) != null) return false;
+		fightStarted = false;
+		bossDefeated = false;
+		SanctuaryColossus boss = new SanctuaryColossus();
+		boss.pos = cell;
+		GameScene.add( boss );
+		CellEmitter.get( cell ).burst( Speck.factory( Speck.LIGHT ), 12 );
+		playLevelMusic();
+		return true;
+	}
+
 	//거상의 광선을 되쏘는 룬 거울 수호상인지
 	public boolean isMirror( int cell ){
 		return mirrors.contains( cell );
@@ -323,6 +345,18 @@ public class SanctuaryBossLevel extends RegularLevel {
 	public Group addVisuals() {
 		super.addVisuals();
 		SanctuaryLevel.addSanctuaryVisuals( this, visuals );
+		//룬 거울 수호상은 늘 빛남
+		for (int m : mirrors){
+			com.watabou.utils.PointF p = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.tileCenterToWorld( m );
+			com.watabou.noosa.particles.Emitter e = new com.watabou.noosa.particles.Emitter();
+			e.pos( p.x - 6, p.y - 14, 12, 16 );
+			e.pour( Speck.factory( Speck.LIGHT ), 0.5f );
+			visuals.add( e );
+			com.watabou.noosa.particles.Emitter e2 = new com.watabou.noosa.particles.Emitter();
+			e2.pos( p.x - 12, p.y - 10, 24, 22 );
+			e2.pour( com.shatteredpixel.shatteredpixeldungeon.effects.particles.RuneMote.FACTORY, 0.2f );
+			visuals.add( e2 );
+		}
 		return visuals;
 	}
 

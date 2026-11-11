@@ -169,6 +169,8 @@ public class SanctuaryArenaRoom extends StandardRoom {
 		if (ax <= 1) return Terrain.EMPTY_SP;
 		//룬 거울 수호상 넷
 		if (ax == 6 && (dy == -2 || dy == 6)) return Terrain.STATUE_SP;
+		//거울 둘레 한 칸은 모자이크 바닥: 광선이 여기를 스치기만 해도 반사됨
+		if (Math.abs( ax - 6 ) <= 1 && (Math.abs( dy + 2 ) <= 1 || Math.abs( dy - 6 ) <= 1)) return Terrain.EMPTY_SP;
 		//돌기둥 열
 		if (ax == 9 && (dy == -1 || dy == 2 || dy == 5)) return Terrain.WALL;
 		if (ax == 4 && dy == 9) return Terrain.WALL;

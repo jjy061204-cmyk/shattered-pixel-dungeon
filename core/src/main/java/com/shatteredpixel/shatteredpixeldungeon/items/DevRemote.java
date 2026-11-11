@@ -218,8 +218,16 @@ public class DevRemote extends Item {
 			protected void onSelect( int index ) {
 				if (index == 0) summon( BOSSES[0] );
 				else if (inVault()) return;
-				else if (BOSS_DEPTH[index] < 0) com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel(
-						com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
+				else if (BOSS_DEPTH[index] < 0){
+					//이미 성소 2층이면 그 자리에서 왕좌에 다시 불러냄
+					if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel){
+						boolean ok = ((com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel) Dungeon.level).devRespawnBoss();
+						GLog.i( txt( ok ? "boss_respawned" : "boss_exists" ) );
+					} else {
+						com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel(
+								com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
+					}
+				}
 				else travel( BOSS_DEPTH[index] );   //텐구·DM-300·드워프 왕·요그는 전용 무대가 있어야 싸움이 됨
 			}
 		});
