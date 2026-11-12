@@ -101,12 +101,13 @@ public class RuneAegis extends Artifact {
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 		new Flare( 8, 40 ).color( 0x40E8D8, true ).show( hero.sprite, 1.6f );
 		hero.sprite.emitter().burst( RuneMote.FACTORY, 20 );
-		GLog.p( Messages.get( this, "calling" ) );
 
 		hero.sprite.parent.add( new AegisAssemble( hero.sprite, new Callback() {
 			@Override
 			public void call() {
 				Buff.affect( hero, RuneAegisForm.class );
+				Buff.affect( hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisShield.class )
+						.setShield( RuneAegisForm.shield( Math.max( 0, level() ) ) );
 
 				if (hero.sprite instanceof HeroSprite){
 					((HeroSprite) hero.sprite).updateArmor();
@@ -118,7 +119,6 @@ public class RuneAegis extends Artifact {
 				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 16 );
 				hero.sprite.emitter().burst( RuneMote.FACTORY, 30 );
 				Sample.INSTANCE.play( Assets.Sounds.EVOKE );
-				GLog.p( Messages.get( RuneAegis.class, "donned" ) );
 
 				updateQuickslot();
 				hero.spendAndNext( 1f );
@@ -203,9 +203,9 @@ public class RuneAegis extends Artifact {
 				d += Messages.get( this, "desc_cursed" );
 			} else {
 				int l = Math.max( 0, level() );
-				d += Messages.get( this, "desc_stats", Math.round( RuneAegisForm.damageReduction( l ) * 100 ),
-						RuneAegisForm.drMin( l ), RuneAegisForm.drMax( l ), Math.round( RuneAegisForm.accuracyBonus( l ) * 100 ),
-						RuneAegisForm.magicMin( l ), RuneAegisForm.magicMax( l ) );
+				d += Messages.get( this, "desc_stats", RuneAegisForm.drMin( l ), RuneAegisForm.drMax( l ),
+						Math.round( RuneAegisForm.accuracyBonus( l ) * 100 ), RuneAegisForm.magicMin( l ), RuneAegisForm.magicMax( l ),
+						RuneAegisForm.shield( l ) );
 			}
 		}
 		return d;

@@ -42,8 +42,9 @@ public class RuneAegisForm extends Buff {
 
 	//정확성: +5% (+0) ~ +30% (+10)
 	public static float accuracyBonus( int lvl ){ return 0.05f + 0.025f * lvl; }
-	//받는 피해 감소: 5% (+0) ~ 20% (+10)
-	public static float damageReduction( int lvl ){ return 0.05f + 0.015f * lvl; }
+	//(받는 피해 감소는 없앰) 변신 직후 얻는 보호막: 8 (+0) ~ 38 (+10). 턴이 지나도 줄지 않음
+	public static float damageReduction( int lvl ){ return 0f; }
+	public static int shield( int lvl ){ return 8 + 3 * lvl; }
 	//방어력: 2~4 (+0) ~ 5~10 (+10)
 	public static int drMin( int lvl ){ return 2 + Math.round( 0.3f * lvl ); }
 	public static int drMax( int lvl ){ return 4 + Math.round( 0.6f * lvl ); }
@@ -126,7 +127,7 @@ public class RuneAegisForm extends Buff {
 			ch.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 10 );
 			ch.sprite.emitter().burst( RuneMote.FACTORY, 16 );
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER, 0.6f, 1.3f );
-			GLog.w( Messages.get( this, "ended" ) );
+			Buff.detach( ch, RuneAegisShield.class );
 			Item.updateQuickslot();
 		}
 	}
@@ -135,7 +136,7 @@ public class RuneAegisForm extends Buff {
 	public String desc() {
 		RuneAegis a = sigil();
 		int l = a == null ? 0 : Math.max( 0, a.level() );
-		return Messages.get( this, "desc", Math.round( damageReduction( l ) * 100 ), drMin( l ), drMax( l ),
+		return Messages.get( this, "desc", drMin( l ), drMax( l ),
 				Math.round( accuracyBonus( l ) * 100 ), magicMin( l ), magicMax( l ), turns, a == null ? 0 : a.charges() );
 	}
 
