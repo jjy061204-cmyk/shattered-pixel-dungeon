@@ -197,7 +197,17 @@ public class RuneAegis extends Artifact {
 	@Override
 	public String desc() {
 		String d = Messages.get( this, "desc" );
-		if (cursed) d += "\n\n" + Messages.get( this, "desc_cursed" );
-		return d + "\n\n" + Messages.get( this, "category" );
+		if (isEquipped( com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero )){
+			d += "\n\n";
+			if (cursed){
+				d += Messages.get( this, "desc_cursed" );
+			} else {
+				int l = Math.max( 0, level() );
+				d += Messages.get( this, "desc_stats", Math.round( RuneAegisForm.damageReduction( l ) * 100 ),
+						RuneAegisForm.drMin( l ), RuneAegisForm.drMax( l ), Math.round( RuneAegisForm.accuracyBonus( l ) * 100 ),
+						RuneAegisForm.magicMin( l ), RuneAegisForm.magicMax( l ) );
+			}
+		}
+		return d;
 	}
 }

@@ -30,10 +30,43 @@ public class RuneAegisForm extends Buff {
 
 	public static final int TURNS_PER_CHARGE = 5;
 
-	public static final float ACCURACY = 1.3f;       //정확성 +30%
-	public static final float DAMAGE_TAKEN = 0.6f;   //받는 모든 피해 40% 감소
-	public static final int STR_BONUS = 4;           //힘 +4
-	public static final int DR_BONUS = 10;           //방어력 +5~10
+	//모든 수치는 유물 강화 수치(0~10)에 따라 자람
+	public static class RuneSurge {}
+
+	//성갑이 켜져 있으면 유물 강화 수치, 아니면 -1
+	public static int level( Hero hero ){
+		if (hero.buff( RuneAegisForm.class ) == null) return -1;
+		RuneAegis a = hero.belongings.getItem( RuneAegis.class );
+		return a == null ? -1 : Math.max( 0, a.level() );
+	}
+
+	//정확성: +5% (+0) ~ +30% (+10)
+	public static float accuracyBonus( int lvl ){ return 0.05f + 0.025f * lvl; }
+	//받는 피해 감소: 5% (+0) ~ 20% (+10)
+	public static float damageReduction( int lvl ){ return 0.05f + 0.015f * lvl; }
+	//방어력: 2~4 (+0) ~ 5~10 (+10)
+	public static int drMin( int lvl ){ return 2 + Math.round( 0.3f * lvl ); }
+	public static int drMax( int lvl ){ return 4 + Math.round( 0.6f * lvl ); }
+	//타격 시 추가 마법 피해: 1~3 (+0) ~ 6~13 (+10)
+	public static int magicMin( int lvl ){ return 1 + lvl / 2; }
+	public static int magicMax( int lvl ){ return 3 + lvl; }
+
+	public static float accuracy( Hero hero ){
+		int l = level( hero );
+		return l < 0 ? 1f : 1f + accuracyBonus( l );
+	}
+	public static float damageTaken( Hero hero ){
+		int l = level( hero );
+		return l < 0 ? 1f : 1f - damageReduction( l );
+	}
+	public static int drRoll( Hero hero ){
+		int l = level( hero );
+		return l < 0 ? 0 : com.watabou.utils.Random.NormalIntRange( drMin( l ), drMax( l ) );
+	}
+	public static int magicRoll( Hero hero ){
+		int l = level( hero );
+		return l < 0 ? 0 : com.watabou.utils.Random.NormalIntRange( magicMin( l ), magicMax( l ) );
+	}
 
 	private int turns = TURNS_PER_CHARGE;
 
@@ -101,7 +134,9 @@ public class RuneAegisForm extends Buff {
 	@Override
 	public String desc() {
 		RuneAegis a = sigil();
-		return Messages.get( this, "desc", turns, a == null ? 0 : a.charges() );
+		int l = a == null ? 0 : Math.max( 0, a.level() );
+		return Messages.get( this, "desc", Math.round( damageReduction( l ) * 100 ), drMin( l ), drMax( l ),
+				Math.round( accuracyBonus( l ) * 100 ), magicMin( l ), magicMax( l ), turns, a == null ? 0 : a.charges() );
 	}
 
 	@Override

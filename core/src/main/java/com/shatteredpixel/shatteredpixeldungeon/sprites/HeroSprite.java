@@ -68,7 +68,7 @@ public class HeroSprite extends CharSprite {
 		updateArmor();
 	}
 	
-	//모드: 룬 성갑을 두른 동안은 전신 갑옷 모습 (20x24 칸, 영웅 시트와 같은 프레임 순서)
+	//모드: 룬 성갑을 두른 동안은 전신 갑옷 모습 (영웅과 같은 12x15 칸·같은 프레임 순서)
 	private boolean aegisLook = false;
 
 	public void updateArmor() {
@@ -76,7 +76,7 @@ public class HeroSprite extends CharSprite {
 		TextureFilm film;
 		if (Dungeon.hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class ) != null){
 			texture( com.shatteredpixel.shatteredpixeldungeon.Assets.Sprites.RUNE_AEGIS_HERO );
-			film = new TextureFilm( texture, 20, 24 );
+			film = new TextureFilm( texture, FRAME_WIDTH, FRAME_HEIGHT );
 			aegisLook = true;
 		} else {
 			if (aegisLook){
