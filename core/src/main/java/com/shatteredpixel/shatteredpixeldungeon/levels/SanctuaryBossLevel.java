@@ -242,7 +242,6 @@ public class SanctuaryBossLevel extends RegularLevel {
 		//금고 제단에 꽂혀 있는 봉인된 엑스칼리버
 		if (altar >= 0){
 			drop( new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur(), altar );
-			}
 		}
 	}
 
