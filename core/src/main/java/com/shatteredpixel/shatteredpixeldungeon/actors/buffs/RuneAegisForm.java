@@ -73,7 +73,7 @@ public class RuneAegisForm extends Buff {
 
 	{
 		type = buffType.POSITIVE;
-		announced = true;
+		announced = false;
 	}
 
 	private RuneAegis sigil(){
