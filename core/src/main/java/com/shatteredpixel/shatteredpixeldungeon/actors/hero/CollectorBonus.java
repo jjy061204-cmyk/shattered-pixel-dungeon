@@ -38,20 +38,21 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.watabou.utils.Random;
 
-//유물수집가는 장착한 유물마다 고유한 추가 효과를 하나씩 얻음.
-// - 대도의 팔찌: 적의 아이템 드롭률 1.5배
-// - 그림자의 망토: 은신해 있는 동안 이동 속도 +20%
-// - 풍요의 뿔: 뿔의 음식을 먹으면 최대 체력의 10% 회복
-// - 피의 성배: 적이 쓰러질 때마다 체력 회복
-// - 말린 장미: 유령이 곁에 있는 동안 방어력 상승
-// - 에테르 사슬: 사슬을 쓴 뒤 다음 근접 공격 +30%
-// - 자연의 신발: 신발의 힘을 쓰면 나무껍질 피부
-// - 예지의 부적: 점을 치면 5턴 축복
-// - 시간지기의 모래시계: 시간을 다루면 체력 회복
-// - 불안정한 마법서: 책을 읽으면 마법 막대 3턴 충전
-// - 연금술사의 도구: 물약을 쓸 때마다 장착한 유물 충전
-// - 해골 열쇠: 열쇠를 쓰면 보호막
-// - 수호의 반지: 갑옷의 보호막 최대치 +20%
+//유물수집가는 장착한 유물마다, 그 유물이 원래 하던 일에서 끌어낸 작은 추가 효과를 하나씩 얻음.
+//어느 하나가 유독 강하지 않도록 모두 소소한 수준으로 맞춤.
+// - 대도의 팔찌(훔치기): 적의 아이템 드롭률 1.25배
+// - 그림자의 망토(은신): 은신해 있는 동안 이동 속도 +20%
+// - 풍요의 뿔(음식): 뿔의 음식을 먹으면 최대 체력의 8% 회복
+// - 피의 성배(피의 제물): 적이 쓰러질 때마다 체력 조금 회복
+// - 말린 장미(유령 동료): 유령이 같은 층에 있는 동안 방어력 +1~3
+// - 에테르 사슬(끌어당겨 묶기): 사슬을 쓴 뒤 다음 근접 공격이 대상을 3턴 불구로
+// - 자연의 신발(식물의 힘): 신발의 힘을 쓰면 나무껍질 피부
+// - 예지의 부적(내다보기): 점을 친 뒤 10턴 안에 받는 첫 공격을 피함
+// - 시간지기의 모래시계(시간): 시간을 다룰 때마다 체력 조금 회복
+// - 불안정한 마법서(새어 나오는 마력): 책을 읽으면 마법 막대 3턴 충전
+// - 연금술사의 도구(증류): 물약을 쓸 때마다 장착한 유물 2턴 분량 충전
+// - 해골 열쇠(여는 힘): 열쇠를 쓰면 주변 3칸의 숨겨진 문과 함정이 드러남
+// - 수호의 반지(보호막 갑옷): 갑옷의 보호막 최대치 +15%
 public class CollectorBonus {
 
 	//유물수집가가 저주받지 않은 그 유물을 장착하고 있는지
@@ -76,6 +77,7 @@ public class CollectorBonus {
 	}
 
 	public static class ChainStrikeTracker extends FlavourBuff {}
+	public static class ForesightDodge extends FlavourBuff {}
 
 	//유물을 사용한 순간 (Talent.onArtifactUsed와 같은 자리에서 불림)
 	public static void onUse( Hero hero, Class<? extends Artifact> cls ){
@@ -83,20 +85,46 @@ public class CollectorBonus {
 		int lvl = level( hero, cls );
 
 		if (cls == HornOfPlenty.class){
-			heal( hero, Math.round( hero.HT * 0.1f ) );
+			heal( hero, Math.max( 1, Math.round( hero.HT * 0.08f ) ) );
 		} else if (cls == EtherealChains.class){
 			Buff.affect( hero, ChainStrikeTracker.class, 5f );
 		} else if (cls == SandalsOfNature.class){
 			Barkskin.conditionallyAppend( hero, 2 + lvl, 1 );
 		} else if (cls == TalismanOfForesight.class){
-			Buff.prolong( hero, Bless.class, 5f );
+			Buff.affect( hero, ForesightDodge.class, 10f );
 		} else if (cls == TimekeepersHourglass.class){
-			heal( hero, 3 + lvl );
+			heal( hero, 2 + lvl );
 		} else if (cls == UnstableSpellbook.class){
 			Buff.affect( hero, Recharging.class, 3f );
 		} else if (cls == SkeletonKey.class){
-			Buff.affect( hero, Barrier.class ).setShield( 4 + lvl );
+			revealSecrets( hero, 3 );
 		}
+	}
+
+	//해골 열쇠: 주변의 숨겨진 문과 함정을 드러냄
+	private static void revealSecrets( Hero hero, int radius ){
+		boolean found = false;
+		for (int c = 0; c < Dungeon.level.length(); c++){
+			if (Dungeon.level.secret[c] && Dungeon.level.distance( hero.pos, c ) <= radius){
+				int old = Dungeon.level.map[c];
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.discoverTile( c, old );
+				Dungeon.level.discover( c );
+				com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping.discover( c );
+				found = true;
+			}
+		}
+		if (found){
+			com.watabou.noosa.audio.Sample.INSTANCE.play( com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.SECRET );
+			Dungeon.observe();
+		}
+	}
+
+	//예지의 부적: 내다본 공격 한 번을 피함. 피했으면 true
+	public static boolean foreseenDodge( Hero hero ){
+		ForesightDodge d = hero.buff( ForesightDodge.class );
+		if (d == null) return false;
+		d.detach();
+		return active( hero, TalismanOfForesight.class );
 	}
 
 	//근접 공격: 에테르 사슬
@@ -104,7 +132,10 @@ public class CollectorBonus {
 		ChainStrikeTracker t = hero.buff( ChainStrikeTracker.class );
 		if (t != null){
 			t.detach();
-			if (active( hero, EtherealChains.class )) dmg = Math.round( dmg * 1.3f );
+			//사슬이 따라붙어 대상을 옭아맴
+			if (active( hero, EtherealChains.class ) && enemy.isAlive()){
+				Buff.prolong( enemy, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple.class, 3f );
+			}
 		}
 		return dmg;
 	}
@@ -141,12 +172,12 @@ public class CollectorBonus {
 
 	//드롭률: 대도의 팔찌
 	public static float lootMultiplier( Hero hero ){
-		return active( hero, MasterThievesArmband.class ) ? 1.5f : 1f;
+		return active( hero, MasterThievesArmband.class ) ? 1.25f : 1f;
 	}
 
 	//수호의 반지: 보호막 최대치
 	public static float aegisShieldMultiplier( Hero hero ){
-		return active( hero, RuneAegis.class ) ? 1.2f : 1f;
+		return active( hero, RuneAegis.class ) ? 1.15f : 1f;
 	}
 
 	//유물 설명 아래에 붙는 고유 효과 문구 (유물수집가일 때만)
@@ -155,6 +186,6 @@ public class CollectorBonus {
 		String key = artifact.getClass().getSimpleName().toLowerCase();
 		String txt = Messages.get( CollectorBonus.class, key );
 		if (txt == null || txt.equals( Messages.NO_TEXT_FOUND )) return null;
-		return Messages.get( CollectorBonus.class, "title" ) + " " + txt;
+		return txt;
 	}
 }

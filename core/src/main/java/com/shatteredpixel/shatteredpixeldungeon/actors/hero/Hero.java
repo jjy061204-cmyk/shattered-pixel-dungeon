@@ -590,6 +590,9 @@ public class Hero extends Char {
 	@Override
 	public int defenseSkill( Char enemy ) {
 
+		//모드: 유물수집가의 예지의 부적
+		if (CollectorBonus.foreseenDodge( this )) return INFINITE_EVASION;
+
 		if (buff(Combo.ParryTracker.class) != null){
 			if (canAttack(enemy) && !isCharmedBy(enemy)){
 				Buff.affect(this, Combo.RiposteTracker.class).enemy = enemy;
