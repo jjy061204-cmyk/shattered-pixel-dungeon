@@ -532,8 +532,6 @@ public class Hero extends Char {
 		
 		float accuracy = 1;
 		accuracy *= RingOfAccuracy.accuracyMultiplier( this );
-		//모드: 룬 성갑
-		accuracy *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.accuracy( this );
 		//모드: 엑스칼리버의 가호
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
 			accuracy *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.ACCURACY;
@@ -667,7 +665,6 @@ public class Hero extends Char {
 	@Override
 	public int drRoll() {
 		int dr = super.drRoll();
-		dr += com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.drRoll( this );
 
 		if (belongings.armor() != null) {
 			int armDr = Random.NormalIntRange( belongings.armor().DRMin(), belongings.armor().DRMax());
@@ -1583,12 +1580,6 @@ public class Hero extends Char {
 	public int attackProc( final Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 
-		//모드: 룬 성갑 - 타격마다 추가 마법 피해
-		int aegisMagic = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.magicRoll( this );
-		if (aegisMagic > 0 && enemy.isAlive()){
-			enemy.damage( aegisMagic, new com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.RuneSurge() );
-			if (enemy.sprite != null) enemy.sprite.emitter().burst( com.shatteredpixel.shatteredpixeldungeon.effects.particles.RuneMote.FACTORY, 4 );
-		}
 
 		KindOfWeapon wep;
 		if (RingOfForce.fightingUnarmed(this) && !RingOfForce.unarmedGetsWeaponEnchantment(this)){
@@ -1650,6 +1641,9 @@ public class Hero extends Char {
 	
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
+
+		//모드: 수호의 반지 - 융합한 속성의 반격
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onDefend( this, enemy );
 		
 		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
 			Berserk berserk = Buff.affect(this, Berserk.class);
@@ -1697,8 +1691,6 @@ public class Hero extends Char {
 			return;
 		}
 
-		//모드: 룬 성갑 - 받는 모든 피해 감소
-		dmg = Math.round( dmg * com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.damageTaken( this ) );
 
 		//모드: 왕의 가호 - 받는 모든 피해 20% 감소
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){

@@ -20,12 +20,12 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-//나노 슈트식 장착 연출: 가슴의 동력핵에서부터 슈트의 픽셀이 하나씩 번져 나가며 몸을 덮음.
+//마법 갑옷이 입혀지는 동작: 반지를 낀 손에서부터 갑옷의 픽셀이 팔을 타고 온몸으로 번져 나감.
 //새로 돋는 픽셀은 잠깐 청록빛으로 빛난 뒤 제 색으로 가라앉음. 다 덮이면 실제 스프라이트로 바뀜
 public class AegisAssemble extends Group {
 
 	private static final int W = 12, H = 15;
-	private static final float SPREAD = 0.085f;   //핵에서 한 픽셀 멀어질 때마다 늦어지는 시간
+	private static final float SPREAD = 0.07f;   //핵에서 한 픽셀 멀어질 때마다 늦어지는 시간
 	private static final float GLOW = 0.16f, HOLD = 0.3f;
 
 	private final ColorBlock[] px;
@@ -48,8 +48,9 @@ public class AegisAssemble extends Group {
 				b.x = target.x + (target.flipHorizontal ? (W - 1 - x) : x);
 				b.y = target.y + y;
 				b.visible = false;
-				float d = (float)Math.sqrt( (x - 5.5f) * (x - 5.5f) + (y - 9f) * (y - 9f) );
-				delays[n] = d * SPREAD + Random.Float( 0.14f );
+				//반지를 낀 손에서 시작해 팔을 타고 온몸으로 번짐
+				float d = Math.abs( x - 9f ) + Math.abs( y - 10f ) * 0.8f;
+				delays[n] = d * SPREAD + Random.Float( 0.08f );
 				total = Math.max( total, delays[n] );
 				blocks[n++] = b;
 				add( b );
@@ -70,7 +71,7 @@ public class AegisAssemble extends Group {
 		tick += Game.elapsed;
 		if (tick > 0.09f && t < total - HOLD){
 			tick = 0;
-			Sample.INSTANCE.play( Assets.Sounds.CLICK, 0.4f, 1.6f + t );
+			Sample.INSTANCE.play( Assets.Sounds.CLICK, 0.25f, 1.8f );
 		}
 
 		for (int i = 0; i < px.length; i++){
@@ -82,7 +83,7 @@ public class AegisAssemble extends Group {
 				float k = p / GLOW;
 				//흰 청록 → 제 색
 				b.rm = b.gm = b.bm = k;
-				b.ra = (1 - k) * 0.5f; b.ga = (1 - k); b.ba = (1 - k);
+				b.ra = (1 - k) * 0.8f; b.ga = (1 - k) * 0.85f; b.ba = (1 - k);
 			} else {
 				b.resetColor();
 			}
