@@ -187,7 +187,7 @@ public class SkeletonKey extends Artifact {
 						return;
 					} else if (Dungeon.level.map[target] == Terrain.CRYSTAL_DOOR) {
 
-						if (charge < 5) {
+						if (charge < com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.crystalLockCost(Dungeon.hero)) {
 							GLog.i(Messages.get(SkeletonKey.class, "crystal_charges"));
 							return;
 						}
@@ -198,7 +198,7 @@ public class SkeletonKey extends Artifact {
 								Buff.affect(curUser, KeyReplacementTracker.class).processCrystalLockOpened();
 								Level.set(target, Terrain.EMPTY);
 								GameScene.updateMap(target);
-								charge -= 5;
+								charge -= com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.crystalLockCost(Dungeon.hero);
 								gainExp(2 + 5);
 								{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, SkeletonKey.class); }
 								Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
@@ -308,7 +308,7 @@ public class SkeletonKey extends Artifact {
 						return;
 
 					} else if (Dungeon.level.heaps.get(target) != null && Dungeon.level.heaps.get(target).type == Heap.Type.CRYSTAL_CHEST){
-						if (charge < 5) {
+						if (charge < com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.crystalLockCost(Dungeon.hero)) {
 							GLog.i(Messages.get(SkeletonKey.class, "crystal_charges"));
 							return;
 						}
@@ -318,7 +318,7 @@ public class SkeletonKey extends Artifact {
 							public void call() {
 								Buff.affect(curUser, KeyReplacementTracker.class).processCrystalLockOpened();
 								Dungeon.level.heaps.get(target).open(curUser);
-								charge -= 5;
+								charge -= com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.crystalLockCost(Dungeon.hero);
 								gainExp(2 + 5);
 								{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, SkeletonKey.class); }
 								curUser.spendAndNext(Actor.TICK);
@@ -467,7 +467,7 @@ public class SkeletonKey extends Artifact {
 	private void placeWall(int pos, int knockbackDIR ){
 		Blob wall = Dungeon.level.blobs.get(KeyWall.class);
 		if (!Dungeon.level.solid[pos] || (wall != null && wall.cur[pos] > 0)) {
-			GameScene.add(Blob.seed(pos, 10, KeyWall.class));
+			GameScene.add(Blob.seed(pos, com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.keyWallDuration(Dungeon.hero), KeyWall.class));
 
 			Char ch = Actor.findChar(pos);
 			if (ch != null && ch.alignment == Char.Alignment.ENEMY){

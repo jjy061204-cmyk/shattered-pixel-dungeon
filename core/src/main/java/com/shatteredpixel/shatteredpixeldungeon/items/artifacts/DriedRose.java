@@ -596,6 +596,11 @@ public class DriedRose extends Artifact {
 			defenseSkill = (Dungeon.hero.lvl+4);
 			if (rose == null) return;
 			HT = 40 + 10*rose.level();
+			//모드: 유물수집가의 유령은 기본 능력치가 더 높음
+			if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.active(Dungeon.hero, DriedRose.class)){
+				HT = Math.round(HT * 1.2f);
+				defenseSkill = Math.round(defenseSkill * 1.15f);
+			}
 		}
 
 		public Weapon weapon(){

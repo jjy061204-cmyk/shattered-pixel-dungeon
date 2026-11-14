@@ -234,6 +234,9 @@ public class AlchemistsToolkit extends Artifact {
 				updateQuickslot();
 			}
 
+			//모드: 유물수집가는 일정 턴마다 연금술 에너지를 얻음
+			if (!cursed && target instanceof Hero) com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.toolkitTick((Hero) target);
+
 			spend(TICK);
 			return true;
 		}

@@ -74,6 +74,8 @@ public class Regeneration extends Buff {
 						//15% boost at +0, scaling to a 500% boost at +10
 						delay -= 1.33f + chaliceLevel*0.667f;
 						delay /= RingOfEnergy.artifactChargeMultiplier(target);
+						//모드: 유물수집가는 성배의 재생을 더 끌어냄
+						delay /= com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.chaliceRegenMultiplier(Dungeon.hero);
 					}
 				}
 

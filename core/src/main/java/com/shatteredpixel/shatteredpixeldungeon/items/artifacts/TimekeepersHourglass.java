@@ -297,7 +297,7 @@ public class TimekeepersHourglass extends Artifact {
 
 				int usedCharge = Math.min(charge, 2);
 				//buffs always act last, so the stasis buff should end a turn early.
-				spend(5*usedCharge);
+				spend(com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.hourglassStasisTurns(Dungeon.hero)*usedCharge);
 
 				//shouldn't punish the player for going into stasis frequently
 				Hunger hunger = Buff.affect(target, Hunger.class);
@@ -363,7 +363,7 @@ public class TimekeepersHourglass extends Artifact {
 
 			//use 1/1,000 to account for rounding errors
 			while (turnsToCost < -0.001f){
-				turnsToCost += 2f;
+				turnsToCost += com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.hourglassTurnsPerCharge(Dungeon.hero);
 				charge --;
 			}
 

@@ -177,7 +177,7 @@ public class EtherealChains extends Artifact {
 		
 		final int pulledPos = bestPos;
 		
-		int chargeUse = Dungeon.level.distance(enemy.pos, pulledPos);
+		int chargeUse = com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.chainCost(Dungeon.hero, Dungeon.level.distance(enemy.pos, pulledPos));
 		if (chargeUse > charge) {
 			GLog.w( Messages.get(this, "no_charge") );
 			return;
@@ -206,6 +206,7 @@ public class EtherealChains extends Artifact {
 						hero.spendAndNext(1f);
 
 						artifactProc(enemy, visiblyUpgraded(), chargeUse);
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onChainPull(Dungeon.hero, enemy);
 					}
 				}));
 				hero.next();
@@ -245,7 +246,7 @@ public class EtherealChains extends Artifact {
 		
 		final int newHeroPos = chain.collisionPos;
 		
-		int chargeUse = Dungeon.level.distance(hero.pos, newHeroPos);
+		int chargeUse = com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.chainCost(Dungeon.hero, Dungeon.level.distance(hero.pos, newHeroPos));
 		if (chargeUse > charge){
 			GLog.w( Messages.get(EtherealChains.class, "no_charge") );
 			return;

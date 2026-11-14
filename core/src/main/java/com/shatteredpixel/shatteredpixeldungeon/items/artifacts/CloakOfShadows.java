@@ -347,7 +347,7 @@ public class CloakOfShadows extends Artifact {
 						GLog.p(Messages.get(this, "levelup"));
 						
 					}
-					turnsToCost = 4;
+					turnsToCost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.cloakTurnsPerCharge(Dungeon.hero);
 				}
 				updateQuickslot();
 			}
