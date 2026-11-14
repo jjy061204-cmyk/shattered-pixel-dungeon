@@ -28,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
@@ -196,6 +198,17 @@ public enum Talent {
 	BODY_FORM(180, 4), MIND_FORM(181, 4), SPIRIT_FORM(182, 4),
 	//Power of Many T4
 	BEAMING_RAY(183, 4), LIFE_LINK(184, 4), STASIS(185, 4),
+
+	//모드: 유물수집가 T1
+	COLLECTORS_MEAL(224), COLLECTORS_INTUITION(225), RELIC_RESONANCE(226), RELIC_WARD(227),
+	//유물수집가 T2
+	ALCHEMISTS_MEAL(228), INSCRIBED_RELICS(229), CHARGE_CYCLE(230), EMERGENCY_CHARGE(231), QUICK_HANDS(232),
+	//유물수집가 T3
+	OVERCHARGE(233, 3), COLLECTORS_PRIDE(234, 3),
+	//공명술사 T3
+	RESONANT_BURST(235, 3), LINGERING_RESONANCE(236, 3), CHARGED_STRIKES(237, 3),
+	//보관인 T3
+	WARDING_RELICS(238, 3), STEADY_CHARGE(239, 3), REFLECTIVE_WARD(240, 3),
 
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
@@ -585,6 +598,19 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		if (hero.hasTalent(COLLECTORS_MEAL)){
+			//3/5 체력 회복
+			int healing = 1 + 2 * hero.pointsInTalent(COLLECTORS_MEAL);
+			hero.HP = Math.min(hero.HP + healing, hero.HT);
+			if (hero.sprite != null) hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(healing), FloatingText.HEALING);
+		}
+		if (hero.hasTalent(ALCHEMISTS_MEAL)){
+			//4/6턴 동안 유물 충전
+			ArtifactRecharge recharge = Buff.affect( hero, ArtifactRecharge.class);
+			if (recharge.left() < 2 + 2*hero.pointsInTalent(ALCHEMISTS_MEAL)){
+				recharge.set(2 + 2*hero.pointsInTalent(ALCHEMISTS_MEAL)).ignoreHornOfPlenty = foodSource instanceof HornOfPlenty;
+			}
+		}
 		if (hero.hasTalent(HEARTY_MEAL)){
 			//4/6 HP healed, when hero is below 33% health (with a little rounding up)
 			if (hero.HP/(float)hero.HT < 0.334f) {
@@ -760,6 +786,10 @@ public enum Talent {
 	}
 
 	public static void onScrollUsed( Hero hero, int pos, float factor, Class<?extends Item> cls ){
+		if (hero.hasTalent(INSCRIBED_RELICS)){
+			//2/3턴 동안 유물 충전
+			Buff.affect(hero, ArtifactRecharge.class).extend(factor * (1 + hero.pointsInTalent(INSCRIBED_RELICS)));
+		}
 		if (hero.hasTalent(INSCRIBED_POWER)){
 			// 2/3 empowered wand zaps
 			Buff.affect(hero, ScrollEmpower.class).reset((int) (factor * (1 + hero.pointsInTalent(INSCRIBED_POWER))));
@@ -801,7 +831,109 @@ public enum Talent {
 		}
 	}
 
+	//장착한 모든 유물을 amount턴 분량만큼 충전
+	public static void chargeArtifacts( Hero hero, float amount ){
+		for (Buff b : hero.buffs()){
+			if (b instanceof Artifact.ArtifactBuff && !((Artifact.ArtifactBuff) b).isCursed()){
+				((Artifact.ArtifactBuff) b).charge(hero, amount);
+			}
+		}
+	}
+
+	//적이 쓰러졌을 때
+	public static void onEnemySlain( Hero hero ){
+		if (hero.hasTalent(CHARGE_CYCLE)){
+			//1/2턴 분량 충전
+			chargeArtifacts(hero, hero.pointsInTalent(CHARGE_CYCLE));
+		}
+	}
+
+	//영웅이 피해를 받은 뒤
+	public static void onHeroDamaged( Hero hero ){
+		if (hero.hasTalent(EMERGENCY_CHARGE) && hero.isAlive() && hero.HP < hero.HT/2
+				&& hero.buff(EmergencyChargeCooldown.class) == null){
+			//5/8턴 분량 충전, 100턴 대기
+			chargeArtifacts(hero, 2 + 3*hero.pointsInTalent(EMERGENCY_CHARGE));
+			Buff.affect(hero, EmergencyChargeCooldown.class, 100f);
+			if (hero.sprite != null) hero.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 6);
+		}
+	}
+
+	//영웅이 근접 공격을 받았을 때
+	public static void onHeroDefended( Hero hero, Char enemy ){
+		if (hero.hasTalent(REFLECTIVE_WARD) && enemy != null && hero.shielding() > 0
+				&& Dungeon.level.adjacent(hero.pos, enemy.pos)){
+			enemy.damage(hero.pointsInTalent(REFLECTIVE_WARD), hero);
+		}
+	}
+
+	public static class EmergencyChargeCooldown extends FlavourBuff{}
+	public static class QuickHandsCooldown extends FlavourBuff{}
+	public static class RelicResonanceTracker extends FlavourBuff{}
+
+	//공명술사: 유물을 쓸 때마다 쌓이고(최대 5), 다음 근접 공격에 모두 소모됨
+	public static class RelicResonance extends Buff {
+		{ type = buffType.POSITIVE; }
+		public int stacks = 0;
+		private int left = 0;
+
+		public void gain(){
+			stacks = Math.min(5, stacks + 1);
+			left = 20;
+		}
+
+		@Override
+		public boolean act() {
+			left--;
+			if (left <= 0 || stacks <= 0) detach();
+			spend(TICK);
+			return true;
+		}
+
+		public int icon() { return BuffIndicator.UPGRADE; }
+		public void tintIcon(Image icon) { icon.hardlight(0.3f, 0.9f, 0.85f); }
+		public String iconTextDisplay() { return Integer.toString(stacks); }
+		public String desc() { return Messages.get(this, "desc", stacks, 15*stacks, left); }
+
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			bundle.put("stacks", stacks);
+			bundle.put("left", left);
+		}
+
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			stacks = bundle.getInt("stacks");
+			left = bundle.getInt("left");
+		}
+	}
+
 	public static void onArtifactUsed( Hero hero ){
+		//---- 모드: 유물수집가 ----
+		if (hero.hasTalent(RELIC_RESONANCE)){
+			Buff.affect(hero, RelicResonanceTracker.class, 5f);
+		}
+		int ward = 0;
+		if (hero.hasTalent(RELIC_WARD)){
+			ward += 1 + 2*hero.pointsInTalent(RELIC_WARD);   //3/5
+		}
+		if (hero.subClass == HeroSubClass.CURATOR){
+			ward += 2 + hero.lvl/5 + 2*hero.pointsInTalent(WARDING_RELICS);
+		}
+		if (ward > 0){
+			Buff.affect(hero, Barrier.class).setShield(ward);
+		}
+		if (hero.hasTalent(QUICK_HANDS) && hero.buff(QuickHandsCooldown.class) == null){
+			Buff.affect(hero, Haste.class, 1 + hero.pointsInTalent(QUICK_HANDS));   //2/3턴
+			Buff.affect(hero, QuickHandsCooldown.class, 20f);
+		}
+		if (hero.subClass == HeroSubClass.CHANNELER){
+			Buff.affect(hero, RelicResonance.class).gain();
+		}
+		//---------------------------
+
 		if (hero.hasTalent(ENHANCED_RINGS)){
 			Buff.prolong(hero, EnhancedRings.class, 3f*hero.pointsInTalent(ENHANCED_RINGS));
 		}
@@ -860,12 +992,55 @@ public enum Talent {
 	}
 
 	public static void onItemCollected( Hero hero, Item item ){
+		if (hero.hasTalent(COLLECTORS_INTUITION) && item instanceof Artifact){
+			item.cursedKnown = true;
+			if (hero.pointsInTalent(COLLECTORS_INTUITION) == 2) item.identify();
+		}
 		if (hero.pointsInTalent(THIEFS_INTUITION) == 2){
 			if (item instanceof Ring) ((Ring) item).setKnown();
 		}
 	}
 
 	public static int onAttackProc( Hero hero, Char enemy, int dmg ){
+
+		//---- 모드: 유물수집가 ----
+		if (hero.hasTalent(RELIC_RESONANCE) && hero.buff(RelicResonanceTracker.class) != null){
+			dmg += 1 + hero.pointsInTalent(RELIC_RESONANCE);   //+2/+3
+			hero.buff(RelicResonanceTracker.class).detach();
+		}
+		if (hero.hasTalent(COLLECTORS_PRIDE)){
+			//지닌 유물 하나당 2/4/6% (최대 5개)
+			int count = 0;
+			for (Item i : hero.belongings){
+				if (i instanceof Artifact) count++;
+			}
+			dmg = Math.round(dmg * (1f + 0.02f * hero.pointsInTalent(COLLECTORS_PRIDE) * Math.min(5, count)));
+		}
+		RelicResonance res = hero.buff(RelicResonance.class);
+		if (res != null && res.stacks > 0 && Dungeon.level.adjacent(hero.pos, enemy.pos)){
+			int used = res.stacks;
+			dmg = Math.round(dmg * (1f + 0.15f * used));
+			if (used >= 3 && hero.hasTalent(RESONANT_BURST)){
+				//주변 적에게 25/50/75%
+				int splash = Math.round(dmg * 0.25f * hero.pointsInTalent(RESONANT_BURST));
+				for (int n : PathFinder.NEIGHBOURS8){
+					Char ch = Actor.findChar(enemy.pos + n);
+					if (ch != null && ch != hero && ch.alignment == Char.Alignment.ENEMY){
+						ch.damage(splash, res);
+						if (ch.sprite != null) ch.sprite.flash();
+					}
+				}
+			}
+			if (hero.hasTalent(CHARGED_STRIKES)){
+				chargeArtifacts(hero, hero.pointsInTalent(CHARGED_STRIKES));
+			}
+			if (hero.hasTalent(LINGERING_RESONANCE) && Random.Int(3) < hero.pointsInTalent(LINGERING_RESONANCE)){
+				res.stacks = 1;
+			} else {
+				res.detach();
+			}
+		}
+		//---------------------------
 
 		if (hero.hasTalent(Talent.PROVOKED_ANGER)
 			&& hero.buff(ProvokedAngerTracker.class) != null){
@@ -994,6 +1169,9 @@ public enum Talent {
 			case CLERIC:
 				Collections.addAll(tierTalents, SATIATED_SPELLS, HOLY_INTUITION, SEARING_LIGHT, SHIELD_OF_LIGHT);
 				break;
+			case COLLECTOR:
+				Collections.addAll(tierTalents, COLLECTORS_MEAL, COLLECTORS_INTUITION, RELIC_RESONANCE, RELIC_WARD);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1023,6 +1201,9 @@ public enum Talent {
 			case CLERIC:
 				Collections.addAll(tierTalents, ENLIGHTENING_MEAL, RECALL_INSCRIPTION, SUNRAY, DIVINE_SENSE, BLESS);
 				break;
+			case COLLECTOR:
+				Collections.addAll(tierTalents, ALCHEMISTS_MEAL, INSCRIBED_RELICS, CHARGE_CYCLE, EMERGENCY_CHARGE, QUICK_HANDS);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1051,6 +1232,9 @@ public enum Talent {
 				break;
 			case CLERIC:
 				Collections.addAll(tierTalents, CLEANSE, LIGHT_READING);
+				break;
+			case COLLECTOR:
+				Collections.addAll(tierTalents, OVERCHARGE, COLLECTORS_PRIDE);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -1085,6 +1269,12 @@ public enum Talent {
 				break;
 			case GLADIATOR:
 				Collections.addAll(tierTalents, CLEAVE, LETHAL_DEFENSE, ENHANCED_COMBO);
+				break;
+			case CHANNELER:
+				Collections.addAll(tierTalents, RESONANT_BURST, LINGERING_RESONANCE, CHARGED_STRIKES);
+				break;
+			case CURATOR:
+				Collections.addAll(tierTalents, WARDING_RELICS, STEADY_CHARGE, REFLECTIVE_WARD);
 				break;
 			case BATTLEMAGE:
 				Collections.addAll(tierTalents, EMPOWERED_STRIKE, MYSTICAL_CHARGE, EXCESS_CHARGE);

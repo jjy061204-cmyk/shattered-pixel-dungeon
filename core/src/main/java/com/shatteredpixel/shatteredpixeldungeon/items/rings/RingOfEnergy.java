@@ -68,6 +68,13 @@ public class RingOfEnergy extends Ring {
 			bonus *= 1f + (0.2f * ((Hero) target).pointsInTalent(Talent.LIGHT_READING)/3f);
 		}
 
+		//모드: 유물수집가의 특성
+		if (target instanceof Hero){
+			Hero h = (Hero) target;
+			if (h.hasTalent(Talent.OVERCHARGE)) bonus *= 1f + 0.1f * h.pointsInTalent(Talent.OVERCHARGE);
+			if (h.hasTalent(Talent.STEADY_CHARGE) && h.shielding() > 0) bonus *= 1f + 0.1f * h.pointsInTalent(Talent.STEADY_CHARGE);
+		}
+
 		return bonus;
 	}
 

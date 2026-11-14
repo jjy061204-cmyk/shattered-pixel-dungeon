@@ -78,7 +78,7 @@ public class VaultMirror extends NPC {
 					reward = new MagesStaff().upgrade(3).identify(false);
 					((MagesStaff)reward).enchant();
 					break;
-				case ROGUE:
+				case ROGUE: case COLLECTOR:
 					reward = new CloakOfShadows().upgrade(8).identify(false);
 					((CloakOfShadows) reward).directCharge(8);
 					break;
@@ -114,7 +114,7 @@ public class VaultMirror extends NPC {
 							case MAGE:
 								sceneText += Messages.get(VaultMirror.class, "scene_mage");
 								break;
-							case ROGUE:
+							case ROGUE: case COLLECTOR:
 								sceneText += Messages.get(VaultMirror.class, "scene_rogue");
 								break;
 							case HUNTRESS:

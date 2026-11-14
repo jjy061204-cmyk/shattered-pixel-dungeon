@@ -103,7 +103,7 @@ abstract public class ClassArmor extends Armor {
 			case WARRIOR: case TESTER:
 				classArmor = new WarriorArmor();
 				break;
-			case ROGUE:
+			case ROGUE: case COLLECTOR:
 				classArmor = new RogueArmor();
 				break;
 			case MAGE:

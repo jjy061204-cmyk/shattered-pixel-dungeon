@@ -84,7 +84,7 @@ public abstract class RemainsItem extends Item {
 				return new SealShard();
 			case MAGE:
 				return new BrokenStaff();
-			case ROGUE:
+			case ROGUE: case COLLECTOR:
 				return new CloakScrap();
 			case HUNTRESS:
 				return new BowFragment();

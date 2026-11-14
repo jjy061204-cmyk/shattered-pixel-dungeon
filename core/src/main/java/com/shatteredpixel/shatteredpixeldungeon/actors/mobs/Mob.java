@@ -978,6 +978,7 @@ public abstract class Mob extends Char {
 			
 			if (alignment == Alignment.ENEMY) {
 				Statistics.enemiesSlain++;
+				Talent.onEnemySlain( Dungeon.hero );
 				Badges.validateMonstersSlain();
 				Statistics.qualifiedForNoKilling = false;
 				Bestiary.setSeen(getClass());

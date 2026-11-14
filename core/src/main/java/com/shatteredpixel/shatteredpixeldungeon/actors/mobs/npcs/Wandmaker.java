@@ -160,7 +160,7 @@ public class Wandmaker extends NPC {
 				case WARRIOR: case TESTER:
 					msg1 += Messages.get(this, "intro_warrior");
 					break;
-				case ROGUE:
+				case ROGUE: case COLLECTOR:
 					msg1 += Messages.get(this, "intro_rogue");
 					break;
 				case MAGE:

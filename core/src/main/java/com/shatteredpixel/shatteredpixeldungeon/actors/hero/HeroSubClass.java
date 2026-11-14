@@ -48,7 +48,11 @@ public enum HeroSubClass {
 	MONK(HeroIcon.MONK),
 
 	PRIEST(HeroIcon.PRIEST),
-	PALADIN(HeroIcon.PALADIN);
+	PALADIN(HeroIcon.PALADIN),
+
+	//모드: 유물수집가의 전직
+	CHANNELER(HeroIcon.CHANNELER),
+	CURATOR(HeroIcon.CURATOR);
 
 	int icon;
 

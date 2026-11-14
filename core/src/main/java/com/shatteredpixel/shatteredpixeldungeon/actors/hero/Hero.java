@@ -1644,6 +1644,7 @@ public class Hero extends Char {
 	
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
+		Talent.onHeroDefended( this, enemy );
 
 		//모드: 수호의 반지 - 융합한 속성의 반격
 		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onDefend( this, enemy, damage );
@@ -1749,6 +1750,7 @@ public class Hero extends Char {
 		int preHP = HP + shielding();
 		if (src instanceof Hunger) preHP -= shielding();
 		super.damage( dmg, src );
+		Talent.onHeroDamaged( this );
 		int postHP = HP + shielding();
 		if (src instanceof Hunger) postHP -= shielding();
 		int effectiveDamage = preHP - postHP;

@@ -955,8 +955,8 @@ public class Badges {
 			case CLERIC:
 				badge = Badge.MASTERY_CLERIC;
 				break;
-			case TESTER:
-				return; //테스터는 배지 없음
+			case COLLECTOR: case TESTER:
+				return; //모드 직업은 배지 없음
 		}
 		
 		unlock(badge);

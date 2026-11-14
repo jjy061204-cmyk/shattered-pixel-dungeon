@@ -97,6 +97,8 @@ public enum HeroClass {
 	HUNTRESS( HeroSubClass.SNIPER, HeroSubClass.WARDEN ),
 	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK ),
 	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN ),
+	//모드: 유물수집가 - 유물마다 고유한 추가 효과를 얻는 영웅
+	COLLECTOR( HeroSubClass.CHANNELER, HeroSubClass.CURATOR ),
 	//아이템 테스트용 직업: 전사의 전직·특성을 그대로 사용
 	TESTER( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
 
@@ -154,6 +156,10 @@ public enum HeroClass {
 				initCleric( hero );
 				break;
 
+			case COLLECTOR:
+				initCollector( hero );
+				break;
+
 			case TESTER:
 				initTester( hero );
 				break;
@@ -184,7 +190,7 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_DUELIST;
 			case CLERIC:
 				return Badges.Badge.MASTERY_CLERIC;
-			case TESTER:
+			case COLLECTOR: case TESTER:
 				return null;
 		}
 		return null;
@@ -235,6 +241,25 @@ public enum HeroClass {
 
 		new ScrollOfMagicMapping().identify();
 		new PotionOfInvisibility().identify();
+	}
+
+	//유물수집가: 단검과 투척 단검, 그리고 대도의 팔찌를 차고 시작
+	private static void initCollector( Hero hero ) {
+		(hero.belongings.weapon = new Dagger()).identify();
+
+		com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband armband =
+				new com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband();
+		(hero.belongings.artifact = armband).identify();
+		hero.belongings.artifact.activate( hero );
+
+		ThrowingKnife knives = new ThrowingKnife();
+		knives.identify().collect();
+
+		Dungeon.quickslot.setSlot(0, armband);
+		Dungeon.quickslot.setSlot(1, knives);
+
+		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse().identify();
+		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision().identify();
 	}
 
 	private static void initHuntress( Hero hero ) {
@@ -338,7 +363,7 @@ public enum HeroClass {
 				return new ArmorAbility[]{new HeroicLeap(), new Shockwave(), new Endure()};
 			case MAGE:
 				return new ArmorAbility[]{new ElementalBlast(), new WildMagic(), new WarpBeacon()};
-			case ROGUE:
+			case ROGUE: case COLLECTOR:   //유물수집가 전용 갑옷 기술은 아직 없어 도적의 것을 빌림
 				return new ArmorAbility[]{new SmokeBomb(), new DeathMark(), new ShadowClone()};
 			case HUNTRESS:
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
@@ -363,6 +388,8 @@ public enum HeroClass {
 				return Assets.Sprites.DUELIST;
 			case CLERIC:
 				return Assets.Sprites.CLERIC;
+			case COLLECTOR:
+				return Assets.Sprites.COLLECTOR;
 			case TESTER:
 				return Assets.Sprites.TESTER;
 		}
@@ -382,6 +409,8 @@ public enum HeroClass {
 				return Assets.Splashes.DUELIST;
 			case CLERIC:
 				return Assets.Splashes.CLERIC;
+			case COLLECTOR:
+				return Assets.Splashes.ROGUE;   //전용 일러스트가 아직 없음
 			case TESTER:
 				return Assets.Splashes.TESTER;
 		}
@@ -404,7 +433,7 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
 			case CLERIC:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_CLERIC);
-			case TESTER:
+			case COLLECTOR: case TESTER:
 				return true;
 		}
 	}
