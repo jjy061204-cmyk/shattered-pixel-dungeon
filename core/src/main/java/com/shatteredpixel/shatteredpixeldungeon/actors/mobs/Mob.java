@@ -979,6 +979,7 @@ public abstract class Mob extends Char {
 			if (alignment == Alignment.ENEMY) {
 				Statistics.enemiesSlain++;
 				Talent.onEnemySlain( Dungeon.hero );
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onEnemySlain( Dungeon.hero );
 				Badges.validateMonstersSlain();
 				Statistics.qualifiedForNoKilling = false;
 				Bestiary.setSeen(getClass());
@@ -1090,6 +1091,9 @@ public abstract class Mob extends Char {
 		}
 
 		dropBonus += ShardOfOblivion.lootChanceMultiplier()-1f;
+
+		//모드: 유물수집가의 대도의 팔찌
+		dropBonus *= com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.lootMultiplier( Dungeon.hero );
 
 		return lootChance * dropBonus;
 	}

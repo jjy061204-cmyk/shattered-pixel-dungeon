@@ -30,7 +30,9 @@ public class RuneAegisForm extends Buff {
 	//보호막 최대치: 10 (+0) ~ 40 (+10). 충전 속성은 1.25배
 	public static int shieldMax( int lvl, RuneAegis.Imbue i ){
 		int m = 10 + 3 * lvl;
-		return i == RuneAegis.Imbue.CHARGE ? Math.round( m * 1.25f ) : m;
+		if (i == RuneAegis.Imbue.CHARGE) m = Math.round( m * 1.25f );
+		//유물수집가의 고유 효과
+		return Math.round( m * com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.aegisShieldMultiplier( Dungeon.hero ) );
 	}
 	//턴마다 재생: 1 (+0) ~ 3 (+10). 서리 속성은 +1
 	public static int shieldRegen( int lvl, RuneAegis.Imbue i ){

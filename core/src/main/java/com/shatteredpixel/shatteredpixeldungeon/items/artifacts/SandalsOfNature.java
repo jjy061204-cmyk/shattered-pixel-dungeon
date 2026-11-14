@@ -358,7 +358,7 @@ public class SandalsOfNature extends Artifact {
 					}
 
 					charge -= seedChargeReqs.get(curSeedEffect);
-					Talent.onArtifactUsed(Dungeon.hero);
+					{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, SandalsOfNature.class); }
 					updateQuickslot();
 					curUser.spendAndNext(1f);
 				}

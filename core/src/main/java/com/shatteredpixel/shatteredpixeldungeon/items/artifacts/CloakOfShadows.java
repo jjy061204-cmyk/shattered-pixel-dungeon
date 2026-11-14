@@ -98,7 +98,7 @@ public class CloakOfShadows extends Artifact {
 					Sample.INSTANCE.play(Assets.Sounds.MELD);
 					activeBuff = activeBuff();
 					activeBuff.attachTo(hero);
-					Talent.onArtifactUsed(Dungeon.hero);
+					{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, CloakOfShadows.class); }
 					hero.sprite.operate(hero.pos);
 				}
 			} else {

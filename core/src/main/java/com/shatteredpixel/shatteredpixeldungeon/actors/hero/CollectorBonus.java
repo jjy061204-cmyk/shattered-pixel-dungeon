@@ -1,0 +1,160 @@
+/*
+ * Shattered Pixel Dungeon 모드: 유물수집가의 유물별 고유 효과
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
+
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barkskin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.AlchemistsToolkit;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.ChaliceOfBlood;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EtherealChains;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SandalsOfNature;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SkeletonKey;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.UnstableSpellbook;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.watabou.utils.Random;
+
+//유물수집가는 장착한 유물마다 고유한 추가 효과를 하나씩 얻음.
+// - 대도의 팔찌: 적의 아이템 드롭률 1.5배
+// - 그림자의 망토: 은신해 있는 동안 이동 속도 +20%
+// - 풍요의 뿔: 뿔의 음식을 먹으면 최대 체력의 10% 회복
+// - 피의 성배: 적이 쓰러질 때마다 체력 회복
+// - 말린 장미: 유령이 곁에 있는 동안 방어력 상승
+// - 에테르 사슬: 사슬을 쓴 뒤 다음 근접 공격 +30%
+// - 자연의 신발: 신발의 힘을 쓰면 나무껍질 피부
+// - 예지의 부적: 점을 치면 5턴 축복
+// - 시간지기의 모래시계: 시간을 다루면 체력 회복
+// - 불안정한 마법서: 책을 읽으면 마법 막대 3턴 충전
+// - 연금술사의 도구: 물약을 쓸 때마다 장착한 유물 충전
+// - 해골 열쇠: 열쇠를 쓰면 보호막
+// - 수호의 반지: 갑옷의 보호막 최대치 +20%
+public class CollectorBonus {
+
+	//유물수집가가 저주받지 않은 그 유물을 장착하고 있는지
+	public static boolean active( Hero hero, Class<? extends Artifact> cls ){
+		if (hero == null || hero.heroClass != HeroClass.COLLECTOR) return false;
+		Artifact a = hero.belongings.getItem( cls );
+		return a != null && a.isEquipped( hero ) && !a.cursed;
+	}
+
+	private static int level( Hero hero, Class<? extends Artifact> cls ){
+		Artifact a = hero.belongings.getItem( cls );
+		return a == null ? 0 : Math.max( 0, a.level() );
+	}
+
+	private static void heal( Hero hero, int amount ){
+		if (amount <= 0 || hero.HP >= hero.HT) return;
+		amount = Math.min( amount, hero.HT - hero.HP );
+		hero.HP += amount;
+		if (hero.sprite != null){
+			hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
+		}
+	}
+
+	public static class ChainStrikeTracker extends FlavourBuff {}
+
+	//유물을 사용한 순간 (Talent.onArtifactUsed와 같은 자리에서 불림)
+	public static void onUse( Hero hero, Class<? extends Artifact> cls ){
+		if (!active( hero, cls )) return;
+		int lvl = level( hero, cls );
+
+		if (cls == HornOfPlenty.class){
+			heal( hero, Math.round( hero.HT * 0.1f ) );
+		} else if (cls == EtherealChains.class){
+			Buff.affect( hero, ChainStrikeTracker.class, 5f );
+		} else if (cls == SandalsOfNature.class){
+			Barkskin.conditionallyAppend( hero, 2 + lvl, 1 );
+		} else if (cls == TalismanOfForesight.class){
+			Buff.prolong( hero, Bless.class, 5f );
+		} else if (cls == TimekeepersHourglass.class){
+			heal( hero, 3 + lvl );
+		} else if (cls == UnstableSpellbook.class){
+			Buff.affect( hero, Recharging.class, 3f );
+		} else if (cls == SkeletonKey.class){
+			Buff.affect( hero, Barrier.class ).setShield( 4 + lvl );
+		}
+	}
+
+	//근접 공격: 에테르 사슬
+	public static int onAttack( Hero hero, Char enemy, int dmg ){
+		ChainStrikeTracker t = hero.buff( ChainStrikeTracker.class );
+		if (t != null){
+			t.detach();
+			if (active( hero, EtherealChains.class )) dmg = Math.round( dmg * 1.3f );
+		}
+		return dmg;
+	}
+
+	//적이 쓰러짐: 피의 성배
+	public static void onEnemySlain( Hero hero ){
+		if (active( hero, ChaliceOfBlood.class )){
+			heal( hero, 1 + level( hero, ChaliceOfBlood.class ) / 3 );
+		}
+	}
+
+	//물약 사용: 연금술사의 도구
+	public static void onPotionUsed( Hero hero ){
+		if (active( hero, AlchemistsToolkit.class )){
+			Talent.chargeArtifacts( hero, 2f );
+		}
+	}
+
+	//이동 속도: 그림자의 망토
+	public static float speedMultiplier( Hero hero ){
+		return hero.invisible > 0 && active( hero, CloakOfShadows.class ) ? 1.2f : 1f;
+	}
+
+	//방어력: 말린 장미 (유령이 층에 있을 때)
+	public static int drBonus( Hero hero ){
+		if (!active( hero, DriedRose.class )) return 0;
+		for (Mob m : Dungeon.level.mobs){
+			if (m instanceof DriedRose.GhostHero && m.isAlive()){
+				return Random.NormalIntRange( 1, 3 );
+			}
+		}
+		return 0;
+	}
+
+	//드롭률: 대도의 팔찌
+	public static float lootMultiplier( Hero hero ){
+		return active( hero, MasterThievesArmband.class ) ? 1.5f : 1f;
+	}
+
+	//수호의 반지: 보호막 최대치
+	public static float aegisShieldMultiplier( Hero hero ){
+		return active( hero, RuneAegis.class ) ? 1.2f : 1f;
+	}
+
+	//유물 설명 아래에 붙는 고유 효과 문구 (유물수집가일 때만)
+	public static String info( Hero hero, Item artifact ){
+		if (hero == null || hero.heroClass != HeroClass.COLLECTOR) return null;
+		String key = artifact.getClass().getSimpleName().toLowerCase();
+		String txt = Messages.get( CollectorBonus.class, key );
+		if (txt == null || txt.equals( Messages.NO_TEXT_FOUND )) return null;
+		return Messages.get( CollectorBonus.class, "title" ) + " " + txt;
+	}
+}

@@ -196,7 +196,7 @@ public class DriedRose extends Artifact {
 					}
 
 					Invisibility.dispel(hero);
-					Talent.onArtifactUsed(hero);
+					{ Talent.onArtifactUsed(hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(hero, DriedRose.class); }
 					charge = 0;
 					partialCharge = 0;
 					updateQuickslot();

@@ -197,7 +197,7 @@ public class EtherealChains extends Artifact {
 
 						charge -= chargeUse;
 						Invisibility.dispel(hero);
-						Talent.onArtifactUsed(hero);
+						{ Talent.onArtifactUsed(hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(hero, EtherealChains.class); }
 						updateQuickslot();
 
 						Dungeon.level.occupyCell(enemy);
@@ -265,7 +265,7 @@ public class EtherealChains extends Artifact {
 
 						charge -= chargeUse;
 						Invisibility.dispel(hero);
-						Talent.onArtifactUsed(hero);
+						{ Talent.onArtifactUsed(hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(hero, EtherealChains.class); }
 						updateQuickslot();
 
 						Dungeon.level.occupyCell(hero);

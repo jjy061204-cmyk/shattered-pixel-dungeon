@@ -180,11 +180,11 @@ public class UnstableSpellbook extends Artifact {
 						scroll.talentChance = 0;
 						checkForArtifactProc(curUser, scroll);
 						scroll.doRead();
-						Talent.onArtifactUsed(Dungeon.hero);
+						{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, UnstableSpellbook.class); }
 					} else {
 						checkForArtifactProc(curUser, fScroll);
 						fScroll.doRead();
-						Talent.onArtifactUsed(Dungeon.hero);
+						{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, UnstableSpellbook.class); }
 					}
 					updateQuickslot();
 				}
@@ -197,7 +197,7 @@ public class UnstableSpellbook extends Artifact {
 		} else {
 			checkForArtifactProc(curUser, scroll);
 			scroll.doRead();
-			Talent.onArtifactUsed(Dungeon.hero);
+			{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, UnstableSpellbook.class); }
 		}
 
 		updateQuickslot();

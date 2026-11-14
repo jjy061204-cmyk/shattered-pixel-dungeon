@@ -232,7 +232,7 @@ public class TalismanOfForesight extends Artifact {
 					partialCharge--;
 				}
 				Invisibility.dispel(curUser);
-				Talent.onArtifactUsed(Dungeon.hero);
+				{ Talent.onArtifactUsed(Dungeon.hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(Dungeon.hero, TalismanOfForesight.class); }
 				updateQuickslot();
 				Dungeon.observe();
 				Dungeon.hero.checkVisibleMobs();

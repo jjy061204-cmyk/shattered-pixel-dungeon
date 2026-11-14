@@ -135,7 +135,7 @@ public class HornOfPlenty extends Artifact {
 		Statistics.foodEaten++;
 
 		charge -= chargesToUse;
-		Talent.onArtifactUsed(hero);
+		{ Talent.onArtifactUsed(hero); com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse(hero, HornOfPlenty.class); }
 
 		hero.sprite.operate(hero.pos);
 		hero.busy();

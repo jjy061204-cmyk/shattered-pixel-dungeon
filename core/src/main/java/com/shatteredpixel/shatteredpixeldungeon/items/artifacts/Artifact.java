@@ -173,6 +173,13 @@ public class Artifact extends KindofMisc {
 
 	@Override
 	public String info() {
+		//모드: 유물수집가의 고유 효과 안내
+		String bonus = com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.info( Dungeon.hero, this );
+		String base = baseInfo();
+		return bonus == null ? base : base + "\n\n" + bonus;
+	}
+
+	private String baseInfo() {
 		if (cursed && cursedKnown && !isEquipped( Dungeon.hero )) {
 			return super.info() + "\n\n" + Messages.get(Artifact.class, "curse_known");
 			
