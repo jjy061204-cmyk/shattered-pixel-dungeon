@@ -1581,7 +1581,7 @@ public class Hero extends Char {
 		damage = super.attackProc( enemy, damage );
 
 		//모드: 수호의 반지 - 융합한 속성의 타격 효과
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onAttack( this, enemy );
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onAttack( this, enemy, damage );
 
 
 		KindOfWeapon wep;

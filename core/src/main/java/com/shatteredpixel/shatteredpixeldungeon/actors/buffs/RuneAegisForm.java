@@ -124,13 +124,6 @@ public class RuneAegisForm extends Buff {
 
 	//보호막이 깨지는 순간
 	private void onShieldBreak( Hero hero, RuneAegis.Imbue im, int lvl ){
-		if (im == RuneAegis.Imbue.MIRROR){
-			if (!mirrorUsed){
-				mirrorUsed = true;
-				ScrollOfMirrorImage.spawnImages( hero, 1 );
-			}
-			return;
-		}
 		if (im != RuneAegis.Imbue.FIRE && im != RuneAegis.Imbue.FROST) return;
 		//화염: 주변의 적을 불태우고 피해 / 서리: 주변의 적을 얼림
 		for (int n : com.watabou.utils.PathFinder.NEIGHBOURS8){
@@ -172,7 +165,7 @@ public class RuneAegisForm extends Buff {
 	public static class Reflect {}
 
 	//갑옷을 두른 영웅이 적을 때렸을 때
-	public static void onAttack( Hero hero, Char enemy ){
+	public static void onAttack( Hero hero, Char enemy, int damage ){
 		RuneAegis.Imbue im = imbueOf( hero );
 		if (im == null || enemy == null || !enemy.isAlive()) return;
 		if (im == RuneAegis.Imbue.FIRE){
@@ -183,6 +176,12 @@ public class RuneAegisForm extends Buff {
 				Buff.prolong( enemy, Frost.class, 2f );
 			} else {
 				Buff.prolong( enemy, Chill.class, 3f );
+			}
+		} else if (im == RuneAegis.Imbue.MIRROR){
+			//거울 갑옷: 근접 타격마다 피해의 30%만큼 거울의 추가 타격
+			if (damage > 0 && Dungeon.level.adjacent( hero.pos, enemy.pos )){
+				enemy.damage( Math.max( 1, Math.round( damage * 0.3f ) ), new Reflect() );
+				if (enemy.sprite != null) enemy.sprite.flash();
 			}
 		} else if (im == RuneAegis.Imbue.CHARGE){
 			//타격마다 반지의 충전이 조금 차오름

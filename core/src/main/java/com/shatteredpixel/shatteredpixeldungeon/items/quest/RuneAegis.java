@@ -107,7 +107,7 @@ public class RuneAegis extends Artifact {
 		ArrayList<String> actions = super.actions( hero );
 		if (isEquipped( hero ) && !cursed && hero.buff( MagicImmune.class ) == null){
 			if (charge > 0 || hero.buff( RuneAegisForm.class ) != null) actions.add( AC_USE );
-			actions.add( AC_IMBUE );
+			if (hero.buff( RuneAegisForm.class ) == null) actions.add( AC_IMBUE );
 		}
 		return actions;
 	}
@@ -129,6 +129,8 @@ public class RuneAegis extends Artifact {
 				GLog.i( Messages.get( Artifact.class, "need_to_equip" ) );
 			} else if (cursed){
 				GLog.w( Messages.get( this, "cursed" ) );
+			} else if (hero.buff( RuneAegisForm.class ) != null){
+				GLog.w( Messages.get( this, "imbue_armored" ) );
 			} else {
 				GameScene.selectItem( imbueSelector );
 			}
@@ -162,10 +164,10 @@ public class RuneAegis extends Artifact {
 		hero.sprite.parent.add( new AegisAssemble( hero.sprite, suitTexture( imbue ), false, new Callback() {
 			@Override
 			public void call() {
+				//그림자의 망토처럼 켜는 순간 충전 하나를 씀
+				charge = Math.max( 0, charge - 1 );
 				Buff.affect( hero, RuneAegisForm.class );
 				Buff.affect( hero, RuneAegisShield.class ).setShield( RuneAegisForm.shieldMax( Math.max( 0, level() ), imbue ) );
-				//거울상 속성: 갑옷을 두르는 순간 거울상 하나
-				if (imbue == Imbue.MIRROR) ScrollOfMirrorImage.spawnImages( hero, 1 );
 				if (hero.sprite instanceof HeroSprite){
 					((HeroSprite) hero.sprite).updateArmor();
 					hero.sprite.place( hero.pos );
