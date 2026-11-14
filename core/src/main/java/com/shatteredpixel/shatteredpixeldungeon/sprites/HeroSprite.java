@@ -75,7 +75,7 @@ public class HeroSprite extends CharSprite {
 
 		TextureFilm film;
 		if (Dungeon.hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class ) != null){
-			texture( com.shatteredpixel.shatteredpixeldungeon.Assets.Sprites.RUNE_AEGIS_HERO );
+			texture( com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis.suitTexture( Dungeon.hero ) );
 			film = new TextureFilm( texture, FRAME_WIDTH, FRAME_HEIGHT );
 			aegisLook = true;
 		} else {

@@ -34,9 +34,13 @@ public class AegisAssemble extends Group {
 	private float t = 0, total = 0, tick = 0;
 	private boolean finished = false;
 
-	public AegisAssemble( CharSprite target, Callback done ){
+	private final boolean dissolve;
+
+	//dissolve가 참이면 반대로, 덮여 있던 갑옷이 입자로 흩어지며 사라짐 (끝나도 아무것도 부르지 않아도 됨)
+	public AegisAssemble( CharSprite target, String texture, boolean dissolve, Callback done ){
 		this.done = done;
-		SmartTexture tx = TextureCache.get( Assets.Sprites.RUNE_AEGIS_HERO );
+		this.dissolve = dissolve;
+		SmartTexture tx = TextureCache.get( texture );
 		ColorBlock[] blocks = new ColorBlock[W * H];
 		float[] delays = new float[W * H];
 		int n = 0;
@@ -47,7 +51,7 @@ public class AegisAssemble extends Group {
 				ColorBlock b = new ColorBlock( 1, 1, c );
 				b.x = target.x + (target.flipHorizontal ? (W - 1 - x) : x);
 				b.y = target.y + y;
-				b.visible = false;
+				b.visible = dissolve;
 				//반지를 낀 손에서 시작해 팔을 타고 온몸으로 번짐
 				float d = Math.abs( x - 9f ) + Math.abs( y - 10f ) * 0.8f;
 				delays[n] = d * SPREAD + Random.Float( 0.08f );
@@ -69,7 +73,7 @@ public class AegisAssemble extends Group {
 		if (finished) return;
 		t += Game.elapsed;
 		tick += Game.elapsed;
-		if (tick > 0.09f && t < total - HOLD){
+		if (!dissolve && tick > 0.09f && t < total - HOLD){
 			tick = 0;
 			Sample.INSTANCE.play( Assets.Sounds.CLICK, 0.25f, 1.8f );
 		}
@@ -78,6 +82,16 @@ public class AegisAssemble extends Group {
 			float p = t - delay[i];
 			if (p < 0) continue;
 			ColorBlock b = px[i];
+			if (dissolve){
+				//밝게 빛나며 위로 떠올라 사라짐
+				if (p >= GLOW * 2){ b.visible = false; continue; }
+				float k = p / (GLOW * 2);
+				b.y -= Game.elapsed * 14f;
+				b.rm = b.gm = b.bm = 1 - k;
+				b.ra = b.ga = b.ba = k * 0.9f;
+				b.alpha( 1 - k );
+				continue;
+			}
 			b.visible = true;
 			if (p < GLOW){
 				float k = p / GLOW;

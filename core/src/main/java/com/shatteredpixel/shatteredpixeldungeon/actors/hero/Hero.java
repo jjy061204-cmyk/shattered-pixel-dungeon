@@ -1580,6 +1580,9 @@ public class Hero extends Char {
 	public int attackProc( final Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 
+		//모드: 수호의 반지 - 융합한 속성의 타격 효과
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onAttack( this, enemy );
+
 
 		KindOfWeapon wep;
 		if (RingOfForce.fightingUnarmed(this) && !RingOfForce.unarmedGetsWeaponEnchantment(this)){
@@ -1643,7 +1646,7 @@ public class Hero extends Char {
 	public int defenseProc( Char enemy, int damage ) {
 
 		//모드: 수호의 반지 - 융합한 속성의 반격
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onDefend( this, enemy );
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onDefend( this, enemy, damage );
 		
 		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
 			Berserk berserk = Buff.affect(this, Berserk.class);

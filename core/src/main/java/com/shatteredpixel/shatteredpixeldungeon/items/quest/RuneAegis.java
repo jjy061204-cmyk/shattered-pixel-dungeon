@@ -62,6 +62,22 @@ public class RuneAegis extends Artifact {
 
 	private Imbue imbue = Imbue.NONE;
 
+	//속성마다 갑옷 모습이 다름
+	public static String suitTexture( Hero hero ){
+		RuneAegis a = hero == null ? null : hero.belongings.getItem( RuneAegis.class );
+		return suitTexture( a == null ? Imbue.NONE : a.imbue );
+	}
+
+	public static String suitTexture( Imbue i ){
+		switch (i){
+			case FIRE: return "sprites/rune_aegis_hero_fire.png";
+			case FROST: return "sprites/rune_aegis_hero_frost.png";
+			case CHARGE: return "sprites/rune_aegis_hero_charge.png";
+			case MIRROR: return "sprites/rune_aegis_hero_mirror.png";
+			default: return Assets.Sprites.RUNE_AEGIS_HERO;
+		}
+	}
+
 	public Imbue imbue(){
 		return imbue;
 	}
@@ -143,11 +159,13 @@ public class RuneAegis extends Artifact {
 		hero.busy();
 		hero.sprite.idle();
 		Sample.INSTANCE.play( Assets.Sounds.MELD );
-		hero.sprite.parent.add( new AegisAssemble( hero.sprite, new Callback() {
+		hero.sprite.parent.add( new AegisAssemble( hero.sprite, suitTexture( imbue ), false, new Callback() {
 			@Override
 			public void call() {
 				Buff.affect( hero, RuneAegisForm.class );
-				Buff.affect( hero, RuneAegisShield.class ).setShield( RuneAegisForm.shieldMax( Math.max( 0, level() ) ) );
+				Buff.affect( hero, RuneAegisShield.class ).setShield( RuneAegisForm.shieldMax( Math.max( 0, level() ), imbue ) );
+				//거울상 속성: 갑옷을 두르는 순간 거울상 하나
+				if (imbue == Imbue.MIRROR) ScrollOfMirrorImage.spawnImages( hero, 1 );
 				if (hero.sprite instanceof HeroSprite){
 					((HeroSprite) hero.sprite).updateArmor();
 					hero.sprite.place( hero.pos );
@@ -177,6 +195,11 @@ public class RuneAegis extends Artifact {
 			Hero hero = Dungeon.hero;
 			item.detach( hero.belongings.backpack );
 			imbue = to;
+			//갑옷을 두른 채 융합하면 그 자리에서 모습이 바뀜
+			if (hero.buff( RuneAegisForm.class ) != null && hero.sprite instanceof HeroSprite){
+				((HeroSprite) hero.sprite).updateArmor();
+				hero.sprite.place( hero.pos );
+			}
 			hero.sprite.operate( hero.pos );
 			hero.busy();
 			hero.spend( 2f );
@@ -194,7 +217,18 @@ public class RuneAegis extends Artifact {
 		return Imbue.NONE;
 	}
 
-	//갑옷이 켜져 있는 동안 5턴마다 불림. 충전이 남아 있지 않으면 false
+	//충전 속성: 타격마다 충전이 조금 참 (최대치를 넘지 않음)
+	public void spark(){
+		if (charge >= chargeCap) return;
+		partialCharge += 0.08f;
+		if (partialCharge >= 1f){
+			partialCharge--;
+			charge++;
+			updateQuickslot();
+		}
+	}
+
+	//갑옷이 켜져 있는 동안 몇 턴마다 불림. 충전이 남아 있지 않으면 false
 	public boolean drain(){
 		if (charge <= 0) return false;
 		charge--;
@@ -272,7 +306,8 @@ public class RuneAegis extends Artifact {
 				d += Messages.get( this, "desc_cursed" );
 			} else {
 				int l = Math.max( 0, level() );
-				d += Messages.get( this, "desc_stats", RuneAegisForm.shieldMax( l ), RuneAegisForm.shieldRegen( l ) );
+				d += Messages.get( this, "desc_stats", RuneAegisForm.shieldMax( l, imbue ), RuneAegisForm.shieldRegen( l, imbue ),
+						RuneAegisForm.turnsPerCharge( imbue ) );
 				d += "\n\n" + Messages.get( this, "desc_" + imbue.name().toLowerCase() );
 			}
 		}
