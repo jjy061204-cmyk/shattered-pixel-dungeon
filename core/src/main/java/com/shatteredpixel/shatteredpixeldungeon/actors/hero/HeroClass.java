@@ -418,6 +418,15 @@ public enum HeroClass {
 		}
 	}
 
+	//모드: 128x128칸의 세밀한 도트를 쓰는 영웅 (게임에서는 한 칸 크기로 줄여 그림). 없으면 null
+	public String hdSheet(){
+		switch (this){
+			case COLLECTOR: return Assets.Sprites.COLLECTOR;
+			case VAMPIRE:   return Assets.Sprites.VAMPIRE;
+			default:        return null;
+		}
+	}
+
 	public String splashArt(){
 		switch (this) {
 			case WARRIOR: default:

@@ -47,7 +47,8 @@ public class AegisShell extends Image {
 	private int heroIndex(){
 		RectF f = target.frame();
 		if (f == null || target.texture == null) return 0;
-		return Math.round( f.left * target.texture.width / (float) HERO_W );
+		float w = f.right - f.left;
+		return w <= 0 ? 0 : Math.round( f.left / w );
 	}
 
 	//위치·프레임 맞추기. 영웅의 이동 트위너가 이 그림보다 늦게 갱신될 수 있어,
@@ -63,8 +64,17 @@ public class AegisShell extends Image {
 			lastIndex = idx;
 		}
 		flipHorizontal = target.flipHorizontal;
-		x = target.x - MARGIN;
-		y = target.y - MARGIN;
+		if (target.width() > HERO_W * 1.2f){
+			//세밀한 큰 도트 영웅: 갑옷을 영웅 키에 맞춰 늘려 감쌈
+			float k = target.height() * 1.08f / H;
+			scale.set( k * 0.95f, k );
+			x = target.x + target.width() / 2f - W * k * 0.95f / 2f;
+			y = target.y + target.height() - H * k;
+		} else {
+			scale.set( 1f );
+			x = target.x - MARGIN;
+			y = target.y - MARGIN;
+		}
 	}
 
 	@Override

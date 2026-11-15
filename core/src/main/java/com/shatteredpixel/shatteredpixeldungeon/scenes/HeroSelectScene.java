@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ExitButton;
@@ -571,7 +572,14 @@ public class HeroSelectScene extends PixelScene {
 
 			this.cl = cl;
 
-			icon(new Image(cl.spritesheet(), 0, 90, 12, 15));
+			if (cl.hdSheet() != null){
+				Image hd = new Image(cl.hdSheet(), 24, 0, 80, 128);
+				HeroSprite.smooth(hd.texture);
+				hd.scale.set(16f / 128f);
+				icon(hd);
+			} else {
+				icon(new Image(cl.spritesheet(), 0, 90, 12, 15));
+			}
 
 		}
 

@@ -43,6 +43,16 @@ public class HeroSprite extends CharSprite {
 	private static final int FRAME_HEIGHT	= 15;
 	
 	private static final int RUN_FRAMERATE	= 20;
+
+	//모드: 128x128칸의 세밀한 도트. 다른 영웅과 키가 비슷하도록 줄여 그림
+	public static final int HD_WIDTH = 128, HD_HEIGHT = 128;
+	public static final float HD_SCALE = 0.135f;
+
+	//세밀한 도트는 줄여 그릴 때 부드럽게 보이도록 선형 보간
+	public static void smooth( com.watabou.gltextures.SmartTexture tx ){
+		tx.filter( com.watabou.glwrap.Texture.LINEAR, com.watabou.glwrap.Texture.LINEAR );
+	}
+	private HeroClass look;
 	
 	private static TextureFilm tiers;
 	
@@ -52,7 +62,8 @@ public class HeroSprite extends CharSprite {
 	public HeroSprite() {
 		super();
 		
-		texture( Dungeon.hero.heroClass.spritesheet() );
+		look = Dungeon.hero.heroClass;
+		texture( sheetOf( look ) );
 		updateArmor();
 		
 		link( Dungeon.hero );
@@ -63,15 +74,28 @@ public class HeroSprite extends CharSprite {
 			die();
 	}
 
+	private static String sheetOf( HeroClass cls ){
+		return cls.hdSheet() != null ? cls.hdSheet() : cls.spritesheet();
+	}
+
 	public void disguise(HeroClass cls){
-		texture( cls.spritesheet() );
+		look = cls;
+		texture( sheetOf( cls ) );
 		updateArmor();
 	}
 	
 	//모드: 수호의 반지 갑옷은 영웅 위에 따로 씌우는 반투명 껍데기(AegisShell)로 그림. 영웅 모습은 그대로
 	public void updateArmor() {
 
-		TextureFilm film = new TextureFilm( tiers(), Dungeon.hero.tier(), FRAME_WIDTH, FRAME_HEIGHT );
+		TextureFilm film;
+		if (look != null && look.hdSheet() != null){
+			film = new TextureFilm( texture, HD_WIDTH, HD_HEIGHT );
+			smooth( texture );
+			scale.set( HD_SCALE );
+		} else {
+			film = new TextureFilm( tiers(), Dungeon.hero.tier(), FRAME_WIDTH, FRAME_HEIGHT );
+			scale.set( 1f );
+		}
 		
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -184,6 +208,13 @@ public class HeroSprite extends CharSprite {
 	}
 	
 	public static Image avatar( HeroClass cl, int armorTier ) {
+		//세밀한 도트 영웅: 첫 프레임에서 몸이 있는 가운데 부분만 잘라 원래 초상화 크기(약 15칸 높이)로 줄임
+		if (cl.hdSheet() != null){
+			Image hd = new Image( cl.hdSheet(), 24, 0, 80, HD_HEIGHT );
+			smooth( hd.texture );
+			hd.scale.set( 15f / HD_HEIGHT );
+			return hd;
+		}
 		
 		RectF patch = tiers().get( armorTier );
 		Image avatar = new Image( cl.spritesheet() );
