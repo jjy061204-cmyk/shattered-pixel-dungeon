@@ -210,6 +210,17 @@ public enum Talent {
 	//보관인 T3
 	WARDING_RELICS(238, 3), STEADY_CHARGE(239, 3), REFLECTIVE_WARD(240, 3),
 
+	//모드: 뱀파이어 T1 (매혹의 시선·박쥐 떼는 성배 기술을 줌)
+	SANGUINE_MEAL(256), SHARP_FANGS(257), ENTHRALLING_GAZE(258), BAT_SWARM(259),
+	//뱀파이어 T2 (피의 창·핏빛 장막·공포의 눈은 성배 기술을 줌)
+	BLOOD_THIRST(260), MIST_BODY(261), BLOOD_LANCE(262), CRIMSON_VEIL(263), DREADFUL_EYES(264),
+	//뱀파이어 T3 (피의 폭발은 성배 기술을 줌)
+	DEEP_CUP(265, 3), BLOOD_NOVA(266, 3),
+	//진조 흡혈귀 T3 (대흡혈은 성배 기술을 줌)
+	BLOOD_FRENZY(267, 3), UNDYING_FLESH(268, 3), MASS_DRAIN(269, 3),
+	//피의 지배자 T3 (핏빛 사슬은 성배 기술을 줌)
+	OVERFLOWING_CUP(270, 3), TEMPERED_CUP(271, 3), BLOOD_CHAINS(272, 3),
+
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
 	//Ratmogrify T4
@@ -598,6 +609,10 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		if (hero.hasTalent(SANGUINE_MEAL)){
+			//성배에 생명력 3/5
+			com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.gainLife(hero, 1 + 2 * hero.pointsInTalent(SANGUINE_MEAL));
+		}
 		if (hero.hasTalent(COLLECTORS_MEAL)){
 			//3/5 체력 회복
 			int healing = 1 + 2 * hero.pointsInTalent(COLLECTORS_MEAL);
@@ -1206,6 +1221,9 @@ public enum Talent {
 			case COLLECTOR:
 				Collections.addAll(tierTalents, COLLECTORS_MEAL, COLLECTORS_INTUITION, RELIC_RESONANCE, RELIC_WARD);
 				break;
+			case VAMPIRE:
+				Collections.addAll(tierTalents, SANGUINE_MEAL, SHARP_FANGS, ENTHRALLING_GAZE, BAT_SWARM);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1238,6 +1256,9 @@ public enum Talent {
 			case COLLECTOR:
 				Collections.addAll(tierTalents, ALCHEMISTS_MEAL, INSCRIBED_RELICS, CHARGE_CYCLE, EMERGENCY_CHARGE, QUICK_HANDS);
 				break;
+			case VAMPIRE:
+				Collections.addAll(tierTalents, BLOOD_THIRST, MIST_BODY, BLOOD_LANCE, CRIMSON_VEIL, DREADFUL_EYES);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1269,6 +1290,9 @@ public enum Talent {
 				break;
 			case COLLECTOR:
 				Collections.addAll(tierTalents, OVERCHARGE, COLLECTORS_PRIDE);
+				break;
+			case VAMPIRE:
+				Collections.addAll(tierTalents, DEEP_CUP, BLOOD_NOVA);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -1309,6 +1333,12 @@ public enum Talent {
 				break;
 			case CURATOR:
 				Collections.addAll(tierTalents, WARDING_RELICS, STEADY_CHARGE, REFLECTIVE_WARD);
+				break;
+			case TRUE_ANCESTOR:
+				Collections.addAll(tierTalents, BLOOD_FRENZY, UNDYING_FLESH, MASS_DRAIN);
+				break;
+			case BLOOD_LORD:
+				Collections.addAll(tierTalents, OVERFLOWING_CUP, TEMPERED_CUP, BLOOD_CHAINS);
 				break;
 			case BATTLEMAGE:
 				Collections.addAll(tierTalents, EMPOWERED_STRIKE, MYSTICAL_CHARGE, EXCESS_CHARGE);

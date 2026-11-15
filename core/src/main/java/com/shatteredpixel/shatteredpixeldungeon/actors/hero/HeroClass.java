@@ -99,8 +99,8 @@ public enum HeroClass {
 	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN ),
 	//모드: 유물수집가 - 유물마다 고유한 추가 효과를 얻는 영웅
 	COLLECTOR( HeroSubClass.CHANNELER, HeroSubClass.CURATOR ),
-	//모드: 뱀파이어 - 적의 생명력을 빼앗아 핏빛 성배에 담고, 그것으로 기술을 씀 (전직·특성은 아직 전사의 것을 빌림)
-	VAMPIRE( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR ),
+	//모드: 뱀파이어 - 적의 생명력을 빼앗아 핏빛 성배에 담고, 그것으로 기술을 씀 (갑옷 기술만 전사의 것을 빌림)
+	VAMPIRE( HeroSubClass.TRUE_ANCESTOR, HeroSubClass.BLOOD_LORD ),
 	//아이템 테스트용 직업: 전사의 전직·특성을 그대로 사용
 	TESTER( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
 

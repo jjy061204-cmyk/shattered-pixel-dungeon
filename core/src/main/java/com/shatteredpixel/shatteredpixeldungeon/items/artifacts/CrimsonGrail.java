@@ -13,32 +13,59 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodBlade;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodFlight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Levitation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndGrailSkills;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-//뱀파이어 전용 성배. 충전 = 적에게서 빼앗은 생명력.
-// - 저절로 차지 않고, 적을 쓰러뜨릴 때만 참. 생명체가 아닌 적(언데드·무기물)에게서는 1/3만 얻음
+//뱀파이어 전용 성배. 충전 = 생명력.
+// - 적을 쓰러뜨리면 크게 차고(생명체가 아니면 1/3), 흡혈로도 조금씩 차며, 시간이 지나면 아주 느리게 저절로도 참
 // - 성직자의 성서처럼 기술 창(WndGrailSkills)에서 기술을 골라 씀. 길게 누르면 빠른 사용에 등록
+// - 기술은 처음부터 있는 것, 특성을 찍어야 생기는 것, 전직하면 생기는 것으로 나뉨
 // - 쓴 생명력이 쌓이면 성배가 강해짐
 public class CrimsonGrail extends Artifact {
 
@@ -60,30 +87,85 @@ public class CrimsonGrail extends Artifact {
 		bones = false;
 	}
 
-	//기술: 이름, 드는 생명력
+	//기술: 드는 생명력, 창에서 놓이는 줄(0 기본, 1~3 특성 단계·전직), 필요한 특성·전직
 	public enum Skill {
-		DRAIN( 4, 112 ), MIST( 6, 113 ), MEND( 8, 114 );
+		//처음부터
+		DRAIN( 0, 0, null, null ),
+		DIVE( 5, 0, null, null ),
+		MIST( 6, 0, null, null ),
+		MEND( 8, 0, null, null ),
+		//1단계 특성
+		CHARM( 3, 1, Talent.ENTHRALLING_GAZE, null ),
+		SWARM( 3, 1, Talent.BAT_SWARM, null ),
+		//2단계 특성
+		LANCE( 4, 2, Talent.BLOOD_LANCE, null ),
+		VEIL( 5, 2, Talent.CRIMSON_VEIL, null ),
+		DREAD( 5, 2, Talent.DREADFUL_EYES, null ),
+		//3단계 특성
+		NOVA( 10, 3, Talent.BLOOD_NOVA, null ),
+		//진조 흡혈귀
+		FEAST( 6, 3, null, HeroSubClass.TRUE_ANCESTOR ),
+		BATFORM( 8, 3, null, HeroSubClass.TRUE_ANCESTOR ),
+		MASS_DRAIN( 8, 3, Talent.MASS_DRAIN, null ),
+		//피의 지배자
+		BLADE( 5, 3, null, HeroSubClass.BLOOD_LORD ),
+		INFUSE( 6, 3, null, HeroSubClass.BLOOD_LORD ),
+		CHAINS( 6, 3, Talent.BLOOD_CHAINS, null );
 
-		public final int cost;
-		public final int icon;      //hero_icons 칸 번호 (+ICON_ACTION_OFFSET: 배경 없는 행동 표시용)
-		Skill( int cost, int icon ){ this.cost = cost; this.icon = icon; }
+		public final int baseCost;
+		public final int row;
+		public final Talent talent;
+		public final HeroSubClass subClass;
+
+		Skill( int cost, int row, Talent talent, HeroSubClass subClass ){
+			this.baseCost = cost; this.row = row; this.talent = talent; this.subClass = subClass;
+		}
+
+		//hero_icons 칸 번호 (+ICON_ACTION_OFFSET: 배경 없는 행동 표시용)
+		public int icon(){ return ICON_BASE + ordinal(); }
+
+		public boolean available( Hero hero ){
+			if (talent != null) return hero.hasTalent( talent );
+			if (subClass != null) return hero.subClass == subClass;
+			return true;
+		}
+
+		//피의 지배자의 '절제된 잔': 소모량 10/20/30% 감소 (최소 1)
+		public int cost( Hero hero ){
+			if (baseCost == 0) return 0;
+			int pts = hero.pointsInTalent( Talent.TEMPERED_CUP );
+			return Math.max( 1, Math.round( baseCost * (1f - 0.1f * pts) ) );
+		}
 
 		public String title(){ return Messages.get( CrimsonGrail.class, "skill_" + name().toLowerCase() ); }
 		public String desc(){ return Messages.get( CrimsonGrail.class, "skill_" + name().toLowerCase() + "_desc" ); }
 	}
 
-	public static final int ICON_ACTION_OFFSET = 8;
+	public static final int ICON_BASE = 128;
+	public static final int ICON_ACTION_OFFSET = 32;
+
+	public static ArrayList<Skill> skillList( Hero hero, int row ){
+		ArrayList<Skill> list = new ArrayList<>();
+		for (Skill s : Skill.values()){
+			if (s.row == row && s.available( hero )) list.add( s );
+		}
+		return list;
+	}
 
 	public int vitality(){
 		return charge;
 	}
 
+	//최대치: 성배 단계 + 피의 지배자의 '넘치는 잔'(+5/10/15)
 	public int lifeCap(){
-		return chargeCap;
+		int cap = chargeCap;
+		if (Dungeon.hero != null) cap += 5 * Dungeon.hero.pointsInTalent( Talent.OVERFLOWING_CUP );
+		return cap;
 	}
 
 	public boolean canUse( Hero hero, Skill skill ){
-		return isEquipped( hero ) && !cursed && hero.buff( MagicImmune.class ) == null && charge >= skill.cost;
+		return isEquipped( hero ) && !cursed && hero.buff( MagicImmune.class ) == null
+				&& skill.available( hero ) && charge >= skill.cost( hero );
 	}
 
 	//빠른 사용: 기술 창에서 길게 눌러 등록하면 화면의 행동 버튼으로 바로 씀 (같은 기술을 다시 등록하면 해제)
@@ -127,60 +209,145 @@ public class CrimsonGrail extends Artifact {
 		GameScene.show( new WndGrailSkills( this, hero, false ) );
 	}
 
+	//------------------------------------------------------------------ 기술 쓰기
+
+	private interface OnTarget { void hit( Char ch, int cell ); }
+
+	//바로 옆의 적을 고름
+	private void pickAdjacent( final Hero hero, final Skill skill, final OnTarget then ){
+		if (Dungeon.quickslot.contains( this )){
+			QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
+		}
+		GameScene.selectCell( new CellSelector.Listener() {
+			@Override
+			public void onSelect( Integer cell ) {
+				if (cell == null) return;
+				Char ch = Actor.findChar( cell );
+				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY
+						|| !Dungeon.level.adjacent( hero.pos, cell )){
+					GLog.w( Messages.get( CrimsonGrail.class, "adjacent_invalid" ) );
+					return;
+				}
+				then.hit( ch, cell );
+			}
+
+			@Override
+			public String prompt() {
+				return Messages.get( CrimsonGrail.class, "adjacent_prompt", skill.title() );
+			}
+		} );
+	}
+
+	//보이는 적을 고름 (거리 제한)
+	private void pickEnemy( final Hero hero, final Skill skill, final int range, final OnTarget then ){
+		if (Dungeon.quickslot.contains( this )){
+			QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
+		}
+		GameScene.selectCell( new CellSelector.Listener() {
+			@Override
+			public void onSelect( Integer cell ) {
+				if (cell == null) return;
+				Char ch = Actor.findChar( cell );
+				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY || !Dungeon.level.heroFOV[cell]
+						|| Dungeon.level.distance( hero.pos, cell ) > range){
+					GLog.w( Messages.get( CrimsonGrail.class, "enemy_invalid", range ) );
+					return;
+				}
+				then.hit( ch, cell );
+			}
+
+			@Override
+			public String prompt() {
+				return Messages.get( CrimsonGrail.class, "enemy_prompt", skill.title() );
+			}
+		} );
+	}
+
+	//기본 공격 한 번의 피해 (대상의 방어를 뺀 값)에 배율을 곱함
+	private static int strike( Hero hero, Char enemy, float mult ){
+		int roll = hero.damageRoll() - enemy.drRoll();
+		return Math.max( 1, Math.round( Math.max( 0, roll ) * mult ) );
+	}
+
+	//흡혈 한 번의 회복량: 최대 체력의 3% (최소 1) + 날카로운 송곳니, 진조는 두 배. 생명체가 아니면 절반
+	private static int drainHeal( Hero hero, Char enemy ){
+		float heal = Math.max( 1f, hero.HT * 0.03f ) + hero.pointsInTalent( Talent.SHARP_FANGS );
+		if (hero.subClass == HeroSubClass.TRUE_ANCESTOR) heal *= 2f;
+		if (!isLiving( enemy )) heal *= 0.5f;
+		return Math.max( 1, Math.round( heal ) );
+	}
+
+	//진조의 '피의 광란': 피를 빤 뒤 1/2/3턴 동안 아드레날린
+	private static void frenzy( Hero hero ){
+		int pts = hero.pointsInTalent( Talent.BLOOD_FRENZY );
+		if (pts > 0) Buff.prolong( hero, Adrenaline.class, pts );
+	}
+
+	private void bite( Hero hero, Char ch, int cell, float mult ){
+		int dmg = strike( hero, ch, mult );
+		boolean living = isLiving( ch );
+		hero.sprite.attack( cell );
+		ch.damage( dmg, this );
+		if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 6 );
+		heal( hero, drainHeal( hero, ch ) );
+		gainLife( hero, living ? 1f : 0.34f );
+	}
+
 	public void use( final Skill skill ){
 		final Hero hero = Dungeon.hero;
+		if (!canUse( hero, skill )){
+			GLog.w( Messages.get( this, "no_skill" ) );
+			return;
+		}
+		final int lvl = hero.lvl;
 		switch (skill){
-			case DRAIN:
-				if (Dungeon.quickslot.contains( this )){
-					QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
-				}
-				GameScene.selectCell( new CellSelector.Listener() {
-					@Override
-					public void onSelect( Integer cell ) {
-						if (cell == null) return;
-						Char ch = Actor.findChar( cell );
-						if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY
-								|| !Dungeon.level.adjacent( hero.pos, cell )){
-							GLog.w( Messages.get( CrimsonGrail.class, "drain_invalid" ) );
-							return;
-						}
-						spend( skill.cost );
-						int dmg = Random.NormalIntRange( 2 + hero.lvl / 2, 5 + hero.lvl );
-						hero.sprite.attack( cell );
-						ch.damage( dmg, CrimsonGrail.this );
-						if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 8 );
-						int heal = Math.max( 1, Math.round( dmg * (isLiving( ch ) ? 0.5f : 0.2f) ) );
-						heal( hero, heal );
-						Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
-						hero.spendAndNext( 1f );
-					}
 
+			//--------------------------------------------- 처음부터 있는 기술
+			case DRAIN:
+				pickAdjacent( hero, skill, new OnTarget() {
 					@Override
-					public String prompt() {
-						return Messages.get( CrimsonGrail.class, "drain_prompt" );
+					public void hit( Char ch, int cell ) {
+						//기본 공격 피해의 절반 (진조는 75%), 생명력 소모 없음
+						bite( hero, ch, cell, hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 0.75f : 0.5f );
+						Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
+						frenzy( hero );
+						finish( hero, hero.attackDelay() );
 					}
 				} );
 				break;
 
+			case DIVE:
+				//4턴 동안 떠오른 뒤, 내려앉으며 주변 8칸에 피해 (BloodFlight)
+				spend( hero, skill );
+				Buff.affect( hero, BloodFlight.class, BloodFlight.TURNS );
+				hero.sprite.emitter().burst( BloodParticle.BURST, 8 );
+				Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 0.7f );
+				finish( hero, 1f );
+				break;
+
 			case MIST:
+				final int mistRange = 4 + hero.pointsInTalent( Talent.MIST_BODY );
 				GameScene.selectCell( new CellSelector.Listener() {
 					@Override
 					public void onSelect( Integer cell ) {
 						if (cell == null) return;
 						if (!Dungeon.level.heroFOV[cell] || Dungeon.level.solid[cell] || Actor.findChar( cell ) != null
-								|| Dungeon.level.distance( hero.pos, cell ) > 4
+								|| Dungeon.level.distance( hero.pos, cell ) > mistRange
 								|| new Ballistica( hero.pos, cell, Ballistica.PROJECTILE ).collisionPos != (int) cell){
-							GLog.w( Messages.get( CrimsonGrail.class, "mist_invalid" ) );
+							GLog.w( Messages.get( CrimsonGrail.class, "mist_invalid", mistRange ) );
 							return;
 						}
-						spend( skill.cost );
+						spend( hero, skill );
 						hero.sprite.emitter().burst( Speck.factory( Speck.SMOKE ), 6 );
 						ScrollOfTeleportation.appear( hero, cell );
 						Dungeon.level.occupyCell( hero );
 						Dungeon.observe();
 						GameScene.updateFog();
 						hero.sprite.emitter().burst( BloodParticle.BURST, 6 );
-						hero.spendAndNext( 1f );
+						//안개의 몸: 옮겨 간 뒤 2/4턴 동안 투명
+						int pts = hero.pointsInTalent( Talent.MIST_BODY );
+						if (pts > 0) Buff.affect( hero, Invisibility.class, 2f * pts );
+						finish( hero, 1f );
 					}
 
 					@Override
@@ -191,32 +358,245 @@ public class CrimsonGrail extends Artifact {
 				break;
 
 			case MEND:
-				spend( skill.cost );
+				spend( hero, skill );
 				heal( hero, Math.max( 1, Math.round( hero.HT * 0.25f ) ) );
 				hero.sprite.emitter().burst( BloodParticle.BURST, 10 );
 				Sample.INSTANCE.play( Assets.Sounds.DRINK );
 				hero.sprite.operate( hero.pos );
-				hero.spendAndNext( 1f );
+				finish( hero, 1f );
 				break;
+
+			//--------------------------------------------- 특성으로 얻는 기술
+			case CHARM:
+				pickEnemy( hero, skill, 5, new OnTarget() {
+					@Override
+					public void hit( Char ch, int cell ) {
+						spend( hero, skill );
+						//3/5턴 동안 매혹
+						Buff.affect( ch, Charm.class, 1f + 2f * hero.pointsInTalent( Talent.ENTHRALLING_GAZE ) ).object = hero.id();
+						if (ch.sprite != null) ch.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
+						Sample.INSTANCE.play( Assets.Sounds.CHARMS );
+						hero.sprite.zap( cell );
+						finish( hero, 1f );
+					}
+				} );
+				break;
+
+			case SWARM:
+				pickEnemy( hero, skill, 5, new OnTarget() {
+					@Override
+					public void hit( Char ch, int cell ) {
+						spend( hero, skill );
+						int pts = hero.pointsInTalent( Talent.BAT_SWARM );
+						ch.damage( Random.NormalIntRange( 1 + pts, 3 + lvl / 4 + pts ), CrimsonGrail.this );
+						//2/3턴 동안 실명
+						if (ch.isAlive()) Buff.prolong( ch, Blindness.class, 1f + pts );
+						if (ch.sprite != null) ch.sprite.emitter().burst( ShadowParticle.CURSE, 8 );
+						Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 1.4f );
+						hero.sprite.zap( cell );
+						finish( hero, 1f );
+					}
+				} );
+				break;
+
+			case LANCE:
+				pickEnemy( hero, skill, 7, new OnTarget() {
+					@Override
+					public void hit( Char target, final int cell ) {
+						final Ballistica shot = new Ballistica( hero.pos, cell, Ballistica.PROJECTILE );
+						spend( hero, skill );
+						hero.busy();
+						hero.sprite.zap( cell );
+						Sample.INSTANCE.play( Assets.Sounds.ZAP );
+						MagicMissile.boltFromChar( hero.sprite.parent, MagicMissile.SHAMAN_RED, hero.sprite, shot.collisionPos, new Callback() {
+							@Override
+							public void call() {
+								Char ch = Actor.findChar( shot.collisionPos );
+								if (ch != null && ch != hero){
+									int pts = hero.pointsInTalent( Talent.BLOOD_LANCE );
+									int dmg = Math.round( Random.NormalIntRange( 3 + lvl / 2, 6 + lvl ) * (0.8f + 0.2f * pts) );
+									boolean living = isLiving( ch );
+									ch.damage( dmg, CrimsonGrail.this );
+									if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 8 );
+									//살아 있는 적이면 준 피해의 20%만큼 회복
+									if (living) heal( hero, Math.max( 1, Math.round( dmg * 0.2f ) ) );
+								}
+								finish( hero, 1f );
+							}
+						} );
+					}
+				} );
+				break;
+
+			case VEIL:
+				spend( hero, skill );
+				//최대 체력의 15/20%만큼 보호막
+				Buff.affect( hero, Barrier.class ).setShield(
+						Math.max( 3, Math.round( hero.HT * (0.10f + 0.05f * hero.pointsInTalent( Talent.CRIMSON_VEIL )) ) ) );
+				hero.sprite.emitter().burst( BloodParticle.BURST, 12 );
+				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 0.8f );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+
+			case DREAD: {
+				spend( hero, skill );
+				int pts = hero.pointsInTalent( Talent.DREADFUL_EYES );
+				//보이는 적 가운데 4/5칸 안의 적을 6/8턴 동안 공포에 빠뜨림
+				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
+					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
+							&& Dungeon.level.distance( hero.pos, mob.pos ) <= 3 + pts){
+						Buff.affect( mob, Terror.class, 4f + 2f * pts ).object = hero.id();
+						if (mob.sprite != null) mob.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
+					}
+				}
+				Sample.INSTANCE.play( Assets.Sounds.CURSED, 0.8f, 0.7f );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+			}
+
+			case NOVA: {
+				spend( hero, skill );
+				int pts = hero.pointsInTalent( Talent.BLOOD_NOVA );
+				//2칸 안의 모든 적에게 피해, 맞힌 살아 있는 적 하나당 체력 2/3/4 회복
+				PathFinder.buildDistanceMap( hero.pos, BArray.not( Dungeon.level.solid, null ), 2 );
+				int healed = 0;
+				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
+					if (mob.alignment != Char.Alignment.ALLY && PathFinder.distance[mob.pos] < Integer.MAX_VALUE){
+						int dmg = Math.round( Random.NormalIntRange( 4 + lvl / 2, 8 + lvl ) * (0.75f + 0.25f * pts) );
+						boolean living = isLiving( mob );
+						mob.damage( dmg, this );
+						if (mob.sprite != null) mob.sprite.emitter().burst( BloodParticle.BURST, 8 );
+						if (living) healed += 1 + pts;
+					}
+				}
+				WandOfBlastWave.BlastWave.blast( hero.pos, 2.5f, 0xCC1030 );
+				Sample.INSTANCE.play( Assets.Sounds.BLAST );
+				if (healed > 0) heal( hero, healed );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+			}
+
+			//--------------------------------------------- 진조 흡혈귀
+			case FEAST:
+				pickAdjacent( hero, skill, new OnTarget() {
+					@Override
+					public void hit( Char ch, int cell ) {
+						spend( hero, skill );
+						//기본 공격의 150% 피해, 준 피해의 절반만큼 회복 (생명체가 아니면 20%), 출혈
+						int dmg = strike( hero, ch, 1.5f );
+						boolean living = isLiving( ch );
+						hero.sprite.attack( cell );
+						ch.damage( dmg, CrimsonGrail.this );
+						if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 12 );
+						if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
+						heal( hero, Math.max( 1, Math.round( dmg * (living ? 0.5f : 0.2f) ) ) );
+						Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG, 1f, 0.8f );
+						frenzy( hero );
+						finish( hero, hero.attackDelay() );
+					}
+				} );
+				break;
+
+			case BATFORM:
+				spend( hero, skill );
+				//박쥐로 변해 8턴 동안 날고 6턴 동안 가속
+				Buff.affect( hero, Levitation.class, 8f );
+				Buff.affect( hero, Haste.class, 6f );
+				hero.sprite.emitter().burst( ShadowParticle.CURSE, 10 );
+				Sample.INSTANCE.play( Assets.Sounds.MELD );
+				finish( hero, 1f );
+				break;
+
+			case MASS_DRAIN: {
+				spend( hero, skill );
+				//주변 8칸의 모든 적을 한꺼번에 물어 기본 공격의 50/75/100% 피해
+				float mult = 0.25f + 0.25f * hero.pointsInTalent( Talent.MASS_DRAIN );
+				boolean any = false;
+				for (int n : PathFinder.NEIGHBOURS8){
+					Char ch = Actor.findChar( hero.pos + n );
+					if (ch != null && ch.alignment != Char.Alignment.ALLY){
+						bite( hero, ch, hero.pos + n, mult );
+						any = true;
+					}
+				}
+				if (any) Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.8f, 0.7f );
+				frenzy( hero );
+				finish( hero, hero.attackDelay() );
+				break;
+			}
+
+			//--------------------------------------------- 피의 지배자
+			case BLADE:
+				spend( hero, skill );
+				//12턴 동안 근접 공격에 추가 피해가 붙고, 맞힐 때마다 생명력을 빼앗음
+				Buff.affect( hero, BloodBlade.class, BloodBlade.TURNS );
+				hero.sprite.emitter().burst( BloodParticle.BURST, 10 );
+				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 1.2f );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+
+			case INFUSE:
+				spend( hero, skill );
+				//다른 유물을 10턴 분량만큼 곧바로 충전하고, 마법 막대를 5턴 동안 충전
+				ArtifactRecharge.chargeArtifacts( hero, 10f );
+				Buff.affect( hero, Recharging.class, 5f );
+				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 8 );
+				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+
+			case CHAINS: {
+				spend( hero, skill );
+				int pts = hero.pointsInTalent( Talent.BLOOD_CHAINS );
+				//보이는 적 가운데 3칸 안의 적에게 피해를 주고 2/3/4턴 동안 묶음
+				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
+					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
+							&& Dungeon.level.distance( hero.pos, mob.pos ) <= 3){
+						mob.damage( Random.NormalIntRange( 2 + lvl / 4, 4 + lvl / 2 ), this );
+						if (mob.isAlive()) Buff.prolong( mob, Roots.class, 1f + pts );
+						if (mob.sprite != null) mob.sprite.emitter().burst( BloodParticle.BURST, 6 );
+					}
+				}
+				Sample.INSTANCE.play( Assets.Sounds.CHAINS );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+			}
 		}
+	}
+
+	private void finish( Hero hero, float time ){
+		Talent.onArtifactUsed( hero );
+		updateQuickslot();
+		hero.spendAndNext( time );
 	}
 
 	private static void heal( Hero hero, int amount ){
 		amount = Math.min( amount, hero.HT - hero.HP );
 		if (amount <= 0) return;
 		hero.HP += amount;
-		hero.sprite.showStatusWithIcon( com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.POSITIVE,
-				Integer.toString( amount ), com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText.HEALING );
+		hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
 	}
 
-	//생명력을 쓰고, 쓴 만큼 성배가 자람 (30을 쓸 때마다 한 단계, 최대치 +3)
-	private void spend( int cost ){
+	//생명력을 쓰고, 쓴 만큼 성배가 자람 (24를 쓸 때마다 한 단계, 최대치 +3)
+	private void spend( Hero hero, Skill skill ){
+		int cost = skill.cost( hero );
+		if (cost <= 0) return;
 		charge = Math.max( 0, charge - cost );
 		exp += cost;
-		while (level() < levelCap && exp >= 30){
-			exp -= 30;
+		while (level() < levelCap && exp >= 24){
+			exp -= 24;
 			upgrade();
 			GLog.p( Messages.get( this, "levelup" ) );
+		}
+		//피의 지배자: 쓴 생명력이 다른 유물로 흘러 들어감 (생명력 1당 0.5턴 분량)
+		if (hero.subClass == HeroSubClass.BLOOD_LORD){
+			ArtifactRecharge.chargeArtifacts( hero, cost * 0.5f );
 		}
 		updateQuickslot();
 	}
@@ -232,29 +612,65 @@ public class CrimsonGrail extends Artifact {
 		return !Char.hasProp( ch, Char.Property.UNDEAD ) && !Char.hasProp( ch, Char.Property.INORGANIC );
 	}
 
-	//적이 쓰러질 때 (Mob.destroy에서 불림)
-	public static void onKill( Mob mob ){
-		Hero hero = Dungeon.hero;
-		if (hero == null || hero.heroClass != HeroClass.VAMPIRE || !hero.isAlive()) return;
+	public static CrimsonGrail of( Hero hero ){
+		if (hero == null || hero.heroClass != HeroClass.VAMPIRE) return null;
 		CrimsonGrail g = hero.belongings.getItem( CrimsonGrail.class );
-		if (g == null || !g.isEquipped( hero ) || g.cursed) return;
+		return (g != null && g.isEquipped( hero ) && !g.cursed) ? g : null;
+	}
 
-		//최대 체력의 30% (2~16). 생명체가 아니면 그 1/3, 소수점은 조금씩 모아 둠
-		float gain = Math.max( 2f, Math.min( 16f, mob.HT * 0.3f ) );
-		if (!isLiving( mob )) gain /= 3f;
-		g.partialCharge += gain;
+	//생명력을 얻음. 소수점은 조금씩 모아 둠
+	public static void gainLife( Hero hero, float amount ){
+		CrimsonGrail g = of( hero );
+		if (g == null) return;
+		int cap = g.lifeCap();
+		if (g.charge >= cap) return;
+		g.partialCharge += amount;
 		int whole = (int) g.partialCharge;
-		g.partialCharge -= whole;
-		if (whole > 0 && g.charge < g.chargeCap){
-			g.charge = Math.min( g.chargeCap, g.charge + whole );
-			if (mob.sprite != null && isLiving( mob )) mob.sprite.emitter().burst( BloodParticle.BURST, 6 );
+		if (whole > 0){
+			g.partialCharge -= whole;
+			g.charge = Math.min( cap, g.charge + whole );
+			if (g.charge >= cap) g.partialCharge = 0;
 			updateQuickslot();
 		}
 	}
 
+	//적이 쓰러질 때 (Mob.destroy에서 불림)
+	public static void onKill( Mob mob ){
+		Hero hero = Dungeon.hero;
+		if (hero == null || !hero.isAlive() || of( hero ) == null) return;
+		boolean living = isLiving( mob );
+
+		//최대 체력의 30% (2~16). 생명체가 아니면 그 1/3 (진조는 2/3)
+		float gain = Math.max( 2f, Math.min( 16f, mob.HT * 0.3f ) );
+		if (!living) gain *= hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 0.67f : 0.34f;
+		//깊은 잔: +10/20/30%
+		gain *= 1f + 0.1f * hero.pointsInTalent( Talent.DEEP_CUP );
+		gainLife( hero, gain );
+		if (mob.sprite != null && living) mob.sprite.emitter().burst( BloodParticle.BURST, 6 );
+
+		//핏빛 갈증: 살아 있는 적을 쓰러뜨리면 체력 2/3 회복
+		if (living && hero.hasTalent( Talent.BLOOD_THIRST )){
+			heal( hero, 1 + hero.pointsInTalent( Talent.BLOOD_THIRST ) );
+		}
+	}
+
+	//핏빛 검이 걸린 동안의 근접 공격 (Hero.attackProc에서 불림)
+	public static int onHeroAttack( Hero hero, Char enemy, int damage ){
+		if (hero.buff( BloodBlade.class ) == null || of( hero ) == null) return damage;
+		gainLife( hero, isLiving( enemy ) ? 1f : 0.34f );
+		if (enemy.sprite != null) enemy.sprite.emitter().burst( BloodParticle.BURST, 4 );
+		return damage + 2 + hero.lvl / 5;
+	}
+
 	@Override
 	public void charge( Hero target, float amount ) {
-		//다른 충전 효과로는 차지 않음 (생명력은 빼앗아야만 얻음)
+		//다른 충전 효과로는 차지 않음 (생명력은 빼앗거나, 저절로 고이기를 기다려야 함)
+	}
+
+	@Override
+	public String status() {
+		if (!isIdentified() || cursed) return null;
+		return Messages.format( "%d/%d", charge, lifeCap() );
 	}
 
 	@Override
@@ -281,6 +697,16 @@ public class CrimsonGrail extends Artifact {
 
 		@Override
 		public boolean act() {
+			//시간이 지나면 아주 느리게 저절로 고임: 60턴에 1 (피의 지배자는 두 배, 깊은 잔 +25/50/75%)
+			if (target instanceof Hero && !cursed && charge < lifeCap()
+					&& target.buff( MagicImmune.class ) == null && Regeneration.regenOn()){
+				Hero hero = (Hero) target;
+				float perTurn = 1f / 60f;
+				perTurn *= RingOfEnergy.artifactChargeMultiplier( target );
+				if (hero.subClass == HeroSubClass.BLOOD_LORD) perTurn *= 2f;
+				perTurn *= 1f + 0.25f * hero.pointsInTalent( Talent.DEEP_CUP );
+				gainLife( hero, perTurn );
+			}
 			spend( TICK );
 			return true;
 		}
@@ -292,7 +718,7 @@ public class CrimsonGrail extends Artifact {
 
 		@Override
 		public int actionIcon() {
-			return quickSkill.icon + ICON_ACTION_OFFSET;
+			return quickSkill.icon() + ICON_ACTION_OFFSET;
 		}
 
 		@Override
@@ -319,7 +745,7 @@ public class CrimsonGrail extends Artifact {
 	public String desc() {
 		String d = Messages.get( this, "desc" );
 		if (isEquipped( Dungeon.hero )){
-			d += "\n\n" + (cursed ? Messages.get( this, "desc_cursed" ) : Messages.get( this, "desc_stats", charge, chargeCap ));
+			d += "\n\n" + (cursed ? Messages.get( this, "desc_cursed" ) : Messages.get( this, "desc_stats", charge, lifeCap() ));
 		}
 		return d;
 	}
@@ -333,6 +759,8 @@ public class CrimsonGrail extends Artifact {
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
+		//'넘치는 잔'으로 늘어난 몫이 불러올 때 잘리지 않게, 저장된 생명력을 그대로 되살림
+		if (bundle.contains( "charge" )) charge = bundle.getInt( "charge" );
 		quickSkill = null;
 		if (bundle.contains( "quick_skill" )){
 			try { quickSkill = Skill.valueOf( bundle.getString( "quick_skill" ) ); } catch (Exception e) { quickSkill = null; }

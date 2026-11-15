@@ -52,6 +52,8 @@ public class HeroIcon extends Image {
 	public static final int PALADIN     = 11;
 	public static final int CHANNELER   = 12;
 	public static final int CURATOR     = 13;
+	public static final int TRUE_ANCESTOR = 14;
+	public static final int BLOOD_LORD  = 15;
 
 	//abilities
 	public static final int HEROIC_LEAP     = 16;
@@ -145,7 +147,7 @@ public class HeroIcon extends Image {
 		if (film == null){
 			film = new TextureFilm(texture, SIZE, SIZE);
 		}
-		frame(film.get(skill.icon));
+		frame(film.get(skill.icon()));
 	}
 
 	public HeroIcon(ClericSpell spell){

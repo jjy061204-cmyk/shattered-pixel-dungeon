@@ -78,13 +78,28 @@ public class WndGrailSkills extends Window {
 
 		int top = (int) life.bottom() + 5;
 
-		CrimsonGrail.Skill[] skills = CrimsonGrail.Skill.values();
-		int left = 2 + (WIDTH - skills.length * (BTN_SIZE + 4)) / 2;
-		for (CrimsonGrail.Skill skill : skills){
-			SkillButton btn = new SkillButton( skill, grail, info );
-			btn.setRect( left, top, BTN_SIZE, BTN_SIZE );
-			add( btn );
-			left += BTN_SIZE + 4;
+		//줄 0: 처음부터 있는 기술, 줄 1~3: 특성 단계별로 얻은 기술과 전직 기술 (성서처럼 줄 사이에 구분선)
+		boolean first = true;
+		for (int row = 0; row <= 3; row++){
+			java.util.ArrayList<CrimsonGrail.Skill> skills = CrimsonGrail.skillList( hero, row );
+			if (skills.isEmpty()) continue;
+
+			if (!first){
+				top += BTN_SIZE + 9;
+				com.watabou.noosa.ColorBlock sep = new com.watabou.noosa.ColorBlock( WIDTH, 1, 0xFF000000 );
+				sep.y = top;
+				add( sep );
+				top += 3;
+			}
+			first = false;
+
+			int left = 2 + (WIDTH - skills.size() * (BTN_SIZE + 4)) / 2;
+			for (CrimsonGrail.Skill skill : skills){
+				SkillButton btn = new SkillButton( skill, grail, info );
+				btn.setRect( left, top, BTN_SIZE, BTN_SIZE );
+				add( btn );
+				left += BTN_SIZE + 4;
+			}
 		}
 
 		resize( WIDTH, top + BTN_SIZE + 7 );
@@ -118,7 +133,7 @@ public class WndGrailSkills extends Window {
 
 			//드는 생명력 (빠른 사용에 등록된 기술은 노랗게)
 			cost = new BitmapText( PixelScene.pixelFont );
-			cost.text( Integer.toString( skill.cost ) );
+			cost.text( Integer.toString( skill.cost( Dungeon.hero ) ) );
 			cost.measure();
 			cost.hardlight( grail.quickSkill() == skill ? 0xFFFF44 : 0xFF8899 );
 			add( cost );
@@ -160,7 +175,7 @@ public class WndGrailSkills extends Window {
 
 		private void showInfo(){
 			GameScene.show( new WndTitledMessage( new HeroIcon( skill ), Messages.titleCase( skill.title() ),
-					skill.desc() + "\n\n" + Messages.get( WndGrailSkills.class, "cost", skill.cost ) ) );
+					skill.desc() + "\n\n" + Messages.get( WndGrailSkills.class, "cost", skill.cost( Dungeon.hero ) ) ) );
 		}
 
 		@Override

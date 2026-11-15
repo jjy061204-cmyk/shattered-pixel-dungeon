@@ -52,7 +52,11 @@ public enum HeroSubClass {
 
 	//모드: 유물수집가의 전직
 	CHANNELER(HeroIcon.CHANNELER),
-	CURATOR(HeroIcon.CURATOR);
+	CURATOR(HeroIcon.CURATOR),
+
+	//모드: 뱀파이어의 전직
+	TRUE_ANCESTOR(HeroIcon.TRUE_ANCESTOR),
+	BLOOD_LORD(HeroIcon.BLOOD_LORD);
 
 	int icon;
 

@@ -1597,6 +1597,7 @@ public class Hero extends Char {
 
 		damage = Talent.onAttackProc( this, enemy, damage );
 		damage = CollectorBonus.onAttack( this, enemy, damage );
+		damage = com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.onHeroAttack( this, enemy, damage );
 
 		if (wep != null) {
 			damage = wep.proc( this, enemy, damage );
