@@ -44,13 +44,15 @@ public class HeroSprite extends CharSprite {
 	
 	private static final int RUN_FRAMERATE	= 20;
 
-	//모드: 64x64칸의 세밀한 도트. 다른 영웅과 키가 비슷하도록 줄여 그림
-	public static final int HD_WIDTH = 64, HD_HEIGHT = 64;
-	public static final float HD_SCALE = 0.27f;
+	//모드: 48x48칸의 세밀한 도트. 다른 영웅과 키가 비슷하도록 줄여 그림
+	public static final int HD_WIDTH = 48, HD_HEIGHT = 48;
+	public static final float HD_SCALE = 0.38f;
 
-	//세밀한 도트는 줄여 그릴 때 부드럽게 보이도록 선형 보간
+	//화면에서 도트 한 칸이 화면 한 픽셀 이상이면 또렷하게, 그보다 작아지면 뭉개지지 않게 부드럽게 줄임
 	public static void smooth( com.watabou.gltextures.SmartTexture tx ){
-		tx.filter( com.watabou.glwrap.Texture.LINEAR, com.watabou.glwrap.Texture.LINEAR );
+		float r = com.watabou.noosa.Camera.main != null ? com.watabou.noosa.Camera.main.zoom * HD_SCALE : 1f;
+		int mode = r >= 0.95f ? com.watabou.glwrap.Texture.NEAREST : com.watabou.glwrap.Texture.LINEAR;
+		tx.filter( mode, mode );
 	}
 	private HeroClass look;
 	
@@ -210,7 +212,7 @@ public class HeroSprite extends CharSprite {
 	public static Image avatar( HeroClass cl, int armorTier ) {
 		//세밀한 도트 영웅: 첫 프레임에서 몸이 있는 가운데 부분만 잘라 원래 초상화 크기(약 15칸 높이)로 줄임
 		if (cl.hdSheet() != null){
-			Image hd = new Image( cl.hdSheet(), 12, 0, 40, HD_HEIGHT );
+			Image hd = new Image( cl.hdSheet(), 9, 0, 30, HD_HEIGHT );
 			smooth( hd.texture );
 			hd.scale.set( 15f / HD_HEIGHT );
 			return hd;
