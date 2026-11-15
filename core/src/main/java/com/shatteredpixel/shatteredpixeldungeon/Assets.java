@@ -268,7 +268,7 @@ public class Assets {
 		public static final String DUELIST  = "splashes/duelist.jpg";
 		public static final String CLERIC   = "splashes/cleric.jpg";
 		public static final String TESTER   = "splashes/tester.jpg";
-		public static final String COLLECTOR = "splashes/collector.jpg";
+		public static final String COLLECTOR = "splashes/collector.png";
 
 		public static final String SEWERS   = "splashes/sewers.jpg";
 		public static final String PRISON   = "splashes/prison.jpg";
