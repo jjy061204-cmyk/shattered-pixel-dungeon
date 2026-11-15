@@ -61,6 +61,28 @@ public class HeroSprite extends CharSprite {
 	private Animation fly;
 	private Animation read;
 
+	//모드: 세밀한 도트 영웅의 고유 대기 동작 (가만히 있으면 가끔 재생)
+	private Animation[] specials;
+	private float idleTimer = 0, nextSpecial = 5f;
+
+	private static int[][] specialIdleFrames( HeroClass cls ){
+		switch (cls){
+			case COLLECTOR: return new int[][]{
+					{21, 22, 23, 24, 25, 24, 23, 24, 25, 26, 26, 22},   //유물을 닦음
+					{27, 28, 29, 30, 31, 30, 31, 30, 31, 32, 32}};      //마력을 띄워 확인
+			case VAMPIRE: return new int[][]{
+					{21, 22, 23, 24, 24, 24, 25, 25, 26, 25, 26, 25, 22, 21},   //와인을 마시며 음미
+					{27, 28, 29, 30, 31, 30, 31, 31, 32, 33, 33}};              //꾸벅꾸벅 졸다가 깸
+			default: return null;
+		}
+	}
+
+	private boolean isSpecial( Animation a ){
+		if (specials == null || a == null) return false;
+		for (Animation s : specials) if (s == a) return true;
+		return false;
+	}
+
 	public HeroSprite() {
 		super();
 		
@@ -121,6 +143,18 @@ public class HeroSprite extends CharSprite {
 
 		read = new Animation( 20, false );
 		read.frames( film, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19 );
+
+		specials = null;
+		int[][] sp = (look != null && look.hdSheet() != null) ? specialIdleFrames( look ) : null;
+		if (sp != null){
+			specials = new Animation[sp.length];
+			for (int i = 0; i < sp.length; i++){
+				Object[] f = new Object[sp[i].length];
+				for (int j = 0; j < f.length; j++) f[j] = sp[i][j];
+				specials[i] = new Animation( 6, false );
+				specials[i].frames( film, f );
+			}
+		}
 		
 		if (Dungeon.hero.isAlive())
 			idle();
@@ -186,6 +220,38 @@ public class HeroSprite extends CharSprite {
 		sleeping = ch.isAlive() && ((Hero)ch).resting;
 		
 		super.update();
+
+		//가만히 서 있으면 몇 초마다 고유 대기 동작을 함
+		if (specials != null && ch != null && ch.isAlive() && !sleeping && !isMoving && curAnim == idle && !ch.flying){
+			idleTimer += Game.elapsed;
+			if (idleTimer >= nextSpecial){
+				idleTimer = 0;
+				nextSpecial = com.watabou.utils.Random.Float( 6f, 11f );
+				play( specials[com.watabou.utils.Random.Int( specials.length )] );
+			}
+		} else if (!isSpecial( curAnim )){
+			idleTimer = 0;
+		}
+	}
+
+	@Override
+	public synchronized void onComplete( Animation anim ) {
+		if (isSpecial( anim )){
+			idle();
+			return;
+		}
+		super.onComplete( anim );
+	}
+
+	//모드: 영웅 고유 공격 이펙트 (뱀파이어: 은빛 장검 참격, 유물수집가: 보랏빛 연금 폭발)
+	@Override
+	public synchronized void attack( int cell, Callback callback ) {
+		super.attack( cell, callback );
+		if (look != null && look.hdSheet() != null && parent != null && ch != null && cell != ch.pos){
+			parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX( this, cell,
+					look == HeroClass.VAMPIRE ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.SLASH
+							: com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.ALCHEMY ) );
+		}
 	}
 	
 	public void sprint( float speed ) {
