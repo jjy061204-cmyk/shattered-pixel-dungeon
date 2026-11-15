@@ -1586,7 +1586,6 @@ public class Hero extends Char {
 		damage = super.attackProc( enemy, damage );
 
 		//모드: 수호의 반지 - 융합한 속성의 타격 효과
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onAttack( this, enemy, damage );
 
 
 		KindOfWeapon wep;
@@ -1653,7 +1652,6 @@ public class Hero extends Char {
 		Talent.onHeroDefended( this, enemy );
 
 		//모드: 수호의 반지 - 융합한 속성의 반격
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.onDefend( this, enemy, damage );
 		
 		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
 			Berserk berserk = Buff.affect(this, Berserk.class);
@@ -1755,8 +1753,10 @@ public class Hero extends Char {
 
 		int preHP = HP + shielding();
 		if (src instanceof Hunger) preHP -= shielding();
+		int preShield = shielding();
 		super.damage( dmg, src );
 		Talent.onHeroDamaged( this );
+		if (!(src instanceof Hunger)) Talent.onShieldAbsorb( this, preShield - shielding(), src );
 		int postHP = HP + shielding();
 		if (src instanceof Hunger) postHP -= shielding();
 		int effectiveDamage = preHP - postHP;

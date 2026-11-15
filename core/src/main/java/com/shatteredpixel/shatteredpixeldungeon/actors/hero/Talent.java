@@ -862,25 +862,37 @@ public enum Talent {
 
 	//영웅이 근접 공격을 받았을 때
 	public static void onHeroDefended( Hero hero, Char enemy ){
-		if (hero.hasTalent(REFLECTIVE_WARD) && enemy != null && hero.shielding() > 0
-				&& Dungeon.level.adjacent(hero.pos, enemy.pos)){
-			enemy.damage(hero.pointsInTalent(REFLECTIVE_WARD), hero);
-		}
 	}
 
 	public static class EmergencyChargeCooldown extends FlavourBuff{}
 	public static class QuickHandsCooldown extends FlavourBuff{}
 	public static class RelicResonanceTracker extends FlavourBuff{}
 
-	//공명술사: 유물을 쓸 때마다 쌓이고(최대 5), 다음 근접 공격에 모두 소모됨
+	//공명술사: 유물을 쓸 때마다 쌓이고(최대 5), 다음 근접 공격에 모두 소모됨.
+	//직전에 쓴 것과 다른 유물을 쓰면 2개가 쌓임
 	public static class RelicResonance extends Buff {
 		{ type = buffType.POSITIVE; }
 		public int stacks = 0;
 		private int left = 0;
+		private String lastArtifact = null;
 
-		public void gain(){
-			stacks = Math.min(5, stacks + 1);
-			left = 20;
+		public static final int MAX = 5;
+
+		public static int duration( Hero hero ){
+			return 20 + 10*hero.pointsInTalent(LINGERING_RESONANCE);
+		}
+
+		public void gain( Hero hero, Class<?> artifact ){
+			int n = 1;
+			if (artifact != null){
+				if (lastArtifact != null && !lastArtifact.equals(artifact.getName())) n = 2;
+				lastArtifact = artifact.getName();
+			}
+			stacks = Math.min(MAX, stacks + n);
+			left = duration(hero);
+			if (hero.sprite != null && n == 2){
+				hero.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 3);
+			}
 		}
 
 		@Override
@@ -894,13 +906,14 @@ public enum Talent {
 		public int icon() { return BuffIndicator.UPGRADE; }
 		public void tintIcon(Image icon) { icon.hardlight(0.3f, 0.9f, 0.85f); }
 		public String iconTextDisplay() { return Integer.toString(stacks); }
-		public String desc() { return Messages.get(this, "desc", stacks, 15*stacks, left); }
+		public String desc() { return Messages.get(this, "desc", stacks, 12*stacks, left, burstThreshold(Dungeon.hero)); }
 
 		@Override
 		public void storeInBundle(Bundle bundle) {
 			super.storeInBundle(bundle);
 			bundle.put("stacks", stacks);
 			bundle.put("left", left);
+			if (lastArtifact != null) bundle.put("last", lastArtifact);
 		}
 
 		@Override
@@ -908,6 +921,25 @@ public enum Talent {
 			super.restoreFromBundle(bundle);
 			stacks = bundle.getInt("stacks");
 			left = bundle.getInt("left");
+			lastArtifact = bundle.contains("last") ? bundle.getString("last") : null;
+		}
+	}
+
+	//공명술사: 공명 파동이 터지는 데 필요한 공명 (5, 공명 폭발 특성으로 4/3/2)
+	public static int burstThreshold( Hero hero ){
+		return RelicResonance.MAX - hero.pointsInTalent(RESONANT_BURST);
+	}
+
+	//보관인: 보호막이 피해를 막아 낼 때. 막은 피해 3마다 유물이 1턴 분량 충전되고,
+	//되받아치는 보호막 특성이 있으면 막은 피해의 일부를 가까운 공격자에게 돌려줌
+	public static void onShieldAbsorb( Hero hero, int absorbed, Object src ){
+		if (absorbed <= 0 || hero.subClass != HeroSubClass.CURATOR) return;
+		chargeArtifacts(hero, absorbed / 3f);
+		if (hero.hasTalent(REFLECTIVE_WARD) && src instanceof Char && ((Char) src).isAlive()
+				&& Dungeon.level.adjacent(hero.pos, ((Char) src).pos)){
+			int back = Math.max(1, Math.round(absorbed * 0.15f * hero.pointsInTalent(REFLECTIVE_WARD)));
+			((Char) src).damage(back, hero);
+			if (((Char) src).sprite != null) ((Char) src).sprite.flash();
 		}
 	}
 
@@ -929,9 +961,6 @@ public enum Talent {
 		if (hero.hasTalent(QUICK_HANDS) && hero.buff(QuickHandsCooldown.class) == null){
 			Buff.affect(hero, Haste.class, 1 + hero.pointsInTalent(QUICK_HANDS));   //2/3턴
 			Buff.affect(hero, QuickHandsCooldown.class, 20f);
-		}
-		if (hero.subClass == HeroSubClass.CHANNELER){
-			Buff.affect(hero, RelicResonance.class).gain();
 		}
 		//---------------------------
 
@@ -1020,10 +1049,10 @@ public enum Talent {
 		RelicResonance res = hero.buff(RelicResonance.class);
 		if (res != null && res.stacks > 0 && Dungeon.level.adjacent(hero.pos, enemy.pos)){
 			int used = res.stacks;
-			dmg = Math.round(dmg * (1f + 0.15f * used));
-			if (used >= 3 && hero.hasTalent(RESONANT_BURST)){
-				//주변 적에게 25/50/75%
-				int splash = Math.round(dmg * 0.25f * hero.pointsInTalent(RESONANT_BURST));
+			dmg = Math.round(dmg * (1f + 0.12f * used));
+			//공명 파동: 대상 주변의 다른 적에게 피해의 절반
+			if (used >= burstThreshold(hero)){
+				int splash = Math.max(1, Math.round(dmg * 0.5f));
 				for (int n : PathFinder.NEIGHBOURS8){
 					Char ch = Actor.findChar(enemy.pos + n);
 					if (ch != null && ch != hero && ch.alignment == Char.Alignment.ENEMY){
@@ -1031,9 +1060,13 @@ public enum Talent {
 						if (ch.sprite != null) ch.sprite.flash();
 					}
 				}
+				if (enemy.sprite != null){
+					new Flare( 6, 28 ).color(0x50E0D0, true).show( enemy.sprite, 1.2f );
+				}
 			}
 			if (hero.hasTalent(CHARGED_STRIKES)){
-				chargeArtifacts(hero, hero.pointsInTalent(CHARGED_STRIKES));
+				//터뜨린 공명 하나당 0.5/1/1.5턴 분량
+				chargeArtifacts(hero, used * 0.5f * hero.pointsInTalent(CHARGED_STRIKES));
 			}
 			if (hero.hasTalent(LINGERING_RESONANCE) && Random.Int(3) < hero.pointsInTalent(LINGERING_RESONANCE)){
 				res.stacks = 1;

@@ -50,6 +50,23 @@ public class AegisShell extends Image {
 		return Math.round( f.left * target.texture.width / (float) HERO_W );
 	}
 
+	//위치·프레임 맞추기. 영웅의 이동 트위너가 이 그림보다 늦게 갱신될 수 있어,
+	//그리기 직전에도 한 번 더 맞춰 한 프레임씩 뒤처지지 않게 함
+	private void sync(){
+		int idx = heroIndex();
+		//쓰러지는 프레임(8~12)에서는 갑옷도 흩어진 뒤라 보이지 않음
+		boolean dying = idx >= 8 && idx <= 12;
+		visible = target.visible && !dying;
+		if (!visible) return;
+		if (idx != lastIndex && film.get( idx ) != null){
+			frame( film.get( idx ) );
+			lastIndex = idx;
+		}
+		flipHorizontal = target.flipHorizontal;
+		x = target.x - MARGIN;
+		y = target.y - MARGIN;
+	}
+
 	@Override
 	public void update() {
 		super.update();
@@ -58,23 +75,18 @@ public class AegisShell extends Image {
 			return;
 		}
 		time += Game.elapsed;
-
-		int idx = heroIndex();
-		//쓰러지는 프레임(8~12)에서는 갑옷도 흩어진 뒤라 보이지 않음
-		boolean dying = idx >= 8 && idx <= 12;
-		visible = target.visible && !dying;
+		sync();
 		if (!visible) return;
-
-		if (idx != lastIndex && film.get( idx ) != null){
-			frame( film.get( idx ) );
-			lastIndex = idx;
-		}
-		flipHorizontal = target.flipHorizontal;
-		x = target.x - MARGIN;
-		y = target.y - MARGIN;
-
 		//숨 쉬듯 은은하게 밝아졌다 어두워짐. 투명해진 영웅에게는 그만큼 흐리게
 		float pulse = 0.82f + 0.12f * (float) Math.sin( time * 2.6f );
 		alpha( pulse * Math.min( 1f, target.alpha() ) );
+	}
+
+	@Override
+	public void draw() {
+		if (target == null || target.parent == null) return;
+		sync();
+		if (!visible) return;
+		super.draw();
 	}
 }

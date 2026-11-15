@@ -19,17 +19,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.AegisAssemble;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMirrorImage;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
@@ -38,13 +31,9 @@ import java.util.ArrayList;
 
 //수호의 반지 (클래스 이름은 옛 저장 호환을 위해 그대로 둠).
 // - 작동: 마법 갑옷을 둘러, 줄지 않는 보호막을 얻고 매 턴 재생. 5턴마다 충전 1 소모 (그림자의 망토처럼 켜고 끔)
-// - 융합: 액체 화염·서리의 물약, 충전·거울상의 주문서 가운데 하나를 녹여 넣어 속성을 부여 (새로 넣으면 바뀜)
 public class RuneAegis extends Artifact {
 
 	public static final String AC_USE = "USE";
-	public static final String AC_IMBUE = "IMBUE";
-
-	public enum Imbue { NONE, FIRE, FROST, CHARGE, MIRROR }
 
 	{
 		image = ItemSpriteSheet.RUNE_AEGIS;
@@ -60,62 +49,11 @@ public class RuneAegis extends Artifact {
 		bones = false;
 	}
 
-	private Imbue imbue = Imbue.NONE;
-
-	//속성마다 갑옷 모습이 다름
-	public static String suitTexture( Hero hero ){
-		RuneAegis a = hero == null ? null : hero.belongings.getItem( RuneAegis.class );
-		return suitTexture( a == null ? Imbue.NONE : a.imbue );
-	}
-
 	//영웅 위에 씌우는 반투명 갑옷 껍데기 (16x19 칸)
-	public static String shellTexture( Hero hero ){
-		RuneAegis a = hero == null ? null : hero.belongings.getItem( RuneAegis.class );
-		return shellTexture( a == null ? Imbue.NONE : a.imbue );
-	}
-
-	public static String shellTexture( Imbue i ){
-		switch (i){
-			case FIRE: return "sprites/rune_aegis_shell_fire.png";
-			case FROST: return "sprites/rune_aegis_shell_frost.png";
-			case CHARGE: return "sprites/rune_aegis_shell_charge.png";
-			case MIRROR: return "sprites/rune_aegis_shell_mirror.png";
-			default: return "sprites/rune_aegis_shell.png";
-		}
-	}
-
-	public static String suitTexture( Imbue i ){
-		switch (i){
-			case FIRE: return "sprites/rune_aegis_hero_fire.png";
-			case FROST: return "sprites/rune_aegis_hero_frost.png";
-			case CHARGE: return "sprites/rune_aegis_hero_charge.png";
-			case MIRROR: return "sprites/rune_aegis_hero_mirror.png";
-			default: return Assets.Sprites.RUNE_AEGIS_HERO;
-		}
-	}
-
-	public Imbue imbue(){
-		return imbue;
-	}
+	public static final String SHELL = "sprites/rune_aegis_shell.png";
 
 	public int charges(){
 		return charge;
-	}
-
-	private static final ItemSprite.Glowing FIRE_GLOW = new ItemSprite.Glowing( 0xFF6A20, 2f );
-	private static final ItemSprite.Glowing FROST_GLOW = new ItemSprite.Glowing( 0x80D8FF, 2f );
-	private static final ItemSprite.Glowing CHARGE_GLOW = new ItemSprite.Glowing( 0xFFF070, 2f );
-	private static final ItemSprite.Glowing MIRROR_GLOW = new ItemSprite.Glowing( 0xD0D0FF, 2f );
-
-	@Override
-	public ItemSprite.Glowing glowing() {
-		switch (imbue){
-			case FIRE: return FIRE_GLOW;
-			case FROST: return FROST_GLOW;
-			case CHARGE: return CHARGE_GLOW;
-			case MIRROR: return MIRROR_GLOW;
-			default: return null;
-		}
 	}
 
 	@Override
@@ -123,7 +61,6 @@ public class RuneAegis extends Artifact {
 		ArrayList<String> actions = super.actions( hero );
 		if (isEquipped( hero ) && !cursed && hero.buff( MagicImmune.class ) == null){
 			if (charge > 0 || hero.buff( RuneAegisForm.class ) != null) actions.add( AC_USE );
-			if (hero.buff( RuneAegisForm.class ) == null) actions.add( AC_IMBUE );
 		}
 		return actions;
 	}
@@ -140,18 +77,6 @@ public class RuneAegis extends Artifact {
 	public void execute( final Hero hero, String action ) {
 		super.execute( hero, action );
 
-		if (action.equals( AC_IMBUE )){
-			if (!isEquipped( hero )){
-				GLog.i( Messages.get( Artifact.class, "need_to_equip" ) );
-			} else if (cursed){
-				GLog.w( Messages.get( this, "cursed" ) );
-			} else if (hero.buff( RuneAegisForm.class ) != null){
-				GLog.w( Messages.get( this, "imbue_armored" ) );
-			} else {
-				GameScene.selectItem( imbueSelector );
-			}
-			return;
-		}
 		if (!action.equals( AC_USE )) return;
 
 		RuneAegisForm form = hero.buff( RuneAegisForm.class );
@@ -177,67 +102,19 @@ public class RuneAegis extends Artifact {
 		hero.busy();
 		hero.sprite.idle();
 		Sample.INSTANCE.play( Assets.Sounds.MELD );
-		hero.sprite.parent.add( new AegisAssemble( hero.sprite, shellTexture( imbue ), false, new Callback() {
+		hero.sprite.parent.add( new AegisAssemble( hero.sprite, SHELL, false, new Callback() {
 			@Override
 			public void call() {
 				//그림자의 망토처럼 켜는 순간 충전 하나를 씀
 				charge = Math.max( 0, charge - 1 );
 				Buff.affect( hero, RuneAegisForm.class );
-				Buff.affect( hero, RuneAegisShield.class ).setShield( RuneAegisForm.shieldMax( Math.max( 0, level() ), imbue ) );
+				Buff.affect( hero, RuneAegisShield.class ).setShield( RuneAegisForm.shieldMax( Math.max( 0, level() ) ) );
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.onArtifactUsed( hero );
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onUse( hero, RuneAegis.class );
 				updateQuickslot();
 				hero.spendAndNext( 1f );
 			}
 		} ) );
-	}
-
-	private final WndBag.ItemSelector imbueSelector = new WndBag.ItemSelector() {
-		@Override
-		public String textPrompt() {
-			return Messages.get( RuneAegis.class, "prompt" );
-		}
-
-		@Override
-		public boolean itemSelectable( Item item ) {
-			return item.isIdentified() && imbueOf( item ) != Imbue.NONE;
-		}
-
-		@Override
-		public void onSelect( Item item ) {
-			if (item == null) return;
-			Imbue to = imbueOf( item );
-			if (to == Imbue.NONE) return;
-			Hero hero = Dungeon.hero;
-			item.detach( hero.belongings.backpack );
-			imbue = to;
-			//갑옷을 두른 채 융합하면 그 자리에서 모습이 바뀜
-			RuneAegisForm form = hero.buff( RuneAegisForm.class );
-			if (form != null) form.ensureShell();
-			hero.sprite.operate( hero.pos );
-			hero.busy();
-			hero.spend( 2f );
-			Sample.INSTANCE.play( Assets.Sounds.BURNING );
-			GLog.p( Messages.get( RuneAegis.class, "imbued_" + to.name().toLowerCase() ) );
-			updateQuickslot();
-		}
-	};
-
-	private static Imbue imbueOf( Item item ){
-		if (item instanceof PotionOfLiquidFlame) return Imbue.FIRE;
-		if (item instanceof PotionOfFrost) return Imbue.FROST;
-		if (item instanceof ScrollOfRecharging) return Imbue.CHARGE;
-		if (item instanceof ScrollOfMirrorImage) return Imbue.MIRROR;
-		return Imbue.NONE;
-	}
-
-	//충전 속성: 타격마다 충전이 조금 참 (최대치를 넘지 않음)
-	public void spark(){
-		if (charge >= chargeCap) return;
-		partialCharge += 0.08f;
-		if (partialCharge >= 1f){
-			partialCharge--;
-			charge++;
-			updateQuickslot();
-		}
 	}
 
 	//갑옷이 켜져 있는 동안 몇 턴마다 불림. 충전이 남아 있지 않으면 false
@@ -288,13 +165,12 @@ public class RuneAegis extends Artifact {
 		return new Recharge();
 	}
 
-	//꺼져 있는 동안 충전이 참 (강화될수록, 그리고 충전 속성이면 더 빨리)
+	//꺼져 있는 동안 충전이 참 (강화될수록 더 빨리)
 	public class Recharge extends ArtifactBuff {
 		@Override
 		public boolean act() {
 			if (charge < chargeCap && !cursed && target.buff( RuneAegisForm.class ) == null){
 				float turnsPerCharge = 45f - level() * 2f;
-				if (imbue == Imbue.CHARGE) turnsPerCharge *= 0.6f;
 				partialCharge += 1f / turnsPerCharge;
 				if (partialCharge >= 1f){
 					partialCharge--;
@@ -318,27 +194,10 @@ public class RuneAegis extends Artifact {
 				d += Messages.get( this, "desc_cursed" );
 			} else {
 				int l = Math.max( 0, level() );
-				d += Messages.get( this, "desc_stats", RuneAegisForm.shieldMax( l, imbue ), RuneAegisForm.shieldRegen( l, imbue ),
-						RuneAegisForm.turnsPerCharge( imbue ) );
-				d += "\n\n" + Messages.get( this, "desc_" + imbue.name().toLowerCase() );
+				d += Messages.get( this, "desc_stats", RuneAegisForm.shieldMax( l ), RuneAegisForm.shieldRegen( l ),
+						RuneAegisForm.TURNS_PER_CHARGE );
 			}
 		}
 		return d;
-	}
-
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( "imbue", imbue.name() );
-	}
-
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		try {
-			imbue = bundle.contains( "imbue" ) ? Imbue.valueOf( bundle.getString( "imbue" ) ) : Imbue.NONE;
-		} catch (Exception e){
-			imbue = Imbue.NONE;
-		}
 	}
 }

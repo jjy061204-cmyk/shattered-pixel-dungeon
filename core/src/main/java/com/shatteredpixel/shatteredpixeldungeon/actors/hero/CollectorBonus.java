@@ -81,6 +81,10 @@ public class CollectorBonus {
 
 	//유물을 사용한 순간 (Talent.onArtifactUsed와 같은 자리에서 불림)
 	public static void onUse( Hero hero, Class<? extends Artifact> cls ){
+		//공명술사: 유물을 쓸 때마다 공명이 쌓임 (다른 유물을 번갈아 쓰면 더 많이)
+		if (hero.subClass == HeroSubClass.CHANNELER){
+			Buff.affect( hero, Talent.RelicResonance.class ).gain( hero, cls );
+		}
 		if (!active( hero, cls )) return;
 		int lvl = level( hero, cls );
 
