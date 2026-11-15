@@ -212,6 +212,9 @@ public class ScrollOfMetamorphosis extends ExoticScroll {
 
 			for (HeroClass cls : HeroClass.values()){
 
+				if (cls == HeroClass.TESTER) continue;
+				if (cls == HeroClass.VAMPIRE && Dungeon.hero.heroClass != HeroClass.VAMPIRE) continue;
+
 				ArrayList<LinkedHashMap<Talent, Integer>> clsTalents = new ArrayList<>();
 				Talent.initClassTalents(cls, clsTalents);
 
@@ -230,6 +233,10 @@ public class ScrollOfMetamorphosis extends ExoticScroll {
 				if (!replacingIsInSet && !clsTalentsAtTier.isEmpty()) {
 					options.put(Random.element(clsTalentsAtTier), Dungeon.hero.pointsInTalent(replacing));
 				}
+			}
+
+			while (options.size() > 6){
+				options.remove(Random.element(options.keySet()));
 			}
 
 			replaceOptions = options;

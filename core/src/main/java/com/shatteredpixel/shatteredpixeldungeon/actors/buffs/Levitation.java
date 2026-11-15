@@ -52,12 +52,26 @@ public class Levitation extends FlavourBuff {
 	
 	@Override
 	public void detach() {
+		//모드: 다른 부유 효과(핏빛 강하 등)가 아직 남아 있으면 내려앉지 않음
+		if (otherFlight()){
+			super.detach();
+			target.flying = true;
+			return;
+		}
 		target.flying = false;
 		super.detach();
 		//only press tiles if we're current in the game screen
 		if (ShatteredPixelDungeon.scene() instanceof GameScene) {
 			Dungeon.level.occupyCell(target );
 		}
+	}
+
+	protected boolean otherFlight(){
+		if (target == null) return false;
+		for (Levitation l : target.buffs( Levitation.class )){
+			if (l != this) return true;
+		}
+		return false;
 	}
 
 	//used to determine if levitation is about to end
@@ -91,6 +105,6 @@ public class Levitation extends FlavourBuff {
 	@Override
 	public void fx(boolean on) {
 		if (on) target.sprite.add(CharSprite.State.LEVITATING);
-		else target.sprite.remove(CharSprite.State.LEVITATING);
+		else if (!otherFlight()) target.sprite.remove(CharSprite.State.LEVITATING);
 	}
 }

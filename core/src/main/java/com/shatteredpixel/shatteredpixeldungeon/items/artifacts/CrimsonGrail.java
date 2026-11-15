@@ -286,10 +286,10 @@ public class CrimsonGrail extends Artifact {
 	private void bite( Hero hero, Char ch, int cell, float mult ){
 		int dmg = strike( hero, ch, mult );
 		boolean living = isLiving( ch );
-		hero.sprite.attack( cell );
+		int healing = drainHeal( hero, ch );
 		ch.damage( dmg, this );
 		if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 6 );
-		heal( hero, drainHeal( hero, ch ) );
+		heal( hero, healing );
 		gainLife( hero, living ? 1f : 0.34f );
 	}
 
@@ -306,12 +306,21 @@ public class CrimsonGrail extends Artifact {
 			case DRAIN:
 				pickAdjacent( hero, skill, new OnTarget() {
 					@Override
-					public void hit( Char ch, int cell ) {
-						//기본 공격 피해의 절반 (진조는 75%), 생명력 소모 없음
-						bite( hero, ch, cell, hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 0.75f : 0.5f );
-						Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
-						frenzy( hero );
-						finish( hero, hero.attackDelay() );
+					public void hit( final Char ch, final int cell ) {
+						Invisibility.dispel();
+						hero.busy();
+						hero.sprite.attack( cell, new Callback() {
+							@Override
+							public void call() {
+								//기본 공격 피해의 절반 (진조는 75%), 생명력 소모 없음
+								if (ch.isAlive()){
+									bite( hero, ch, cell, hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 0.75f : 0.5f );
+									Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
+									frenzy( hero );
+								}
+								finish( hero, hero.attackDelay() );
+							}
+						} );
 					}
 				} );
 				break;
@@ -326,12 +335,17 @@ public class CrimsonGrail extends Artifact {
 				break;
 
 			case MIST:
+				if (hero.rooted){
+					GLog.w( Messages.get( this, "rooted" ) );
+					break;
+				}
 				final int mistRange = 4 + hero.pointsInTalent( Talent.MIST_BODY );
 				GameScene.selectCell( new CellSelector.Listener() {
 					@Override
 					public void onSelect( Integer cell ) {
 						if (cell == null) return;
-						if (!Dungeon.level.heroFOV[cell] || Dungeon.level.solid[cell] || Actor.findChar( cell ) != null
+						if (!Dungeon.level.heroFOV[cell] || !Dungeon.level.passable[cell] || Dungeon.level.pit[cell]
+								|| Actor.findChar( cell ) != null
 								|| Dungeon.level.distance( hero.pos, cell ) > mistRange
 								|| new Ballistica( hero.pos, cell, Ballistica.PROJECTILE ).collisionPos != (int) cell){
 							GLog.w( Messages.get( CrimsonGrail.class, "mist_invalid", mistRange ) );
@@ -372,6 +386,7 @@ public class CrimsonGrail extends Artifact {
 					@Override
 					public void hit( Char ch, int cell ) {
 						spend( hero, skill );
+						Invisibility.dispel();
 						//3/5턴 동안 매혹
 						Buff.affect( ch, Charm.class, 1f + 2f * hero.pointsInTalent( Talent.ENTHRALLING_GAZE ) ).object = hero.id();
 						if (ch.sprite != null) ch.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
@@ -387,6 +402,7 @@ public class CrimsonGrail extends Artifact {
 					@Override
 					public void hit( Char ch, int cell ) {
 						spend( hero, skill );
+						Invisibility.dispel();
 						int pts = hero.pointsInTalent( Talent.BAT_SWARM );
 						ch.damage( Random.NormalIntRange( 1 + pts, 3 + lvl / 4 + pts ), CrimsonGrail.this );
 						//2/3턴 동안 실명
@@ -405,6 +421,7 @@ public class CrimsonGrail extends Artifact {
 					public void hit( Char target, final int cell ) {
 						final Ballistica shot = new Ballistica( hero.pos, cell, Ballistica.PROJECTILE );
 						spend( hero, skill );
+						Invisibility.dispel();
 						hero.busy();
 						hero.sprite.zap( cell );
 						Sample.INSTANCE.play( Assets.Sounds.ZAP );
@@ -442,6 +459,7 @@ public class CrimsonGrail extends Artifact {
 			case DREAD: {
 				spend( hero, skill );
 				int pts = hero.pointsInTalent( Talent.DREADFUL_EYES );
+				Invisibility.dispel();
 				//보이는 적 가운데 4/5칸 안의 적을 6/8턴 동안 공포에 빠뜨림
 				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
 					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
@@ -459,6 +477,7 @@ public class CrimsonGrail extends Artifact {
 			case NOVA: {
 				spend( hero, skill );
 				int pts = hero.pointsInTalent( Talent.BLOOD_NOVA );
+				Invisibility.dispel();
 				//2칸 안의 모든 적에게 피해, 맞힌 살아 있는 적 하나당 체력 2/3/4 회복
 				PathFinder.buildDistanceMap( hero.pos, BArray.not( Dungeon.level.solid, null ), 2 );
 				int healed = 0;
@@ -483,19 +502,27 @@ public class CrimsonGrail extends Artifact {
 			case FEAST:
 				pickAdjacent( hero, skill, new OnTarget() {
 					@Override
-					public void hit( Char ch, int cell ) {
+					public void hit( final Char ch, final int cell ) {
 						spend( hero, skill );
-						//기본 공격의 150% 피해, 준 피해의 절반만큼 회복 (생명체가 아니면 20%), 출혈
-						int dmg = strike( hero, ch, 1.5f );
-						boolean living = isLiving( ch );
-						hero.sprite.attack( cell );
-						ch.damage( dmg, CrimsonGrail.this );
-						if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 12 );
-						if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
-						heal( hero, Math.max( 1, Math.round( dmg * (living ? 0.5f : 0.2f) ) ) );
-						Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG, 1f, 0.8f );
-						frenzy( hero );
-						finish( hero, hero.attackDelay() );
+						Invisibility.dispel();
+						hero.busy();
+						hero.sprite.attack( cell, new Callback() {
+							@Override
+							public void call() {
+								if (ch.isAlive()){
+									//기본 공격의 150% 피해, 준 피해의 절반만큼 회복 (생명체가 아니면 20%), 출혈
+									int dmg = strike( hero, ch, 1.5f );
+									boolean living = isLiving( ch );
+									ch.damage( dmg, CrimsonGrail.this );
+									if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 12 );
+									if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
+									heal( hero, Math.max( 1, Math.round( dmg * (living ? 0.5f : 0.2f) ) ) );
+									Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG, 1f, 0.8f );
+									frenzy( hero );
+								}
+								finish( hero, hero.attackDelay() );
+							}
+						} );
 					}
 				} );
 				break;
@@ -522,8 +549,12 @@ public class CrimsonGrail extends Artifact {
 						any = true;
 					}
 				}
-				if (any) Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.8f, 0.7f );
-				frenzy( hero );
+				Invisibility.dispel();
+				if (any){
+					Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.8f, 0.7f );
+					frenzy( hero );
+				}
+				hero.sprite.operate( hero.pos );
 				finish( hero, hero.attackDelay() );
 				break;
 			}
@@ -553,6 +584,7 @@ public class CrimsonGrail extends Artifact {
 			case CHAINS: {
 				spend( hero, skill );
 				int pts = hero.pointsInTalent( Talent.BLOOD_CHAINS );
+				Invisibility.dispel();
 				//보이는 적 가운데 3칸 안의 적에게 피해를 주고 2/3/4턴 동안 묶음
 				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
 					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
@@ -657,6 +689,7 @@ public class CrimsonGrail extends Artifact {
 	//핏빛 검이 걸린 동안의 근접 공격 (Hero.attackProc에서 불림)
 	public static int onHeroAttack( Hero hero, Char enemy, int damage ){
 		if (hero.buff( BloodBlade.class ) == null || of( hero ) == null) return damage;
+		if (hero.belongings.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) return damage;
 		gainLife( hero, isLiving( enemy ) ? 1f : 0.34f );
 		if (enemy.sprite != null) enemy.sprite.emitter().burst( BloodParticle.BURST, 4 );
 		return damage + 2 + hero.lvl / 5;
@@ -713,12 +746,12 @@ public class CrimsonGrail extends Artifact {
 
 		@Override
 		public String actionName() {
-			return quickSkill.title();
+			return quickSkill != null ? quickSkill.title() : Messages.get( CrimsonGrail.this, "name" );
 		}
 
 		@Override
 		public int actionIcon() {
-			return quickSkill.icon() + ICON_ACTION_OFFSET;
+			return (quickSkill != null ? quickSkill.icon() : Skill.DRAIN.icon()) + ICON_ACTION_OFFSET;
 		}
 
 		@Override

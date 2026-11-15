@@ -288,6 +288,13 @@ public class HeroSprite extends CharSprite {
 			return;
 		}
 		super.onComplete( anim );
+		//콜백이 딸린 공격이나 시전(zap)은 원작에서 마지막 프레임이 대기 자세라 따로 되돌리지 않음.
+		//세밀한 도트 영웅은 마지막 프레임이 휘두른 자세이므로, 다른 동작이 시작되지 않았다면 직접 대기로 되돌림
+		//(콜백이 같은 동작을 다시 시작했거나 새 콜백을 걸어 두었다면 건드리지 않음)
+		if (specials != null && (anim == attack || anim == zap) && curAnim == anim && finished
+				&& animCallback == null && ch != null && ch.isAlive()){
+			plainIdle();
+		}
 	}
 
 	//모드: 영웅 고유 공격 이펙트 (뱀파이어: 은빛 장검 참격, 유물수집가: 보랏빛 연금 폭발)

@@ -181,6 +181,7 @@ public class WndHeroInfo extends WndTabbed {
 			switch (cls){
 				case VAMPIRE:
 					icons = new Image[]{ new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL),
+							Icons.TALENT.get(),
 							new ItemSprite(ItemSpriteSheet.RAPIER),
 							new ItemSprite(ItemSpriteSheet.POTION_CRIMSON)};
 					break;
@@ -224,8 +225,10 @@ public class WndHeroInfo extends WndTabbed {
 							new ItemSprite(ItemSpriteSheet.SCROLL_ISAZ)};
 					break;
 			}
-			for (Image im : icons) {
-				add(im);
+			for (int i = 0; i < icons.length; i++) {
+				add(icons[i]);
+				//모드: 문단보다 아이콘이 많으면 남는 아이콘은 숨김
+				if (i >= info.length) icons[i].visible = false;
 			}
 
 		}
@@ -242,9 +245,12 @@ public class WndHeroInfo extends WndTabbed {
 				info[i].maxWidth((int)width - 20);
 				info[i].setPos(20, pos);
 
-				icons[i].x = (20-icons[i].width())/2;
-				icons[i].y = info[i].top() + (info[i].height() - icons[i].height())/2;
-				PixelScene.align(icons[i]);
+				//모드: 설명 문단 수와 아이콘 수가 달라도 튕기지 않게 함
+				if (i < icons.length) {
+					icons[i].x = (20-icons[i].width())/2;
+					icons[i].y = info[i].top() + (info[i].height() - icons[i].height())/2;
+					PixelScene.align(icons[i]);
+				}
 
 				pos = info[i].bottom() + 4*MARGIN;
 			}
