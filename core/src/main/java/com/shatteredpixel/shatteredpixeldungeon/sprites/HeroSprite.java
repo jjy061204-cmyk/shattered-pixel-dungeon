@@ -44,9 +44,9 @@ public class HeroSprite extends CharSprite {
 	
 	private static final int RUN_FRAMERATE	= 20;
 
-	//모드: 128x128칸의 세밀한 도트. 다른 영웅과 키가 비슷하도록 줄여 그림
-	public static final int HD_WIDTH = 128, HD_HEIGHT = 128;
-	public static final float HD_SCALE = 0.135f;
+	//모드: 64x64칸의 세밀한 도트. 다른 영웅과 키가 비슷하도록 줄여 그림
+	public static final int HD_WIDTH = 64, HD_HEIGHT = 64;
+	public static final float HD_SCALE = 0.27f;
 
 	//세밀한 도트는 줄여 그릴 때 부드럽게 보이도록 선형 보간
 	public static void smooth( com.watabou.gltextures.SmartTexture tx ){
@@ -210,7 +210,7 @@ public class HeroSprite extends CharSprite {
 	public static Image avatar( HeroClass cl, int armorTier ) {
 		//세밀한 도트 영웅: 첫 프레임에서 몸이 있는 가운데 부분만 잘라 원래 초상화 크기(약 15칸 높이)로 줄임
 		if (cl.hdSheet() != null){
-			Image hd = new Image( cl.hdSheet(), 24, 0, 80, HD_HEIGHT );
+			Image hd = new Image( cl.hdSheet(), 12, 0, 40, HD_HEIGHT );
 			smooth( hd.texture );
 			hd.scale.set( 15f / HD_HEIGHT );
 			return hd;
