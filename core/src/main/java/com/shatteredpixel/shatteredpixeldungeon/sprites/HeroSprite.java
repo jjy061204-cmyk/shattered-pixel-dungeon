@@ -63,10 +63,11 @@ public class HeroSprite extends CharSprite {
 
 	//모드: 세밀한 도트 영웅의 고유 대기 동작 (가만히 있으면 가끔 재생)
 	private Animation[] specials;
+	private Animation stop;
 	private float idleTimer = 0, nextSpecial = 2.5f;
 
 	//모드: 세밀한 도트 영웅의 동작 표 ({초당 프레임, 프레임...})
-	//  0 대기, 1 걷기, 2 쓰러짐, 3 공격, 4 조작, 5 날기, 6 읽기, 7~ 고유 대기 동작
+	//  0 대기, 1 걷기, 2 쓰러짐, 3 공격, 4 조작, 5 날기, 6 읽기, 7 멈춤(걷기 → 대기 사이), 8~ 고유 대기 동작
 	public static int[][] hdAnims( HeroClass cls ){
 		switch (cls){
 			case COLLECTOR: return new int[][]{
@@ -77,18 +78,20 @@ public class HeroSprite extends CharSprite {
 					{8, 16, 17, 16, 17},
 					{1, 18},
 					{20, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19},
+					{12, 33, 34, 35},                                       //옆모습에서 정면으로 돌아오며 외투가 가라앉음
 					{6, 21, 22, 23, 24, 25, 24, 23, 24, 25, 26, 26, 22},   //유물을 닦음
 					{6, 27, 28, 29, 30, 31, 30, 31, 30, 31, 32, 32}};      //마력을 띄워 확인
 			case VAMPIRE: return new int[][]{
 					{6, 0, 1, 2, 3, 4, 5, 6, 7},                            //숨쉬기·머리카락과 드레스가 산들거림·눈 깜빡임
-					{20, 8, 9, 10, 11, 12, 13, 14, 15},                     //머리카락이 뒤로 날리고 자락이 펄럭이는 걸음
+					{20, 8, 9, 10, 11, 12, 13, 14, 15},                     //진행 방향을 바라보며, 머리카락이 뒤로 날리는 걸음
 					{14, 16, 17, 18, 19, 20, 21},
-					{16, 22, 23, 24, 25},                                   //은빛 장검 휘두르기
-					{10, 26, 27, 28, 29},
-					{4, 30, 31},
-					{18, 32, 33, 34, 34, 34, 33, 34, 34, 33, 32},
-					{6, 35, 36, 37, 38, 39, 39, 39, 40, 40, 41, 42, 41, 42, 37, 36, 35},   //와인을 마시며 음미
-					{6, 43, 44, 45, 46, 47, 48, 47, 48, 49, 49, 50, 51, 51}};             //꾸벅꾸벅 졸다가 깸
+					{18, 22, 23, 24, 25, 26, 27},                           //웅크림 → 치켜듦 → 내려벰(잔상) → 마무리
+					{10, 28, 29, 30, 31},
+					{4, 32, 33},
+					{18, 34, 35, 36, 36, 36, 35, 36, 36, 35, 34},
+					{12, 54, 55, 56, 57},                                   //멈추며 버티고 정면으로 돌아옴, 머리카락이 앞으로 쏠렸다 가라앉음
+					{6, 37, 38, 39, 40, 41, 41, 41, 42, 42, 43, 44, 43, 44, 39, 38, 37},   //와인을 마시며 음미
+					{6, 45, 46, 47, 48, 49, 50, 49, 50, 51, 51, 52, 53, 53}};             //꾸벅꾸벅 졸다가 깸
 			default: return null;
 		}
 	}
@@ -147,6 +150,7 @@ public class HeroSprite extends CharSprite {
 		
 		int[][] hd = (look != null && look.hdSheet() != null) ? hdAnims( look ) : null;
 		specials = null;
+		stop = null;
 		if (hd != null){
 			idle = hdAnim( film, hd[0], true );
 			run = hdAnim( film, hd[1], true );
@@ -156,8 +160,9 @@ public class HeroSprite extends CharSprite {
 			operate = hdAnim( film, hd[4], false );
 			fly = hdAnim( film, hd[5], true );
 			read = hdAnim( film, hd[6], false );
-			specials = new Animation[hd.length - 7];
-			for (int i = 7; i < hd.length; i++) specials[i - 7] = hdAnim( film, hd[i], false );
+			stop = hdAnim( film, hd[7], false );
+			specials = new Animation[hd.length - 8];
+			for (int i = 8; i < hd.length; i++) specials[i - 8] = hdAnim( film, hd[i], false );
 		} else {
 			idle = new Animation( 1, true );
 			idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -263,11 +268,24 @@ public class HeroSprite extends CharSprite {
 
 	@Override
 	public synchronized void onComplete( Animation anim ) {
-		if (isSpecial( anim )){
-			idle();
+		if (isSpecial( anim ) || (stop != null && anim == stop)){
+			super.idle();
 			return;
 		}
 		super.onComplete( anim );
+	}
+
+	//모드: 걷다가 멈추면 곧바로 대기 자세로 끊지 않고, 정면으로 돌아오며 몸·머리카락이 가라앉는 멈춤 동작을 거침
+	@Override
+	public void idle() {
+		if (stop != null && ch != null && ch.isAlive() && !sleeping){
+			if (curAnim == run){
+				play( stop );
+				return;
+			}
+			if (curAnim == stop && !finished) return;
+		}
+		super.idle();
 	}
 
 	//모드: 영웅 고유 공격 이펙트 (뱀파이어: 은빛 장검 참격, 유물수집가: 보랏빛 연금 폭발)

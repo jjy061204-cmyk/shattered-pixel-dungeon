@@ -16,14 +16,14 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.PointF;
 
-//공격 대상 칸에 겹쳐 그리는 4장짜리 이펙트 (effects/hero_fx.png, 32x32 칸)
+//공격 대상 칸에 겹쳐 그리는 6장짜리 이펙트 (effects/hero_fx.png, 48x48 칸)
 // 0줄: 뱀파이어의 은빛 장검 참격, 1줄: 유물수집가의 보랏빛 연금 폭발
 public class HeroAttackFX extends Image {
 
 	public static final int SLASH = 0, ALCHEMY = 1;
-	private static final int SIZE = 32;
-	private static final float DELAY = 0.06f;   //휘두르는 프레임에 맞춤
-	private static final float DUR = 0.24f;
+	private static final int SIZE = 48, FRAMES = 6;
+	private static final float DUR = 0.32f;
+	private final float delay;
 
 	private final TextureFilm film;
 	private final int row;
@@ -33,9 +33,11 @@ public class HeroAttackFX extends Image {
 		super( "effects/hero_fx.png" );
 		film = new TextureFilm( texture, SIZE, SIZE );
 		this.row = row;
-		frame( film.get( row * 4 ) );
+		//칼을 내려베는 프레임(공격 3~4번째 장)에 맞춤
+		delay = row == SLASH ? 0.12f : 0.07f;
+		frame( film.get( row * FRAMES ) );
 		origin.set( SIZE / 2f, SIZE / 2f );
-		scale.set( 0.62f );
+		scale.set( 0.56f );
 		PointF c = DungeonTilemap.raisedTileCenterToWorld( cell );
 		x = c.x - SIZE / 2f;
 		y = c.y - SIZE / 2f;
@@ -47,15 +49,15 @@ public class HeroAttackFX extends Image {
 	public void update() {
 		super.update();
 		t += Game.elapsed;
-		if (t < DELAY) return;
+		if (t < delay) return;
 		visible = true;
-		float p = (t - DELAY) / DUR;
+		float p = (t - delay) / DUR;
 		if (p >= 1f){
 			killAndErase();
 			return;
 		}
-		frame( film.get( row * 4 + Math.min( 3, (int)(p * 4) ) ) );
+		frame( film.get( row * FRAMES + Math.min( FRAMES - 1, (int)(p * FRAMES) ) ) );
 		//마지막에 조금 커지며 사라짐
-		scale.set( 0.62f + 0.12f * p );
+		scale.set( 0.56f + 0.08f * p );
 	}
 }
