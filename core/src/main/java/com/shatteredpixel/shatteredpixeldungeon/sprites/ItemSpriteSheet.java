@@ -981,6 +981,7 @@ public class ItemSpriteSheet {
 	public static final int GOLEM_HEART       = MOD_MISC2+12;   //성소 보스가 남기는 심장
 	public static final int RUNE_AEGIS        = MOD_MISC2+14;   //룬 성갑의 문장
 	public static final int RUNE_CRYSTAL      = MOD_MISC2+13;   //성소 고유 투척 수정
+	public static final int CRIMSON_GRAIL     = MOD_MISC2+15;   //뱀파이어의 핏빛 성배
 	static{
 		assignItemRect(BURN_OINTMENT, 13, 9);
 		assignItemRect(MOTION_PILL, 12, 10);
@@ -1008,6 +1009,7 @@ public class ItemSpriteSheet {
 		assignItemRect(CHESTNUTS, 14, 9);
 		assignItemRect(DEV_REMOTE, 16, 16);
 		assignItemRect(GOLEM_HEART, 16, 16);
+		assignItemRect(CRIMSON_GRAIL, 12, 15);
 		assignItemRect(RUNE_CRYSTAL, 16, 16);
 		assignItemRect(RUNE_AEGIS, 16, 16);
 	}

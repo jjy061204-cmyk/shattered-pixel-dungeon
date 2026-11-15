@@ -485,6 +485,8 @@ public enum Icons {
 				return new ItemSprite(ItemSpriteSheet.ARTIFACT_TOME);
 			case COLLECTOR:
 				return new ItemSprite(ItemSpriteSheet.ARTIFACT_ARMBAND);
+			case VAMPIRE:
+				return new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL);
 			case TESTER:
 				return new ItemSprite(ItemSpriteSheet.CRYSTAL_CHEST);
 			default:

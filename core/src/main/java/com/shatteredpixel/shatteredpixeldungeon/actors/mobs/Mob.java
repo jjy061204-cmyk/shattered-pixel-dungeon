@@ -980,6 +980,7 @@ public abstract class Mob extends Char {
 				Statistics.enemiesSlain++;
 				Talent.onEnemySlain( Dungeon.hero );
 				com.shatteredpixel.shatteredpixeldungeon.actors.hero.CollectorBonus.onEnemySlain( Dungeon.hero );
+				com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.onKill( this );
 				Badges.validateMonstersSlain();
 				Statistics.qualifiedForNoKilling = false;
 				Bestiary.setSeen(getClass());

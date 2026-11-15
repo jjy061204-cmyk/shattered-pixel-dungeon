@@ -79,6 +79,9 @@ public class WndHeroInfo extends WndTabbed {
 			case COLLECTOR:
 				tabIcon = new ItemSprite(ItemSpriteSheet.ARTIFACT_ARMBAND, null);
 				break;
+			case VAMPIRE:
+				tabIcon = new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL, null);
+				break;
 		}
 
 		int finalHeight = MIN_HEIGHT;
@@ -176,6 +179,11 @@ public class WndHeroInfo extends WndTabbed {
 			}
 
 			switch (cls){
+				case VAMPIRE:
+					icons = new Image[]{ new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL),
+							new ItemSprite(ItemSpriteSheet.RAPIER),
+							new ItemSprite(ItemSpriteSheet.POTION_CRIMSON)};
+					break;
 				case COLLECTOR:
 					icons = new Image[]{ new ItemSprite(ItemSpriteSheet.ARTIFACT_ARMBAND),
 							new ItemSprite(ItemSpriteSheet.DAGGER),

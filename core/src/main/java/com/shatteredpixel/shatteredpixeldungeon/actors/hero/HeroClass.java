@@ -99,6 +99,8 @@ public enum HeroClass {
 	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN ),
 	//모드: 유물수집가 - 유물마다 고유한 추가 효과를 얻는 영웅
 	COLLECTOR( HeroSubClass.CHANNELER, HeroSubClass.CURATOR ),
+	//모드: 뱀파이어 - 적의 생명력을 빼앗아 핏빛 성배에 담고, 그것으로 기술을 씀 (전직·특성은 아직 전사의 것을 빌림)
+	VAMPIRE( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR ),
 	//아이템 테스트용 직업: 전사의 전직·특성을 그대로 사용
 	TESTER( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
 
@@ -160,6 +162,10 @@ public enum HeroClass {
 				initCollector( hero );
 				break;
 
+			case VAMPIRE:
+				initVampire( hero );
+				break;
+
 			case TESTER:
 				initTester( hero );
 				break;
@@ -190,7 +196,7 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_DUELIST;
 			case CLERIC:
 				return Badges.Badge.MASTERY_CLERIC;
-			case COLLECTOR: case TESTER:
+			case COLLECTOR: case VAMPIRE: case TESTER:
 				return null;
 		}
 		return null;
@@ -260,6 +266,21 @@ public enum HeroClass {
 
 		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse().identify();
 		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision().identify();
+	}
+
+	private static void initVampire( Hero hero ) {
+		(hero.belongings.weapon = new Rapier()).identify();
+		hero.belongings.weapon.activate( hero );
+
+		com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail grail =
+				new com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail();
+		(hero.belongings.artifact = grail).identify();
+		hero.belongings.artifact.activate( hero );
+
+		Dungeon.quickslot.setSlot(0, grail);
+
+		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing().identify();
+		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTerror().identify();
 	}
 
 	private static void initHuntress( Hero hero ) {
@@ -390,6 +411,8 @@ public enum HeroClass {
 				return Assets.Sprites.CLERIC;
 			case COLLECTOR:
 				return Assets.Sprites.COLLECTOR;
+			case VAMPIRE:
+				return Assets.Sprites.VAMPIRE;
 			case TESTER:
 				return Assets.Sprites.TESTER;
 		}
@@ -411,6 +434,8 @@ public enum HeroClass {
 				return Assets.Splashes.CLERIC;
 			case COLLECTOR:
 				return Assets.Splashes.COLLECTOR;
+			case VAMPIRE:
+				return Assets.Splashes.VAMPIRE;
 			case TESTER:
 				return Assets.Splashes.TESTER;
 		}
@@ -433,7 +458,7 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
 			case CLERIC:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_CLERIC);
-			case COLLECTOR: case TESTER:
+			case COLLECTOR: case VAMPIRE: case TESTER:
 				return true;
 		}
 	}
