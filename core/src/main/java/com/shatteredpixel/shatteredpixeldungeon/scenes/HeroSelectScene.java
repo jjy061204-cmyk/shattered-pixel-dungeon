@@ -573,9 +573,9 @@ public class HeroSelectScene extends PixelScene {
 			this.cl = cl;
 
 			if (cl.hdSheet() != null){
-				Image hd = new Image(cl.hdSheet(), 12, 0, 72, 96);
+				Image hd = new Image(cl.hdSheet(), 8, 0, 48, 64);
 				HeroSprite.smooth(hd.texture);
-				hd.scale.set(18f / 96f);
+				hd.scale.set(18f / 64f);
 				icon(hd);
 			} else {
 				icon(new Image(cl.spritesheet(), 0, 90, 12, 15));
