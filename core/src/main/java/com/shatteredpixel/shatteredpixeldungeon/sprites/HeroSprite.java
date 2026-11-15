@@ -46,7 +46,7 @@ public class HeroSprite extends CharSprite {
 
 	//모드: 64x64칸의 세밀한 도트(꼬마 비율). 다른 영웅과 키가 비슷하도록 줄여 그림
 	public static final int HD_WIDTH = 64, HD_HEIGHT = 64;
-	public static final float HD_SCALE = 0.29f;
+	public static final float HD_SCALE = 0.32f;
 
 	//화면에서 도트 한 칸이 화면 한 픽셀 이상이면 또렷하게, 그보다 작아지면 뭉개지지 않게 부드럽게 줄임
 	public static void smooth( com.watabou.gltextures.SmartTexture tx ){
