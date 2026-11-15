@@ -1009,7 +1009,7 @@ public class ItemSpriteSheet {
 		assignItemRect(CHESTNUTS, 14, 9);
 		assignItemRect(DEV_REMOTE, 16, 16);
 		assignItemRect(GOLEM_HEART, 16, 16);
-		assignItemRect(CRIMSON_GRAIL, 12, 15);
+		assignItemRect(CRIMSON_GRAIL, 16, 16);
 		assignItemRect(RUNE_CRYSTAL, 16, 16);
 		assignItemRect(RUNE_AEGIS, 16, 16);
 	}
