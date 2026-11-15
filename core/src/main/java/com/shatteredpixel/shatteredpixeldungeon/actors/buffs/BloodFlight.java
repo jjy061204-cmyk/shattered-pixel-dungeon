@@ -45,7 +45,7 @@ public class BloodFlight extends Levitation {
 				hit = true;
 			}
 		}
-		WandOfBlastWave.BlastWave.blast( ch.pos, 1.5f, 0xCC1030 );
+		com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX.at( ch.pos, com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX.SLAM, 0.9f, 0.45f ).grow( 1.05f );
 		Sample.INSTANCE.play( Assets.Sounds.BLAST, hit ? 1f : 0.6f, 1.2f );
 		if (ch == Dungeon.hero) PixelScene.shake( 1.5f, 0.3f );
 	}

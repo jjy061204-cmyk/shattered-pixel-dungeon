@@ -79,6 +79,12 @@ public class Chains extends Group {
 		}
 	}
 
+	//모드: 사슬에 색을 입힘 (뱀파이어의 핏빛 사슬)
+	public Chains hardlight( int color ){
+		for (Image chain : chains) chain.hardlight( color );
+		return this;
+	}
+
 	@Override
 	public void update() {
 		if ((spent += Game.elapsed) > duration) {

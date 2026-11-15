@@ -38,6 +38,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Effects;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
@@ -58,6 +61,7 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
+import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -283,14 +287,24 @@ public class CrimsonGrail extends Artifact {
 		if (pts > 0) Buff.prolong( hero, Adrenaline.class, pts );
 	}
 
-	private void bite( Hero hero, Char ch, int cell, float mult ){
+	private int bite( Hero hero, Char ch, int cell, float mult ){
 		int dmg = strike( hero, ch, mult );
 		boolean living = isLiving( ch );
 		int healing = drainHeal( hero, ch );
+		VampireFX.on( ch.sprite, VampireFX.BITE, 0.55f, 0.42f );
+		bloodStream( hero, ch );
 		ch.damage( dmg, this );
 		if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 6 );
 		heal( hero, healing );
 		gainLife( hero, living ? 1f : 0.34f );
+		return dmg;
+	}
+
+	//적에게서 뱀파이어에게로 빨려 오는 핏줄기
+	private static void bloodStream( Hero hero, Char from ){
+		if (from.sprite == null || hero.sprite == null || hero.sprite.parent == null) return;
+		PointF a = from.sprite.center(), b = hero.sprite.center();
+		((MagicMissile) hero.sprite.parent.recycle( MagicMissile.class )).reset( MagicMissile.SHAMAN_RED, a, b, null );
 	}
 
 	public void use( final Skill skill ){
@@ -312,9 +326,10 @@ public class CrimsonGrail extends Artifact {
 						hero.sprite.attack( cell, new Callback() {
 							@Override
 							public void call() {
-								//기본 공격 피해의 절반 (진조는 75%), 생명력 소모 없음
+								//기본 공격 피해의 80% (진조는 100%), 생명력 소모 없음. 살아 있는 적에게는 약한 출혈
 								if (ch.isAlive()){
-									bite( hero, ch, cell, hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 0.75f : 0.5f );
+									int dmg = bite( hero, ch, cell, hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 1f : 0.8f );
+									if (ch.isAlive() && isLiving( ch )) Buff.affect( ch, Bleeding.class ).set( Math.max( 1f, dmg * 0.25f ) );
 									Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
 									frenzy( hero );
 								}
@@ -329,6 +344,7 @@ public class CrimsonGrail extends Artifact {
 				//4턴 동안 떠오른 뒤, 내려앉으며 주변 8칸에 피해 (BloodFlight)
 				spend( hero, skill );
 				Buff.affect( hero, BloodFlight.class, BloodFlight.TURNS );
+				VampireFX.on( hero.sprite, VampireFX.WINGS, 0.8f, 0.5f ).rise( 6f );
 				hero.sprite.emitter().burst( BloodParticle.BURST, 8 );
 				Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 0.7f );
 				finish( hero, 1f );
@@ -352,12 +368,13 @@ public class CrimsonGrail extends Artifact {
 							return;
 						}
 						spend( hero, skill );
-						hero.sprite.emitter().burst( Speck.factory( Speck.SMOKE ), 6 );
+						VampireFX.at( hero.pos, VampireFX.MIST, 0.75f, 0.45f );
 						ScrollOfTeleportation.appear( hero, cell );
 						Dungeon.level.occupyCell( hero );
 						Dungeon.observe();
 						GameScene.updateFog();
-						hero.sprite.emitter().burst( BloodParticle.BURST, 6 );
+						VampireFX.on( hero.sprite, VampireFX.MIST, 0.75f, 0.4f ).reversed();
+						Sample.INSTANCE.play( Assets.Sounds.PUFF );
 						//안개의 몸: 옮겨 간 뒤 2/4턴 동안 투명
 						int pts = hero.pointsInTalent( Talent.MIST_BODY );
 						if (pts > 0) Buff.affect( hero, Invisibility.class, 2f * pts );
@@ -374,7 +391,7 @@ public class CrimsonGrail extends Artifact {
 			case MEND:
 				spend( hero, skill );
 				heal( hero, Math.max( 1, Math.round( hero.HT * 0.25f ) ) );
-				hero.sprite.emitter().burst( BloodParticle.BURST, 10 );
+				VampireFX.on( hero.sprite, VampireFX.MEND, 0.7f, 0.6f );
 				Sample.INSTANCE.play( Assets.Sounds.DRINK );
 				hero.sprite.operate( hero.pos );
 				finish( hero, 1f );
@@ -389,6 +406,7 @@ public class CrimsonGrail extends Artifact {
 						Invisibility.dispel();
 						//3/5턴 동안 매혹
 						Buff.affect( ch, Charm.class, 1f + 2f * hero.pointsInTalent( Talent.ENTHRALLING_GAZE ) ).object = hero.id();
+						VampireFX.on( ch.sprite, VampireFX.CHARM, 0.6f, 0.65f ).offset( 0, -3f );
 						if (ch.sprite != null) ch.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
 						Sample.INSTANCE.play( Assets.Sounds.CHARMS );
 						hero.sprite.zap( cell );
@@ -403,14 +421,28 @@ public class CrimsonGrail extends Artifact {
 					public void hit( Char ch, int cell ) {
 						spend( hero, skill );
 						Invisibility.dispel();
-						int pts = hero.pointsInTalent( Talent.BAT_SWARM );
-						ch.damage( Random.NormalIntRange( 1 + pts, 3 + lvl / 4 + pts ), CrimsonGrail.this );
-						//2/3턴 동안 실명
-						if (ch.isAlive()) Buff.prolong( ch, Blindness.class, 1f + pts );
-						if (ch.sprite != null) ch.sprite.emitter().burst( ShadowParticle.CURSE, 8 );
-						Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 1.4f );
+						final int pts = hero.pointsInTalent( Talent.BAT_SWARM );
+						hero.busy();
 						hero.sprite.zap( cell );
-						finish( hero, 1f );
+						Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 1.4f );
+						final Char target = ch;
+						PointF a = hero.sprite.center();
+						PointF b = ch.sprite != null ? ch.sprite.center() : a;
+						VampireFX.shoot( VampireFX.Projectile.BAT, new PointF( a.x, a.y - 6 ), b, 0f, null );
+						VampireFX.shoot( VampireFX.Projectile.BAT, new PointF( a.x, a.y + 5 ), b, 0.07f, null );
+						VampireFX.shoot( VampireFX.Projectile.BAT, a, b, 0.14f, new Callback() {
+							@Override
+							public void call() {
+								if (target.isAlive()){
+									VampireFX.on( target.sprite, VampireFX.BATS, 0.6f, 0.5f );
+									target.damage( Random.NormalIntRange( 1 + pts, 3 + lvl / 4 + pts ), CrimsonGrail.this );
+									//2/3턴 동안 실명
+									if (target.isAlive()) Buff.prolong( target, Blindness.class, 1f + pts );
+									if (target.sprite != null) target.sprite.emitter().burst( ShadowParticle.CURSE, 6 );
+								}
+								finish( hero, 1f );
+							}
+						} );
 					}
 				} );
 				break;
@@ -425,9 +457,13 @@ public class CrimsonGrail extends Artifact {
 						hero.busy();
 						hero.sprite.zap( cell );
 						Sample.INSTANCE.play( Assets.Sounds.ZAP );
-						MagicMissile.boltFromChar( hero.sprite.parent, MagicMissile.SHAMAN_RED, hero.sprite, shot.collisionPos, new Callback() {
+						Char first = Actor.findChar( shot.collisionPos );
+						PointF end = first != null && first.sprite != null ? first.sprite.center()
+								: com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.raisedTileCenterToWorld( shot.collisionPos );
+						VampireFX.shoot( VampireFX.Projectile.LANCE, hero.sprite.center(), end, 0.1f, new Callback() {
 							@Override
 							public void call() {
+								VampireFX.at( shot.collisionPos, VampireFX.SPLASH, 0.6f, 0.4f );
 								Char ch = Actor.findChar( shot.collisionPos );
 								if (ch != null && ch != hero){
 									int pts = hero.pointsInTalent( Talent.BLOOD_LANCE );
@@ -450,7 +486,7 @@ public class CrimsonGrail extends Artifact {
 				//최대 체력의 15/20%만큼 보호막
 				Buff.affect( hero, Barrier.class ).setShield(
 						Math.max( 3, Math.round( hero.HT * (0.10f + 0.05f * hero.pointsInTalent( Talent.CRIMSON_VEIL )) ) ) );
-				hero.sprite.emitter().burst( BloodParticle.BURST, 12 );
+				VampireFX.on( hero.sprite, VampireFX.VEIL, 0.68f, 0.6f );
 				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 0.8f );
 				hero.sprite.operate( hero.pos );
 				finish( hero, 1f );
@@ -465,9 +501,11 @@ public class CrimsonGrail extends Artifact {
 					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
 							&& Dungeon.level.distance( hero.pos, mob.pos ) <= 3 + pts){
 						Buff.affect( mob, Terror.class, 4f + 2f * pts ).object = hero.id();
+						VampireFX.on( mob.sprite, VampireFX.DREAD, 0.36f, 0.5f ).offset( 0, -11f ).delay( 0.2f );
 						if (mob.sprite != null) mob.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
 					}
 				}
+				VampireFX.on( hero.sprite, VampireFX.DREAD, 0.85f, 0.7f ).offset( 0, -15f );
 				Sample.INSTANCE.play( Assets.Sounds.CURSED, 0.8f, 0.7f );
 				hero.sprite.operate( hero.pos );
 				finish( hero, 1f );
@@ -490,7 +528,8 @@ public class CrimsonGrail extends Artifact {
 						if (living) healed += 1 + pts;
 					}
 				}
-				WandOfBlastWave.BlastWave.blast( hero.pos, 2.5f, 0xCC1030 );
+				VampireFX.at( hero.pos, VampireFX.NOVA, 1.6f, 0.5f ).grow( 1.75f );
+				com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.shake( 1.5f, 0.25f );
 				Sample.INSTANCE.play( Assets.Sounds.BLAST );
 				if (healed > 0) heal( hero, healed );
 				hero.sprite.operate( hero.pos );
@@ -513,6 +552,8 @@ public class CrimsonGrail extends Artifact {
 									//기본 공격의 150% 피해, 준 피해의 절반만큼 회복 (생명체가 아니면 20%), 출혈
 									int dmg = strike( hero, ch, 1.5f );
 									boolean living = isLiving( ch );
+									VampireFX.on( ch.sprite, VampireFX.JAWS, 0.75f, 0.45f );
+									bloodStream( hero, ch );
 									ch.damage( dmg, CrimsonGrail.this );
 									if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 12 );
 									if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
@@ -532,7 +573,8 @@ public class CrimsonGrail extends Artifact {
 				//박쥐로 변해 8턴 동안 날고 6턴 동안 가속
 				Buff.affect( hero, Levitation.class, 8f );
 				Buff.affect( hero, Haste.class, 6f );
-				hero.sprite.emitter().burst( ShadowParticle.CURSE, 10 );
+				VampireFX.on( hero.sprite, VampireFX.BATBURST, 0.9f, 0.6f );
+				hero.sprite.emitter().burst( ShadowParticle.CURSE, 6 );
 				Sample.INSTANCE.play( Assets.Sounds.MELD );
 				finish( hero, 1f );
 				break;
@@ -550,6 +592,7 @@ public class CrimsonGrail extends Artifact {
 					}
 				}
 				Invisibility.dispel();
+				VampireFX.on( hero.sprite, VampireFX.SIPHON, 0.95f, 0.55f );
 				if (any){
 					Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.8f, 0.7f );
 					frenzy( hero );
@@ -564,7 +607,7 @@ public class CrimsonGrail extends Artifact {
 				spend( hero, skill );
 				//12턴 동안 근접 공격에 추가 피해가 붙고, 맞힐 때마다 생명력을 빼앗음
 				Buff.affect( hero, BloodBlade.class, BloodBlade.TURNS );
-				hero.sprite.emitter().burst( BloodParticle.BURST, 10 );
+				VampireFX.on( hero.sprite, VampireFX.BLADE, 0.62f, 0.6f ).offset( 0, -3f );
 				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 1.2f );
 				hero.sprite.operate( hero.pos );
 				finish( hero, 1f );
@@ -575,7 +618,8 @@ public class CrimsonGrail extends Artifact {
 				//다른 유물을 10턴 분량만큼 곧바로 충전하고, 마법 막대를 5턴 동안 충전
 				ArtifactRecharge.chargeArtifacts( hero, 10f );
 				Buff.affect( hero, Recharging.class, 5f );
-				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 8 );
+				VampireFX.on( hero.sprite, VampireFX.INFUSE, 0.72f, 0.6f ).offset( 0, -5f );
+				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
 				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 				hero.sprite.operate( hero.pos );
 				finish( hero, 1f );
@@ -589,9 +633,12 @@ public class CrimsonGrail extends Artifact {
 				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
 					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
 							&& Dungeon.level.distance( hero.pos, mob.pos ) <= 3){
+						if (mob.sprite != null && hero.sprite.parent != null){
+							hero.sprite.parent.add( new Chains( hero.sprite.center(), mob.sprite.center(), Effects.Type.CHAIN, null ).hardlight( 0xE8304C ) );
+							VampireFX.on( mob.sprite, VampireFX.SHACKLE, 0.5f, 0.6f ).delay( 0.15f );
+						}
 						mob.damage( Random.NormalIntRange( 2 + lvl / 4, 4 + lvl / 2 ), this );
 						if (mob.isAlive()) Buff.prolong( mob, Roots.class, 1f + pts );
-						if (mob.sprite != null) mob.sprite.emitter().burst( BloodParticle.BURST, 6 );
 					}
 				}
 				Sample.INSTANCE.play( Assets.Sounds.CHAINS );
