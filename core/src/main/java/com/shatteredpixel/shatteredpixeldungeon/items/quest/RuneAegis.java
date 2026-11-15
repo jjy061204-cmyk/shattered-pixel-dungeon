@@ -68,6 +68,22 @@ public class RuneAegis extends Artifact {
 		return suitTexture( a == null ? Imbue.NONE : a.imbue );
 	}
 
+	//영웅 위에 씌우는 반투명 갑옷 껍데기 (16x19 칸)
+	public static String shellTexture( Hero hero ){
+		RuneAegis a = hero == null ? null : hero.belongings.getItem( RuneAegis.class );
+		return shellTexture( a == null ? Imbue.NONE : a.imbue );
+	}
+
+	public static String shellTexture( Imbue i ){
+		switch (i){
+			case FIRE: return "sprites/rune_aegis_shell_fire.png";
+			case FROST: return "sprites/rune_aegis_shell_frost.png";
+			case CHARGE: return "sprites/rune_aegis_shell_charge.png";
+			case MIRROR: return "sprites/rune_aegis_shell_mirror.png";
+			default: return "sprites/rune_aegis_shell.png";
+		}
+	}
+
 	public static String suitTexture( Imbue i ){
 		switch (i){
 			case FIRE: return "sprites/rune_aegis_hero_fire.png";
@@ -161,17 +177,13 @@ public class RuneAegis extends Artifact {
 		hero.busy();
 		hero.sprite.idle();
 		Sample.INSTANCE.play( Assets.Sounds.MELD );
-		hero.sprite.parent.add( new AegisAssemble( hero.sprite, suitTexture( imbue ), false, new Callback() {
+		hero.sprite.parent.add( new AegisAssemble( hero.sprite, shellTexture( imbue ), false, new Callback() {
 			@Override
 			public void call() {
 				//그림자의 망토처럼 켜는 순간 충전 하나를 씀
 				charge = Math.max( 0, charge - 1 );
 				Buff.affect( hero, RuneAegisForm.class );
 				Buff.affect( hero, RuneAegisShield.class ).setShield( RuneAegisForm.shieldMax( Math.max( 0, level() ), imbue ) );
-				if (hero.sprite instanceof HeroSprite){
-					((HeroSprite) hero.sprite).updateArmor();
-					hero.sprite.place( hero.pos );
-				}
 				updateQuickslot();
 				hero.spendAndNext( 1f );
 			}
@@ -198,10 +210,8 @@ public class RuneAegis extends Artifact {
 			item.detach( hero.belongings.backpack );
 			imbue = to;
 			//갑옷을 두른 채 융합하면 그 자리에서 모습이 바뀜
-			if (hero.buff( RuneAegisForm.class ) != null && hero.sprite instanceof HeroSprite){
-				((HeroSprite) hero.sprite).updateArmor();
-				hero.sprite.place( hero.pos );
-			}
+			RuneAegisForm form = hero.buff( RuneAegisForm.class );
+			if (form != null) form.ensureShell();
 			hero.sprite.operate( hero.pos );
 			hero.busy();
 			hero.spend( 2f );

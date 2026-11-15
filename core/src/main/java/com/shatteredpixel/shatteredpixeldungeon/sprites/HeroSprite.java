@@ -68,23 +68,10 @@ public class HeroSprite extends CharSprite {
 		updateArmor();
 	}
 	
-	//모드: 룬 성갑을 두른 동안은 전신 갑옷 모습 (영웅과 같은 12x15 칸·같은 프레임 순서)
-	private boolean aegisLook = false;
-
+	//모드: 수호의 반지 갑옷은 영웅 위에 따로 씌우는 반투명 껍데기(AegisShell)로 그림. 영웅 모습은 그대로
 	public void updateArmor() {
 
-		TextureFilm film;
-		if (Dungeon.hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RuneAegisForm.class ) != null){
-			texture( com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis.suitTexture( Dungeon.hero ) );
-			film = new TextureFilm( texture, FRAME_WIDTH, FRAME_HEIGHT );
-			aegisLook = true;
-		} else {
-			if (aegisLook){
-				texture( Dungeon.hero.heroClass.spritesheet() );
-				aegisLook = false;
-			}
-			film = new TextureFilm( tiers(), Dungeon.hero.tier(), FRAME_WIDTH, FRAME_HEIGHT );
-		}
+		TextureFilm film = new TextureFilm( tiers(), Dungeon.hero.tier(), FRAME_WIDTH, FRAME_HEIGHT );
 		
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );

@@ -20,11 +20,11 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-//마법 갑옷이 입혀지는 동작: 반지를 낀 손에서부터 갑옷의 픽셀이 팔을 타고 온몸으로 번져 나감.
-//새로 돋는 픽셀은 잠깐 청록빛으로 빛난 뒤 제 색으로 가라앉음. 다 덮이면 실제 스프라이트로 바뀜
+//마법 갑옷이 입혀지는 동작: 반지를 낀 손에서부터 반투명 갑옷의 픽셀이 팔을 타고 온몸으로 번져 나감.
+//새로 돋는 픽셀은 잠깐 하얗게 빛난 뒤 제 색으로 가라앉음. 다 덮이면 영웅 위에 갑옷 껍데기(AegisShell)가 씌워짐
 public class AegisAssemble extends Group {
 
-	private static final int W = 12, H = 15;
+	private static final int W = AegisShell.W, H = AegisShell.H, M = AegisShell.MARGIN;
 	private static final float SPREAD = 0.07f;   //핵에서 한 픽셀 멀어질 때마다 늦어지는 시간
 	private static final float GLOW = 0.16f, HOLD = 0.3f;
 
@@ -49,11 +49,11 @@ public class AegisAssemble extends Group {
 				int c = tx.getPixel( x, y );
 				if ((c >>> 24) == 0) continue;
 				ColorBlock b = new ColorBlock( 1, 1, c );
-				b.x = target.x + (target.flipHorizontal ? (W - 1 - x) : x);
-				b.y = target.y + y;
+				b.x = target.x - M + (target.flipHorizontal ? (W - 1 - x) : x);
+				b.y = target.y - M + y;
 				b.visible = dissolve;
 				//반지를 낀 손에서 시작해 팔을 타고 온몸으로 번짐
-				float d = Math.abs( x - 9f ) + Math.abs( y - 10f ) * 0.8f;
+				float d = Math.abs( x - (9f + M) ) + Math.abs( y - (10f + M) ) * 0.8f;
 				delays[n] = d * SPREAD + Random.Float( 0.08f );
 				total = Math.max( total, delays[n] );
 				blocks[n++] = b;

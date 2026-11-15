@@ -84,6 +84,9 @@ public class HeroSelectScene extends PixelScene {
 	//fading UI elements
 	private RenderedTextBlock title;
 	private ArrayList<StyledButton> heroBtns = new ArrayList<>();
+	//모드: 영웅 선택 버튼은 한 줄에 5칸
+	private static final int HERO_COLS = 5;
+	private float heroBarHeight = 24; //세로 화면에서 영웅 버튼 줄들이 차지하는 높이
 	private RenderedTextBlock heroName; //only on landscape
 	private RenderedTextBlock heroDesc; //only on landscape
 	private StyledButton startBtn;
@@ -255,30 +258,23 @@ public class HeroSelectScene extends PixelScene {
 			title.setPos(insets.left + (leftArea - title.width())/2f, (h-uiHeight)/2f);
 			align(title);
 
-			int btnWidth = HeroBtn.MIN_WIDTH + 15;
+			//모드: 영웅이 늘어나 한 줄에 5칸씩, 여러 줄로 나열 (남는 칸은 가운데 정렬)
+			int cols = Math.min(HERO_COLS, heroBtns.size());
+			int rows = (heroBtns.size() + cols - 1) / cols;
+			int btnWidth = (int)Math.max(HeroBtn.MIN_WIDTH, Math.min(HeroBtn.MIN_WIDTH + 15, (leftArea - (cols-1)) / cols));
 			int btnHeight = HeroBtn.HEIGHT;
 			if (uiHeight >= 180){
 				btnHeight += 6;
 			}
 
-			int cols = (int)Math.ceil(heroBtns.size()/2f);
-			float curX = insets.left + (leftArea - btnWidth * cols + (cols-1))/2f;
 			float curY = title.bottom() + uiSpacing;
-
-			int count = 0;
-			for (StyledButton button : heroBtns){
-				button.setRect(curX, curY, btnWidth, btnHeight);
+			for (int i = 0; i < heroBtns.size(); i++){
+				int row = i / cols;
+				int inRow = Math.min(cols, heroBtns.size() - row*cols);
+				float rowX = insets.left + (leftArea - btnWidth * inRow - (inRow-1))/2f;
+				StyledButton button = heroBtns.get(i);
+				button.setRect(rowX + (i % cols)*(btnWidth+1), curY + row*(btnHeight+1), btnWidth, btnHeight);
 				align(button);
-				curX += btnWidth+1;
-				count++;
-				if (count >= (1+heroBtns.size())/2){
-					curX -= btnWidth*count + count;
-					curY += btnHeight+1;
-					if (heroBtns.size()%2 != 0){
-						curX += btnWidth/2f;
-					}
-					count = 0;
-				}
 			}
 
 			heroName = renderTextBlock(9);
@@ -325,18 +321,19 @@ public class HeroSelectScene extends PixelScene {
 		} else {
 			background.visible = false;
 
-			int btnWidth = HeroBtn.MIN_WIDTH;
+			//모드: 화면 아래에 한 줄 5칸씩 여러 줄로 나열 (마지막 줄은 가운데 정렬)
+			int cols = Math.min(HERO_COLS, heroBtns.size());
+			int rows = (heroBtns.size() + cols - 1) / cols;
+			int btnWidth = (int)Math.max(HeroBtn.MIN_WIDTH, Math.min(HeroBtn.MIN_WIDTH + 15, w / cols));
+			heroBarHeight = rows * HeroBtn.HEIGHT;
 
-			float curX = insets.left + (w - btnWidth * heroBtns.size()) / 2f;
-			if (curX > 0) {
-				btnWidth += Math.min(curX / (heroBtns.size() / 2f), 15);
-				curX = insets.left + (w - btnWidth * heroBtns.size()) / 2f;
-			}
-			float curY = insets.top + h - HeroBtn.HEIGHT + 3;
-
-			for (StyledButton button : heroBtns) {
-				button.setRect(curX, curY, btnWidth, HeroBtn.HEIGHT + insets.bottom);
-				curX += btnWidth;
+			float topY = insets.top + h - heroBarHeight + 3;
+			for (int i = 0; i < heroBtns.size(); i++){
+				int row = i / cols;
+				int inRow = Math.min(cols, heroBtns.size() - row*cols);
+				float rowX = insets.left + (w - btnWidth * inRow) / 2f;
+				boolean last = row == rows - 1;
+				heroBtns.get(i).setRect(rowX + (i % cols)*btnWidth, topY + row*HeroBtn.HEIGHT, btnWidth, HeroBtn.HEIGHT + (last ? insets.bottom : 0));
 			}
 
 			//add a darkening bar along bottom
@@ -349,9 +346,9 @@ public class HeroSelectScene extends PixelScene {
 				add(blocker);
 			}
 
-			title.setPos(insets.left + (w - title.width()) / 2f, insets.top + (h - HeroBtn.HEIGHT - title.height() - 4));
+			title.setPos(insets.left + (w - title.width()) / 2f, insets.top + (h - heroBarHeight - title.height() - 4));
 
-			btnOptions.setRect(heroBtns.get(0).left() + 16, Camera.main.height-HeroBtn.HEIGHT-16, 20, 21);
+			btnOptions.setRect(heroBtns.get(0).left() + 16, Camera.main.height-heroBarHeight-16, 20, 21);
 			optionsPane.setPos(heroBtns.get(0).left(), 0);
 		}
 
@@ -463,7 +460,7 @@ public class HeroSelectScene extends PixelScene {
 			startBtn.text(Messages.titleCase(cl.title()));
 			startBtn.setSize(startBtn.reqWidth() + 8, 21);
 
-			startBtn.setPos((Camera.main.width - startBtn.width())/2f, (Camera.main.height - insets.bottom - HeroBtn.HEIGHT + 2 - startBtn.height()));
+			startBtn.setPos((Camera.main.width - startBtn.width())/2f, (Camera.main.height - insets.bottom - heroBarHeight + 2 - startBtn.height()));
 			PixelScene.align(startBtn);
 
 			infoButton.visible = infoButton.active = true;

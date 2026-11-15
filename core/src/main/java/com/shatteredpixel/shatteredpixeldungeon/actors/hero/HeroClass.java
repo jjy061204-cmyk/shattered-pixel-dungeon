@@ -410,7 +410,7 @@ public enum HeroClass {
 			case CLERIC:
 				return Assets.Splashes.CLERIC;
 			case COLLECTOR:
-				return Assets.Splashes.ROGUE;   //전용 일러스트가 아직 없음
+				return Assets.Splashes.COLLECTOR;
 			case TESTER:
 				return Assets.Splashes.TESTER;
 		}

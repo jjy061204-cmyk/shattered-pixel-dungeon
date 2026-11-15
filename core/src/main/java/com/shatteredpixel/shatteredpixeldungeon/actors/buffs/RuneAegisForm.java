@@ -89,6 +89,7 @@ public class RuneAegisForm extends Buff {
 			detach();
 			return true;
 		}
+		ensureShell();
 		int lvl = Math.max( 0, a.level() );
 		RuneAegis.Imbue im = a.imbue();
 		Hero hero = (Hero) target;
@@ -209,15 +210,52 @@ public class RuneAegisForm extends Buff {
 		return Math.max( 0, (per - turns) / per );
 	}
 
+	//영웅 위에 씌우는 반투명 갑옷 껍데기
+	private com.shatteredpixel.shatteredpixeldungeon.effects.AegisShell shell;
+
+	private String shellLook(){
+		RuneAegis a = ring();
+		return RuneAegis.shellTexture( a == null ? RuneAegis.Imbue.NONE : a.imbue() );
+	}
+
+	public void ensureShell(){
+		if (target == null || target.sprite == null || target.sprite.parent == null) return;
+		if (shell != null && shell.parent != null && shell.target() == target.sprite){
+			shell.setLook( shellLook() );
+			return;
+		}
+		if (shell != null) shell.killAndErase();
+		shell = new com.shatteredpixel.shatteredpixeldungeon.effects.AegisShell( target.sprite, shellLook() );
+		target.sprite.parent.add( shell );
+	}
+
+	@Override
+	public void fx( boolean on ) {
+		if (on){
+			if (target.sprite != null && target.sprite.parent != null){
+				ensureShell();
+			} else {
+				//불러오는 중에는 영웅 그림이 아직 화면에 붙지 않았으니 다음 프레임에 씌움
+				com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon.runOnRenderThread( new com.watabou.utils.Callback() {
+					@Override
+					public void call() {
+						if (target != null && target.buff( RuneAegisForm.class ) == RuneAegisForm.this) ensureShell();
+					}
+				} );
+			}
+		} else if (shell != null){
+			shell.killAndErase();
+			shell = null;
+		}
+	}
+
 	@Override
 	public void detach() {
 		Char ch = target;
 		super.detach();
 		if (ch != null) Buff.detach( ch, RuneAegisShield.class );
 		if (ch instanceof Hero && ch.sprite instanceof HeroSprite && ch.isAlive()){
-			String tex = RuneAegis.suitTexture( (Hero) ch );
-			((HeroSprite) ch.sprite).updateArmor();
-			ch.sprite.place( ch.pos );
+			String tex = RuneAegis.shellTexture( (Hero) ch );
 			//갑옷이 입자로 흩어져 사라지는 모습
 			if (ch.sprite.parent != null){
 				ch.sprite.parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.AegisAssemble( ch.sprite, tex, true, null ) );

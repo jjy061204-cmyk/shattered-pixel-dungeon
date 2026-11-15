@@ -1,0 +1,80 @@
+/*
+ * Shattered Pixel Dungeon 모드: 수호의 반지 마법 갑옷
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+package com.shatteredpixel.shatteredpixeldungeon.effects;
+
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
+import com.watabou.noosa.TextureFilm;
+import com.watabou.utils.RectF;
+
+//영웅의 모습은 그대로 두고, 그 위에 한 겹 크게 반투명한 마법 갑옷을 씌움.
+//갑옷 그림은 영웅 프레임(12x15)과 같은 순서의 16x19 칸이라 걷기·공격 동작을 그대로 따라감
+public class AegisShell extends Image {
+
+	public static final int W = 16, H = 19, MARGIN = 2;
+	private static final int HERO_W = 12;
+
+	private final CharSprite target;
+	private TextureFilm film;
+	private float time = 0;
+	private int lastIndex = -1;
+
+	public AegisShell( CharSprite target, String tex ){
+		super( tex );
+		this.target = target;
+		film = new TextureFilm( texture, W, H );
+		frame( film.get( 0 ) );
+	}
+
+	public CharSprite target(){
+		return target;
+	}
+
+	public void setLook( String tex ){
+		texture( tex );
+		film = new TextureFilm( texture, W, H );
+		lastIndex = -1;
+	}
+
+	private int heroIndex(){
+		RectF f = target.frame();
+		if (f == null || target.texture == null) return 0;
+		return Math.round( f.left * target.texture.width / (float) HERO_W );
+	}
+
+	@Override
+	public void update() {
+		super.update();
+		if (target == null || target.parent == null){
+			killAndErase();
+			return;
+		}
+		time += Game.elapsed;
+
+		int idx = heroIndex();
+		//쓰러지는 프레임(8~12)에서는 갑옷도 흩어진 뒤라 보이지 않음
+		boolean dying = idx >= 8 && idx <= 12;
+		visible = target.visible && !dying;
+		if (!visible) return;
+
+		if (idx != lastIndex && film.get( idx ) != null){
+			frame( film.get( idx ) );
+			lastIndex = idx;
+		}
+		flipHorizontal = target.flipHorizontal;
+		x = target.x - MARGIN;
+		y = target.y - MARGIN;
+
+		//숨 쉬듯 은은하게 밝아졌다 어두워짐. 투명해진 영웅에게는 그만큼 흐리게
+		float pulse = 0.82f + 0.12f * (float) Math.sin( time * 2.6f );
+		alpha( pulse * Math.min( 1f, target.alpha() ) );
+	}
+}
