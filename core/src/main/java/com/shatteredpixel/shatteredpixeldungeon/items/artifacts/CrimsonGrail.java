@@ -27,7 +27,9 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndGrailSkills;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -36,7 +38,8 @@ import java.util.ArrayList;
 
 //뱀파이어 전용 성배. 충전 = 적에게서 빼앗은 생명력.
 // - 저절로 차지 않고, 적을 쓰러뜨릴 때만 참. 생명체가 아닌 적(언데드·무기물)에게서는 1/3만 얻음
-// - 생명력을 써서 기술을 씀. 쓴 생명력이 쌓이면 성배가 강해짐
+// - 성직자의 성서처럼 기술 창(WndGrailSkills)에서 기술을 골라 씀. 길게 누르면 빠른 사용에 등록
+// - 쓴 생명력이 쌓이면 성배가 강해짐
 public class CrimsonGrail extends Artifact {
 
 	public static final String AC_SKILL = "SKILL";
@@ -47,9 +50,9 @@ public class CrimsonGrail extends Artifact {
 		exp = 0;
 		levelCap = 10;
 
-		charge = 5;
+		charge = 8;
 		partialCharge = 0;
-		chargeCap = 20;
+		chargeCap = 30;
 
 		defaultAction = AC_SKILL;
 
@@ -59,17 +62,43 @@ public class CrimsonGrail extends Artifact {
 
 	//기술: 이름, 드는 생명력
 	public enum Skill {
-		DRAIN( 4 ), MIST( 6 ), MEND( 8 );
+		DRAIN( 4, 112 ), MIST( 6, 113 ), MEND( 8, 114 );
 
 		public final int cost;
-		Skill( int cost ){ this.cost = cost; }
+		public final int icon;      //hero_icons 칸 번호 (+ICON_ACTION_OFFSET: 배경 없는 행동 표시용)
+		Skill( int cost, int icon ){ this.cost = cost; this.icon = icon; }
 
 		public String title(){ return Messages.get( CrimsonGrail.class, "skill_" + name().toLowerCase() ); }
 		public String desc(){ return Messages.get( CrimsonGrail.class, "skill_" + name().toLowerCase() + "_desc" ); }
 	}
 
+	public static final int ICON_ACTION_OFFSET = 8;
+
 	public int vitality(){
 		return charge;
+	}
+
+	public int lifeCap(){
+		return chargeCap;
+	}
+
+	public boolean canUse( Hero hero, Skill skill ){
+		return isEquipped( hero ) && !cursed && hero.buff( MagicImmune.class ) == null && charge >= skill.cost;
+	}
+
+	//빠른 사용: 기술 창에서 길게 눌러 등록하면 화면의 행동 버튼으로 바로 씀 (같은 기술을 다시 등록하면 해제)
+	private Skill quickSkill = null;
+
+	public Skill quickSkill(){ return quickSkill; }
+
+	public void setQuickSkill( Skill skill ){
+		if (quickSkill == skill){
+			quickSkill = null;
+			if (passiveBuff != null) ActionIndicator.clearAction( (ActionIndicator.Action) passiveBuff );
+		} else {
+			quickSkill = skill;
+			if (passiveBuff != null) ActionIndicator.setAction( (ActionIndicator.Action) passiveBuff );
+		}
 	}
 
 	@Override
@@ -95,40 +124,16 @@ public class CrimsonGrail extends Artifact {
 			return;
 		}
 
-		final Skill[] skills = Skill.values();
-		String[] opts = new String[skills.length];
-		for (int i = 0; i < skills.length; i++){
-			opts[i] = Messages.get( this, "skill_option", skills[i].title(), skills[i].cost );
-		}
-		GameScene.show( new WndOptions( new ItemSprite( this ), Messages.titleCase( name() ),
-				Messages.get( this, "skill_prompt", charge, chargeCap ), opts ){
-			@Override
-			protected boolean enabled( int index ) {
-				return charge >= skills[index].cost;
-			}
-
-			@Override
-			protected void onSelect( int index ) {
-				use( skills[index] );
-			}
-
-			@Override
-			protected boolean hasInfo( int index ) {
-				return true;
-			}
-
-			@Override
-			protected void onInfo( int index ) {
-				GameScene.show( new com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage(
-						new ItemSprite( CrimsonGrail.this ), skills[index].title(), skills[index].desc() ) );
-			}
-		} );
+		GameScene.show( new WndGrailSkills( this, hero, false ) );
 	}
 
-	private void use( final Skill skill ){
+	public void use( final Skill skill ){
 		final Hero hero = Dungeon.hero;
 		switch (skill){
 			case DRAIN:
+				if (Dungeon.quickslot.contains( this )){
+					QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
+				}
 				GameScene.selectCell( new CellSelector.Listener() {
 					@Override
 					public void onSelect( Integer cell ) {
@@ -204,12 +209,12 @@ public class CrimsonGrail extends Artifact {
 				Integer.toString( amount ), com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText.HEALING );
 	}
 
-	//생명력을 쓰고, 쓴 만큼 성배가 자람 (20을 쓸 때마다 한 단계, 최대치 +2)
+	//생명력을 쓰고, 쓴 만큼 성배가 자람 (30을 쓸 때마다 한 단계, 최대치 +3)
 	private void spend( int cost ){
 		charge = Math.max( 0, charge - cost );
 		exp += cost;
-		while (level() < levelCap && exp >= 20){
-			exp -= 20;
+		while (level() < levelCap && exp >= 30){
+			exp -= 30;
 			upgrade();
 			GLog.p( Messages.get( this, "levelup" ) );
 		}
@@ -218,7 +223,7 @@ public class CrimsonGrail extends Artifact {
 
 	@Override
 	public Artifact upgrade() {
-		chargeCap = Math.min( chargeCap + 2, 40 );
+		chargeCap = Math.min( chargeCap + 3, 60 );
 		return (Artifact) super.upgrade();
 	}
 
@@ -234,8 +239,8 @@ public class CrimsonGrail extends Artifact {
 		CrimsonGrail g = hero.belongings.getItem( CrimsonGrail.class );
 		if (g == null || !g.isEquipped( hero ) || g.cursed) return;
 
-		//최대 체력의 15% (1~8). 생명체가 아니면 그 1/3, 소수점은 조금씩 모아 둠
-		float gain = Math.max( 1f, Math.min( 8f, mob.HT * 0.15f ) );
+		//최대 체력의 30% (2~16). 생명체가 아니면 그 1/3, 소수점은 조금씩 모아 둠
+		float gain = Math.max( 2f, Math.min( 16f, mob.HT * 0.3f ) );
 		if (!isLiving( mob )) gain /= 3f;
 		g.partialCharge += gain;
 		int whole = (int) g.partialCharge;
@@ -257,11 +262,56 @@ public class CrimsonGrail extends Artifact {
 		return new Vessel();
 	}
 
-	public class Vessel extends ArtifactBuff {
+	public class Vessel extends ArtifactBuff implements ActionIndicator.Action {
+
+		@Override
+		public boolean attachTo( Char target ) {
+			if (super.attachTo( target )){
+				if (quickSkill != null) ActionIndicator.setAction( this );
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public void detach() {
+			super.detach();
+			ActionIndicator.clearAction( this );
+		}
+
 		@Override
 		public boolean act() {
 			spend( TICK );
 			return true;
+		}
+
+		@Override
+		public String actionName() {
+			return quickSkill.title();
+		}
+
+		@Override
+		public int actionIcon() {
+			return quickSkill.icon + ICON_ACTION_OFFSET;
+		}
+
+		@Override
+		public int indicatorColor() {
+			return 0x5A0A1E;
+		}
+
+		@Override
+		public void doAction() {
+			if (quickSkill == null) return;
+			if (cursed){
+				GLog.w( Messages.get( CrimsonGrail.this, "cursed" ) );
+				return;
+			}
+			if (!canUse( Dungeon.hero, quickSkill )){
+				GLog.w( Messages.get( CrimsonGrail.this, "no_skill" ) );
+				return;
+			}
+			use( quickSkill );
 		}
 	}
 
@@ -277,5 +327,15 @@ public class CrimsonGrail extends Artifact {
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
+		if (quickSkill != null) bundle.put( "quick_skill", quickSkill.name() );
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ) {
+		super.restoreFromBundle( bundle );
+		quickSkill = null;
+		if (bundle.contains( "quick_skill" )){
+			try { quickSkill = Skill.valueOf( bundle.getString( "quick_skill" ) ); } catch (Exception e) { quickSkill = null; }
+		}
 	}
 }

@@ -139,6 +139,15 @@ public class HeroIcon extends Image {
 		frame(film.get(action.actionIcon()));
 	}
 
+	//모드: 뱀파이어의 핏빛 성배 기술
+	public HeroIcon(com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.Skill skill){
+		super( Assets.Interfaces.HERO_ICONS );
+		if (film == null){
+			film = new TextureFilm(texture, SIZE, SIZE);
+		}
+		frame(film.get(skill.icon));
+	}
+
 	public HeroIcon(ClericSpell spell){
 		super( Assets.Interfaces.HERO_ICONS );
 		if (film == null){
