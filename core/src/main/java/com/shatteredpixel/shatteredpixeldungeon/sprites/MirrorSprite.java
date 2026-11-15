@@ -67,17 +67,27 @@ public class MirrorSprite extends MobSprite {
 			film = new TextureFilm( HeroSprite.tiers(), tier, FRAME_WIDTH, FRAME_HEIGHT );
 		}
 		
-		idle = new Animation( 1, true );
-		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
-		
-		run = new Animation( 20, true );
-		run.frames( film, 2, 3, 4, 5, 6, 7 );
-		
-		die = new Animation( 20, false );
-		die.frames( film, 0 );
-		
-		attack = new Animation( 15, false );
-		attack.frames( film, 13, 14, 15, 0 );
+		int[][] hd = cl.hdSheet() != null ? HeroSprite.hdAnims( cl ) : null;
+		if (hd != null){
+			//분신도 본체와 같은 동작 표를 씀
+			idle = HeroSprite.hdAnim( film, hd[0], true );
+			run = HeroSprite.hdAnim( film, hd[1], true );
+			die = new Animation( 20, false );
+			die.frames( film, hd[0][1] );
+			attack = HeroSprite.hdAnim( film, hd[3], false );
+		} else {
+			idle = new Animation( 1, true );
+			idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
+			
+			run = new Animation( 20, true );
+			run.frames( film, 2, 3, 4, 5, 6, 7 );
+			
+			die = new Animation( 20, false );
+			die.frames( film, 0 );
+			
+			attack = new Animation( 15, false );
+			attack.frames( film, 13, 14, 15, 0 );
+		}
 		
 		idle();
 	}

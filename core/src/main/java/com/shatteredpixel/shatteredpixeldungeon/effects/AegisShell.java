@@ -54,9 +54,11 @@ public class AegisShell extends Image {
 	//위치·프레임 맞추기. 영웅의 이동 트위너가 이 그림보다 늦게 갱신될 수 있어,
 	//그리기 직전에도 한 번 더 맞춰 한 프레임씩 뒤처지지 않게 함
 	private void sync(){
-		int idx = heroIndex();
+		boolean big = target.width() > HERO_W * 1.2f;
+		//세밀한 큰 도트 영웅은 동작 순서가 달라 갑옷은 서 있는 모습 하나로 씌움
+		int idx = big ? 0 : heroIndex();
 		//쓰러지는 프레임(8~12)에서는 갑옷도 흩어진 뒤라 보이지 않음
-		boolean dying = idx >= 8 && idx <= 12;
+		boolean dying = !big && idx >= 8 && idx <= 12;
 		visible = target.visible && !dying;
 		if (!visible) return;
 		if (idx != lastIndex && film.get( idx ) != null){

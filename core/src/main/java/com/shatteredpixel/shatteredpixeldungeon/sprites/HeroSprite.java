@@ -63,18 +63,42 @@ public class HeroSprite extends CharSprite {
 
 	//모드: 세밀한 도트 영웅의 고유 대기 동작 (가만히 있으면 가끔 재생)
 	private Animation[] specials;
-	private float idleTimer = 0, nextSpecial = 5f;
+	private float idleTimer = 0, nextSpecial = 2.5f;
 
-	private static int[][] specialIdleFrames( HeroClass cls ){
+	//모드: 세밀한 도트 영웅의 동작 표 ({초당 프레임, 프레임...})
+	//  0 대기, 1 걷기, 2 쓰러짐, 3 공격, 4 조작, 5 날기, 6 읽기, 7~ 고유 대기 동작
+	public static int[][] hdAnims( HeroClass cls ){
 		switch (cls){
 			case COLLECTOR: return new int[][]{
-					{21, 22, 23, 24, 25, 24, 23, 24, 25, 26, 26, 22},   //유물을 닦음
-					{27, 28, 29, 30, 31, 30, 31, 30, 31, 32, 32}};      //마력을 띄워 확인
+					{1, 0, 0, 0, 1, 0, 0, 1, 1},
+					{20, 2, 3, 4, 5, 6, 7},
+					{20, 8, 9, 10, 11, 12, 11},
+					{15, 13, 14, 15, 0},
+					{8, 16, 17, 16, 17},
+					{1, 18},
+					{20, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19},
+					{6, 21, 22, 23, 24, 25, 24, 23, 24, 25, 26, 26, 22},   //유물을 닦음
+					{6, 27, 28, 29, 30, 31, 30, 31, 30, 31, 32, 32}};      //마력을 띄워 확인
 			case VAMPIRE: return new int[][]{
-					{21, 22, 23, 24, 24, 24, 25, 25, 26, 25, 26, 25, 22, 21},   //와인을 마시며 음미
-					{27, 28, 29, 30, 31, 30, 31, 31, 32, 33, 33}};              //꾸벅꾸벅 졸다가 깸
+					{6, 0, 1, 2, 3, 4, 5, 6, 7},                            //숨쉬기·머리카락과 드레스가 산들거림·눈 깜빡임
+					{20, 8, 9, 10, 11, 12, 13, 14, 15},                     //머리카락이 뒤로 날리고 자락이 펄럭이는 걸음
+					{14, 16, 17, 18, 19, 20, 21},
+					{16, 22, 23, 24, 25},                                   //은빛 장검 휘두르기
+					{10, 26, 27, 28, 29},
+					{4, 30, 31},
+					{18, 32, 33, 34, 34, 34, 33, 34, 34, 33, 32},
+					{6, 35, 36, 37, 38, 39, 39, 39, 40, 40, 41, 42, 41, 42, 37, 36, 35},   //와인을 마시며 음미
+					{6, 43, 44, 45, 46, 47, 48, 47, 48, 49, 49, 50, 51, 51}};             //꾸벅꾸벅 졸다가 깸
 			default: return null;
 		}
+	}
+
+	public static Animation hdAnim( TextureFilm film, int[] def, boolean loop ){
+		Animation a = new Animation( def[0], loop );
+		Object[] f = new Object[def.length - 1];
+		for (int j = 1; j < def.length; j++) f[j - 1] = def[j];
+		a.frames( film, f );
+		return a;
 	}
 
 	private boolean isSpecial( Animation a ){
@@ -121,39 +145,42 @@ public class HeroSprite extends CharSprite {
 			scale.set( 1f );
 		}
 		
-		idle = new Animation( 1, true );
-		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
-		
-		run = new Animation( RUN_FRAMERATE, true );
-		run.frames( film, 2, 3, 4, 5, 6, 7 );
-		
-		die = new Animation( 20, false );
-		die.frames( film, 8, 9, 10, 11, 12, 11 );
-		
-		attack = new Animation( 15, false );
-		attack.frames( film, 13, 14, 15, 0 );
-		
-		zap = attack.clone();
-		
-		operate = new Animation( 8, false );
-		operate.frames( film, 16, 17, 16, 17 );
-		
-		fly = new Animation( 1, true );
-		fly.frames( film, 18 );
-
-		read = new Animation( 20, false );
-		read.frames( film, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19 );
-
+		int[][] hd = (look != null && look.hdSheet() != null) ? hdAnims( look ) : null;
 		specials = null;
-		int[][] sp = (look != null && look.hdSheet() != null) ? specialIdleFrames( look ) : null;
-		if (sp != null){
-			specials = new Animation[sp.length];
-			for (int i = 0; i < sp.length; i++){
-				Object[] f = new Object[sp[i].length];
-				for (int j = 0; j < f.length; j++) f[j] = sp[i][j];
-				specials[i] = new Animation( 6, false );
-				specials[i].frames( film, f );
-			}
+		if (hd != null){
+			idle = hdAnim( film, hd[0], true );
+			run = hdAnim( film, hd[1], true );
+			die = hdAnim( film, hd[2], false );
+			attack = hdAnim( film, hd[3], false );
+			zap = attack.clone();
+			operate = hdAnim( film, hd[4], false );
+			fly = hdAnim( film, hd[5], true );
+			read = hdAnim( film, hd[6], false );
+			specials = new Animation[hd.length - 7];
+			for (int i = 7; i < hd.length; i++) specials[i - 7] = hdAnim( film, hd[i], false );
+		} else {
+			idle = new Animation( 1, true );
+			idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
+			
+			run = new Animation( RUN_FRAMERATE, true );
+			run.frames( film, 2, 3, 4, 5, 6, 7 );
+			
+			die = new Animation( 20, false );
+			die.frames( film, 8, 9, 10, 11, 12, 11 );
+			
+			attack = new Animation( 15, false );
+			attack.frames( film, 13, 14, 15, 0 );
+			
+			zap = attack.clone();
+			
+			operate = new Animation( 8, false );
+			operate.frames( film, 16, 17, 16, 17 );
+			
+			fly = new Animation( 1, true );
+			fly.frames( film, 18 );
+
+			read = new Animation( 20, false );
+			read.frames( film, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19 );
 		}
 		
 		if (Dungeon.hero.isAlive())
@@ -226,7 +253,7 @@ public class HeroSprite extends CharSprite {
 			idleTimer += Game.elapsed;
 			if (idleTimer >= nextSpecial){
 				idleTimer = 0;
-				nextSpecial = com.watabou.utils.Random.Float( 6f, 11f );
+				nextSpecial = com.watabou.utils.Random.Float( 2.5f, 5f );
 				play( specials[com.watabou.utils.Random.Int( specials.length )] );
 			}
 		} else if (!isSpecial( curAnim )){
