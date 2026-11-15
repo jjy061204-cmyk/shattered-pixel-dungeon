@@ -211,6 +211,18 @@ public class HeroSprite extends CharSprite {
 
 	@Override
 	public void idle() {
+		//모드: 걷다가 멈추면 곧바로 대기 자세로 끊지 않고, 정면으로 돌아오며 몸·머리카락이 가라앉는 멈춤 동작을 거침
+		if (stop != null && ch != null && ch.isAlive() && !sleeping && !ch.flying){
+			if (curAnim == run){
+				play( stop );
+				return;
+			}
+			if (curAnim == stop && !finished) return;
+		}
+		plainIdle();
+	}
+
+	private void plainIdle() {
 		super.idle();
 		if (ch != null && ch.flying) {
 			play( fly );
@@ -269,23 +281,10 @@ public class HeroSprite extends CharSprite {
 	@Override
 	public synchronized void onComplete( Animation anim ) {
 		if (isSpecial( anim ) || (stop != null && anim == stop)){
-			super.idle();
+			plainIdle();
 			return;
 		}
 		super.onComplete( anim );
-	}
-
-	//모드: 걷다가 멈추면 곧바로 대기 자세로 끊지 않고, 정면으로 돌아오며 몸·머리카락이 가라앉는 멈춤 동작을 거침
-	@Override
-	public void idle() {
-		if (stop != null && ch != null && ch.isAlive() && !sleeping){
-			if (curAnim == run){
-				play( stop );
-				return;
-			}
-			if (curAnim == stop && !finished) return;
-		}
-		super.idle();
 	}
 
 	//모드: 영웅 고유 공격 이펙트 (뱀파이어: 은빛 장검 참격, 유물수집가: 보랏빛 연금 폭발)
