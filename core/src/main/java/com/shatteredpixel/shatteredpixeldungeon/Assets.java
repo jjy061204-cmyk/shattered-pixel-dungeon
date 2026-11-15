@@ -269,7 +269,7 @@ public class Assets {
 		public static final String CLERIC   = "splashes/cleric.jpg";
 		public static final String TESTER   = "splashes/tester.jpg";
 		public static final String COLLECTOR = "splashes/collector.png";
-		public static final String VAMPIRE  = "splashes/vampire.jpg";
+		public static final String VAMPIRE  = "splashes/vampire.png";
 
 		public static final String SEWERS   = "splashes/sewers.jpg";
 		public static final String PRISON   = "splashes/prison.jpg";
