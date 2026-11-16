@@ -220,6 +220,10 @@ public enum Talent {
 	BLOOD_FRENZY(267, 3), UNDYING_FLESH(268, 3), MASS_DRAIN(269, 3),
 	//피의 지배자 T3 (핏빛 사슬은 성배 기술을 줌)
 	OVERFLOWING_CUP(270, 3), TEMPERED_CUP(271, 3), BLOOD_CHAINS(272, 3),
+	//뱀파이어 갑옷 능력 특성: 심장 꿰뚫기, 진조의 왕관, 불멸의 피
+	PIERCING_STAKE(273, 4), BLOOD_HARVEST(274, 4), CRUEL_WOUND(275, 4),
+	ROYAL_PRESENCE(276, 4), ENDLESS_REIGN(277, 4), BLOOD_TRIBUTE(278, 4),
+	FRESH_BLOOD(279, 4), BLOOD_RETURN(280, 4), ENDLESS_NIGHT(281, 4),
 
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
@@ -487,6 +491,8 @@ public enum Talent {
 					return 154;
 				case CLERIC:
 					return 186;
+				case VAMPIRE:
+					return 282;
 			}
 		} else {
 			return icon;

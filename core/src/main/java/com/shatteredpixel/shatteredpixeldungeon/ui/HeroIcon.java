@@ -75,6 +75,9 @@ public class HeroIcon extends Image {
 	public static final int TRINITY         = 32;
 	public static final int POWER_OF_MANY   = 33;
 	public static final int RATMOGRIFY      = 34;
+	public static final int HEART_PIERCE    = 35;
+	public static final int CRIMSON_CROWN   = 36;
+	public static final int UNDYING_BLOOD   = 37;
 
 	//cleric spells
 	public static final int GUIDING_LIGHT   = 40;

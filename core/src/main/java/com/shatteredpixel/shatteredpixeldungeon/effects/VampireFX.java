@@ -256,6 +256,58 @@ public class VampireFX extends Image {
 		}
 	}
 
+	public static void shootScaled( int kind, PointF from, PointF to, float delay, float scale, Callback callback ){
+		Projectile p = new Projectile( kind, from, to, delay, callback );
+		p.scale.set( scale );
+		GameScene.effect( p );
+	}
+
+	//진조의 왕관: 영웅 머리 위에 얹힌 금빛 왕관 (effects/vampire_crown.png, 11x9 두 장, 이따금 보석이 반짝임)
+	public static class CrownImage extends Image {
+
+		private final TextureFilm film;
+		private final CharSprite follow;
+		private float t = 0;
+
+		public CrownImage( CharSprite follow ){
+			super( "effects/vampire_crown.png" );
+			film = new TextureFilm( texture, 11, 9 );
+			this.follow = follow;
+			frame( film.get( 0 ) );
+			place();
+		}
+
+		public static CrownImage on( CharSprite sprite ){
+			if (sprite == null) return null;
+			CrownImage c = new CrownImage( sprite );
+			GameScene.effect( c );
+			return c;
+		}
+
+		private void place(){
+			//64칸 그림에서 머리 꼭대기(약 9칸 아래)에 얹음, 좌우를 뒤집으면 머리 가운데도 따라 옮김
+			float sx = follow.scale.x, sy = follow.scale.y;
+			float headX = follow.flipHorizontal ? 33.5f : 30.5f;
+			x = follow.x + headX * sx - width / 2f;
+			y = follow.y + 9f * sy - height;
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			if (follow.parent == null || follow.ch == null || !follow.ch.isAlive()
+					|| follow.ch.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.Crown.class ) == null){
+				killAndErase();
+				return;
+			}
+			t += Game.elapsed;
+			frame( film.get( (t % 2.4f) < 0.25f ? 1 : 0 ) );
+			place();
+			visible = follow.visible;
+			alpha( follow.alpha() );
+		}
+	}
+
 	public static void shoot( int kind, PointF from, PointF to, float delay, Callback callback ){
 		GameScene.effect( new Projectile( kind, from, to, delay, callback ) );
 	}

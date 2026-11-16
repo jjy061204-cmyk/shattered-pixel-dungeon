@@ -386,6 +386,10 @@ public enum HeroClass {
 				return new ArmorAbility[]{new ElementalBlast(), new WildMagic(), new WarpBeacon()};
 			case ROGUE: case COLLECTOR:   //유물수집가 전용 갑옷 기술은 아직 없어 도적의 것을 빌림
 				return new ArmorAbility[]{new SmokeBomb(), new DeathMark(), new ShadowClone()};
+			case VAMPIRE:
+				return new ArmorAbility[]{new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.HeartPierce(),
+						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown(),
+						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood()};
 			case HUNTRESS:
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
 			case DUELIST:

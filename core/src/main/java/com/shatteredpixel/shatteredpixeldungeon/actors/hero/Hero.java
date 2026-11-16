@@ -744,6 +744,7 @@ public class Hero extends Char {
 
 		speed *= RingOfHaste.speedMultiplier(this);
 		speed *= CollectorBonus.speedMultiplier(this);
+		speed *= com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.speedMultiplier(this);
 		
 		if (belongings.armor() != null) {
 			speed = belongings.armor().speedFactor(this, speed);
@@ -1598,6 +1599,7 @@ public class Hero extends Char {
 		damage = Talent.onAttackProc( this, enemy, damage );
 		damage = CollectorBonus.onAttack( this, enemy, damage );
 		damage = com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.onHeroAttack( this, enemy, damage );
+		damage = com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.onAttack( this, enemy, damage );
 
 		if (wep != null) {
 			damage = wep.proc( this, enemy, damage );
@@ -1705,6 +1707,9 @@ public class Hero extends Char {
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
 			dmg = Math.round( dmg * com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.DAMAGE_TAKEN );
 		}
+
+		//모드: 진조의 왕관 - 받는 피해 25% 감소
+		dmg = com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.reduceDamage( this, dmg );
 
 		//regular damage interrupt, triggers on any damage except specific mild DOT effects
 		// unless the player recently hit 'continue moving', in which case this is ignored
@@ -2255,6 +2260,11 @@ public class Hero extends Char {
 	public void die( Object cause ) {
 		
 		curAction = null;
+
+		//모드: 불멸의 피가 이어지는 동안 쓰러지면 되살아남
+		if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood.tryRevive( this )){
+			return;
+		}
 
 		Ankh ankh = null;
 

@@ -139,7 +139,9 @@ public class CrimsonGrail extends Artifact {
 		public int cost( Hero hero ){
 			if (baseCost == 0) return 0;
 			int pts = hero.pointsInTalent( Talent.TEMPERED_CUP );
-			return Math.max( 1, Math.round( baseCost * (1f - 0.1f * pts) ) );
+			//진조의 왕관을 쓰는 동안 절반
+			float mult = (1f - 0.1f * pts) * com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.costMultiplier( hero );
+			return Math.max( 1, Math.round( baseCost * mult ) );
 		}
 
 		public String title(){ return Messages.get( CrimsonGrail.class, "skill_" + name().toLowerCase() ); }
