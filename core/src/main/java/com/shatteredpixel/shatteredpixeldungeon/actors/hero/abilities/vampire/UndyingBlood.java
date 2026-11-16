@@ -210,7 +210,7 @@ public class UndyingBlood extends ArmorAbility {
 			if (t == null) return;
 			if (t.shell != null && t.shell.parent != null && t.shell.follows( s )) return;
 			if (t.shell != null) t.shell.killAndErase();
-			t.shell = com.shatteredpixel.shatteredpixeldungeon.effects.AegisShell.forSprite( s ).tint( 1.7f, 0.32f, 0.36f );
+			t.shell = com.shatteredpixel.shatteredpixeldungeon.effects.AegisShell.forSprite( s, true );
 			s.parent.add( t.shell );
 		}
 

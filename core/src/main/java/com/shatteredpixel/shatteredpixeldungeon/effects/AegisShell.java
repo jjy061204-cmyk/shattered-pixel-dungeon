@@ -56,16 +56,24 @@ public class AegisShell extends Image {
 
 	//영웅의 모습에 맞는 껍데기: 세밀한 도트 영웅(유물수집가·뱀파이어)은 각자 맞춤 껍데기
 	public static AegisShell forSprite( CharSprite sprite ){
+		return forSprite( sprite, false );
+	}
+
+	//undying: 불멸의 피용 붉은빛 껍데기 (머리까지 영웅 그림 전체를 감쌈)
+	public static AegisShell forSprite( CharSprite sprite, boolean undying ){
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass look = null;
 		if (sprite.ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero){
 			look = ((com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) sprite.ch).heroClass;
 		}
+		String kind = undying ? "_undying.png" : "_aegis.png";
 		if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.COLLECTOR){
-			return new AegisShell( sprite, "sprites/collector_aegis.png", true );
+			return new AegisShell( sprite, "sprites/collector" + kind, true );
 		} else if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE){
-			return new AegisShell( sprite, "sprites/vampire_aegis.png", true );
+			return new AegisShell( sprite, "sprites/vampire" + kind, true );
 		}
-		return new AegisShell( sprite, "sprites/rune_aegis_shell.png" );
+		AegisShell s = new AegisShell( sprite, "sprites/rune_aegis_shell.png" );
+		if (undying) s.tint( 1.7f, 0.32f, 0.36f );
+		return s;
 	}
 
 	//색 입히기 (불멸의 피는 붉은빛)
@@ -101,11 +109,12 @@ public class AegisShell extends Image {
 			int idx = heroIndex();
 			visible = target.visible;
 			if (!visible) return;
-			if (idx != lastIndex && film.get( idx ) != null){
+			//좌우 뒤집기는 칸을 다시 지정해야 그림에 반영되므로, 칸이나 방향 중 하나라도 바뀌면 다시 지정
+			if ((idx != lastIndex || flipHorizontal != target.flipHorizontal) && film.get( idx ) != null){
+				flipHorizontal = target.flipHorizontal;
 				frame( film.get( idx ) );
 				lastIndex = idx;
 			}
-			flipHorizontal = target.flipHorizontal;
 			scale.set( target.scale );
 			origin.set( target.origin );
 			angle = target.angle;
@@ -120,11 +129,11 @@ public class AegisShell extends Image {
 		boolean dying = !big && idx >= 8 && idx <= 12;
 		visible = target.visible && !dying;
 		if (!visible) return;
-		if (idx != lastIndex && film.get( idx ) != null){
+		if ((idx != lastIndex || flipHorizontal != target.flipHorizontal) && film.get( idx ) != null){
+			flipHorizontal = target.flipHorizontal;
 			frame( film.get( idx ) );
 			lastIndex = idx;
 		}
-		flipHorizontal = target.flipHorizontal;
 		if (target.width() > HERO_W * 1.2f){
 			//세밀한 큰 도트 영웅: 갑옷을 영웅 키에 맞춰 늘려 감쌈
 			float k = target.height() * 1.08f / H;
