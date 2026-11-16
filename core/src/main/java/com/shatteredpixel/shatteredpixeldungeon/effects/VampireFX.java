@@ -358,12 +358,13 @@ public class VampireFX extends Image {
 		GameScene.effect( p );
 	}
 
-	//진조의 왕관: 영웅 머리 위에 얹힌 얇은 은빛 왕관 (effects/vampire_crown.png, 36x26 칸 16장)
+	//진조의 왕관: 영웅 머리 위에 얹힌 왕관 (effects/vampire_crown.png, 24x14 칸 4장)
+	// 뱀파이어 도트와 같은 크기의 픽셀로 찍은 그림. 4장을 천천히 넘겨 도트 애니메이션처럼 뚝뚝 끊기며 돎
 	// 쓰는 순간 위에서 천천히 내려와 머리에 얹히고, 그 뒤로는 제자리에서 느리게 돎
 	public static class CrownImage extends Image {
 
-		private static final int CW = 36, CH = 26, CFRAMES = 16;
-		private static final float CSCALE = 0.33f;
+		private static final int CW = 24, CH = 14, CFRAMES = 4;
+		private static final float CSCALE = com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.HD_SCALE;
 
 		private final TextureFilm film;
 		private final CharSprite follow;
@@ -425,8 +426,8 @@ public class VampireFX extends Image {
 				return;
 			}
 			t += Game.elapsed;
-			//초당 5장: 16장이 한 바퀴의 1/4(무늬가 되풀이되는 간격)이라 계속 천천히 도는 것처럼 보임
-			com.watabou.utils.RectF r = film.get( ((int)(t * 5f)) % CFRAMES );
+			//초당 2.5장: 4장이 무늬가 되풀이되는 간격(1/4바퀴)이라 계속 천천히 도는 것처럼 보임
+			com.watabou.utils.RectF r = film.get( ((int)(t * 2.5f)) % CFRAMES );
 			if (r != null) frame( r );
 			place();
 			visible = follow.visible;
