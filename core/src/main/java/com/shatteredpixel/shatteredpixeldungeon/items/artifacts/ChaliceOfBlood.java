@@ -27,7 +27,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.HolyWard;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
@@ -57,6 +59,8 @@ public class ChaliceOfBlood extends Artifact {
 	}
 
 	public static final String AC_PRICK = "PRICK";
+	//모드: 뱀파이어는 몸을 찌르는 대신 핏빛 성배의 생명력을 바쳐 강화할 수 있음
+	public static final String AC_OFFER = "OFFER";
 
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
@@ -67,12 +71,37 @@ public class ChaliceOfBlood extends Artifact {
 				&& !hero.isInvulnerable(getClass())
 				&& hero.buff(MagicImmune.class) == null)
 			actions.add(AC_PRICK);
+		if (isEquipped( hero ) && level() < levelCap && !cursed && CrimsonGrail.of( hero ) != null)
+			actions.add(AC_OFFER);
 		return actions;
 	}
 
 	@Override
 	public void execute(Hero hero, String action ) {
 		super.execute(hero, action);
+
+		if (action.equals(AC_OFFER)){
+			final CrimsonGrail grail = CrimsonGrail.of( hero );
+			if (grail == null) return;
+			final int cost = offerCost();
+			if (grail.vitality() < cost){
+				GLog.w( Messages.get(this, "offer_lack", cost, grail.vitality()) );
+				return;
+			}
+			GameScene.show(
+				new WndOptions(new ItemSprite(this),
+						Messages.titleCase(name()),
+						Messages.get(this, "offer_warn", cost, grail.vitality()),
+						Messages.get(this, "offer_yes"),
+						Messages.get(this, "no")) {
+					@Override
+					protected void onSelect(int index) {
+						if (index == 0) offer(Dungeon.hero, grail, cost);
+					}
+				}
+			);
+			return;
+		}
 
 		if (action.equals(AC_PRICK)){
 
@@ -114,6 +143,23 @@ public class ChaliceOfBlood extends Artifact {
 			);
 
 		}
+	}
+
+	//생명력 값: +0에서 6, 레벨마다 4씩 늘어 +9에서 42
+	public int offerCost(){
+		return 6 + 4 * level();
+	}
+
+	private void offer(Hero hero, CrimsonGrail grail, int cost){
+		if (!grail.payLife(hero, cost)) return;
+		hero.sprite.operate( hero.pos );
+		hero.busy();
+		hero.spend(Actor.TICK);
+		VampireFX.on( hero.sprite, VampireFX.SIPHON, 0.7f, 0.5f );
+		Sample.INSTANCE.play(Assets.Sounds.DRINK, 1f, 0.8f);
+		GLog.p( Messages.get(this, "onoffer") );
+		upgrade();
+		Catalog.countUse(getClass());
 	}
 
 	private int minPrickDmg(){
@@ -226,6 +272,12 @@ public class ChaliceOfBlood extends Artifact {
 				desc += Messages.get(this, "desc_2");
 			else
 				desc += Messages.get(this, "desc_3");
+		}
+
+		//모드: 뱀파이어에게만 보이는 설명
+		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.VAMPIRE){
+			desc += "\n\n" + Messages.get(this, "desc_vampire", 3 + level(), 20 + 10 * level());
+			if (level() < levelCap) desc += " " + Messages.get(this, "desc_offer", offerCost());
 		}
 
 		return desc;

@@ -164,8 +164,20 @@ public class CrimsonGrail extends Artifact {
 	//최대치: 성배 단계 + 피의 지배자의 '넘치는 잔'(+5/10/15)
 	public int lifeCap(){
 		int cap = chargeCap;
-		if (Dungeon.hero != null) cap += 5 * Dungeon.hero.pointsInTalent( Talent.OVERFLOWING_CUP );
+		if (Dungeon.hero != null){
+			cap += 5 * Dungeon.hero.pointsInTalent( Talent.OVERFLOWING_CUP );
+			//피의 성배를 함께 장착하면 3 + 피의 성배 레벨만큼 더 담음 (+0: 3, +10: 13)
+			ChaliceOfBlood c = chalice( Dungeon.hero );
+			if (c != null) cap += 3 + c.level();
+		}
 		return cap;
+	}
+
+	//함께 장착한, 저주받지 않은 피의 성배
+	public static ChaliceOfBlood chalice( Hero hero ){
+		if (hero == null) return null;
+		ChaliceOfBlood c = hero.belongings.getItem( ChaliceOfBlood.class );
+		return (c != null && c.isEquipped( hero ) && !c.cursed) ? c : null;
 	}
 
 	public boolean canUse( Hero hero, Skill skill ){
@@ -741,6 +753,17 @@ public class CrimsonGrail extends Artifact {
 	private void spend( Hero hero, Skill skill ){
 		int cost = skill.cost( hero );
 		if (cost <= 0) return;
+		consume( hero, cost );
+	}
+
+	//기술 말고 다른 곳(피의 성배 강화)에 생명력을 씀. 기술에 쓴 것처럼 성배의 성장에도 들어감
+	public boolean payLife( Hero hero, int cost ){
+		if (cursed || charge < cost) return false;
+		consume( hero, cost );
+		return true;
+	}
+
+	private void consume( Hero hero, int cost ){
 		charge = Math.max( 0, charge - cost );
 		exp += cost;
 		while (level() < levelCap && exp >= 24){
@@ -860,6 +883,9 @@ public class CrimsonGrail extends Artifact {
 				perTurn *= RingOfEnergy.artifactChargeMultiplier( target );
 				if (hero.subClass == HeroSubClass.BLOOD_LORD) perTurn *= 2f;
 				perTurn *= 1f + 0.25f * hero.pointsInTalent( Talent.DEEP_CUP );
+				//피의 성배를 함께 장착하면 20% + 피의 성배 레벨당 10% 빨라짐 (+10이면 2.2배)
+				ChaliceOfBlood c = chalice( hero );
+				if (c != null) perTurn *= 1.2f + 0.1f * c.level();
 				gainLife( hero, perTurn );
 			}
 			spend( TICK );
