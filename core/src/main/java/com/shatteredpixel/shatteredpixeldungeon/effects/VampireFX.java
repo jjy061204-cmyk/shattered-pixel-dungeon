@@ -376,7 +376,7 @@ public class VampireFX extends Image {
 			this.follow = follow;
 			this.descend = descend;
 			scale.set( CSCALE );
-			frame( film.get( 0 ) );
+			if (film.get( 0 ) != null) frame( film.get( 0 ) );
 			place();
 		}
 
@@ -426,7 +426,8 @@ public class VampireFX extends Image {
 			}
 			t += Game.elapsed;
 			//초당 5장: 16장이 한 바퀴의 1/4(무늬가 되풀이되는 간격)이라 계속 천천히 도는 것처럼 보임
-			frame( film.get( ((int)(t * 5f)) % CFRAMES ) );
+			com.watabou.utils.RectF r = film.get( ((int)(t * 5f)) % CFRAMES );
+			if (r != null) frame( r );
 			place();
 			visible = follow.visible;
 			float fade = descend ? Math.min( 1f, t / 0.4f ) : 1f;
