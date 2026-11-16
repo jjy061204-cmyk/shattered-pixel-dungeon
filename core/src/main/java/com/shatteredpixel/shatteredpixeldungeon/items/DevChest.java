@@ -104,6 +104,8 @@ public class DevChest extends Item {
 			boolean wide = com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.landscape();
 			int width = wide ? 230 : 136;
 			int height = Math.min( (int) com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera.height - 24, wide ? 200 : 240 );
+			//목록(스크롤 창)은 배치되는 순간의 창 위치를 기준으로 그려지므로, 창 크기부터 정함
+			resize( width, height );
 
 			com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock title =
 					com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.renderTextBlock( Messages.titleCase( txt( "name" ) ), 9 );
@@ -132,6 +134,11 @@ public class DevChest extends Item {
 				}
 			};
 			float btnY = height - 16;
+			//방금 받은 아이템 표시
+			got = com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.renderTextBlock( "", 6 );
+			got.hardlight( 0x88FF88 );
+			add( got );
+			gotY = btnY - 9;
 			qtyBtn.setRect( 0, btnY, width / 2f - 1, 16 );
 			lvlBtn.setRect( width / 2f + 1, btnY, width / 2f - 1, 16 );
 			add( qtyBtn );
@@ -151,7 +158,8 @@ public class DevChest extends Item {
 						@Override
 						public boolean onClick( float x, float y ) {
 							if (inside( x, y )){
-								give( cls, QTY[qtyIdx], LVL[lvlIdx] );
+								String name = give( cls, QTY[qtyIdx], LVL[lvlIdx] );
+								if (name != null) showGot( name );
 								return true;
 							}
 							return false;
@@ -161,9 +169,16 @@ public class DevChest extends Item {
 				}
 			}
 			float top = hint.bottom() + 3;
-			grid.setRect( 0, top, width, btnY - 2 - top );
-			resize( width, height );
+			grid.setRect( 0, top, width, gotY - 2 - top );
 			grid.scrollTo( 0, lastScroll );
+		}
+
+		private com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock got;
+		private float gotY;
+
+		private void showGot( String name ){
+			got.text( txt( "got", name ) );
+			got.setPos( (width - got.width()) / 2f, gotY );
 		}
 
 		private static String qtyLabel(){ return txt( "qty", QTY[qtyIdx] ); }
@@ -181,9 +196,9 @@ public class DevChest extends Item {
 		give( cls, 1, 0 );
 	}
 
-	private static void give( Class<?> cls, int qty, int lvl ){
+	private static String give( Class<?> cls, int qty, int lvl ){
 		Item item = (Item) Reflection.newInstance(cls);
-		if (item == null) return;
+		if (item == null) return null;
 
 		item.identify();
 		//쌓이는 아이템은 고른 개수만큼, 강화할 수 있는 아이템은 고른 수치까지 강화
@@ -200,5 +215,6 @@ public class DevChest extends Item {
 			Dungeon.level.drop(item, Dungeon.hero.pos).sprite.drop();
 			GLog.i(txt("dropped", name));
 		}
+		return name;
 	}
 }
