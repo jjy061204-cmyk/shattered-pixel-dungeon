@@ -154,11 +154,22 @@ public class CrimsonCrown extends ArmorAbility {
 		@Override
 		public void fx( boolean on ) {
 			if (on){
-				if (image == null || image.parent == null) image = VampireFX.CrownImage.on( target.sprite );
+				ensureFx( target.sprite );
 			} else if (image != null){
 				image.killAndErase();
 				image = null;
 			}
+		}
+
+		//왕관 그림이 지금 영웅 그림을 따라다니는지 확인하고, 없으면 얹음
+		// (층을 옮기거나 불러오면 영웅 그림이 새로 만들어지므로 HeroSprite.update에서도 부름)
+		public static void ensureFx( CharSprite s ){
+			if (s == null || s.ch == null || s.parent == null) return;
+			Crown c = s.ch.buff( Crown.class );
+			if (c == null) return;
+			if (c.image != null && c.image.parent != null && c.image.follows( s )) return;
+			if (c.image != null) c.image.killAndErase();
+			c.image = VampireFX.CrownImage.on( s );
 		}
 
 		private static final String TOTAL = "total";

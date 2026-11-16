@@ -270,6 +270,8 @@ public class HeroSprite extends CharSprite {
 
 		//모드: 뱀파이어의 핏빛 날개가 새 그림에도 붙어 있게 함
 		if (ch != null && ch.flying) com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodWings.ensureFx( this );
+		//모드: 진조의 왕관도 새 그림 위에 다시 얹음
+		if (ch != null && parent != null) com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.Crown.ensureFx( this );
 
 		//가만히 서 있으면 몇 초마다 고유 대기 동작을 함
 		if (specials != null && ch != null && ch.isAlive() && !sleeping && !isMoving && curAnim == idle && !ch.flying){

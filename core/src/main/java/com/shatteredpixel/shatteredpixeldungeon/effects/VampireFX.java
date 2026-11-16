@@ -277,6 +277,10 @@ public class VampireFX extends Image {
 			place();
 		}
 
+		public boolean follows( CharSprite s ){
+			return follow == s;
+		}
+
 		public static CrownImage on( CharSprite sprite ){
 			if (sprite == null) return null;
 			CrownImage c = new CrownImage( sprite );
