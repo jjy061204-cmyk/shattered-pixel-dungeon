@@ -55,6 +55,9 @@ public class Bones {
 
 	public static void leave() {
 
+		//모드: 실험 모드의 아이템이 다른 판으로 넘어가지 않게 함
+		if (Dungeon.experiment) return;
+
 		//remains will usually drop on the floor the hero died on
 		// but are capped at 5 floors above the lowest depth reached (even when ascending)
 		depth = Math.max(Dungeon.depth, Statistics.deepestFloor-5);

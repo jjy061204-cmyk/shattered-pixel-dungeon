@@ -213,11 +213,14 @@ public class Dungeon {
 	public static boolean daily;
 	public static boolean dailyReplay;
 	public static String customSeedText = "";
+	//모드: 실험 모드 - 테스터 아이템을 들고 시작하고, 도감·배지·점수에 아무 영향을 주지 않음
+	public static boolean experiment = false;
 	public static long seed;
 	public static long lastPlayed;
 
 	//we initialize the seed separately so that things like interlevelscene can access it early
 	public static void initSeed(){
+		experiment = !daily && SPDSettings.experiment();
 		if (daily) {
 			//Ensures that daily seeds are not in the range of user-enterable seeds
 			seed = SPDSettings.lastDaily() + DungeonSeed.TOTAL_SEEDS;
@@ -619,6 +622,7 @@ public class Dungeon {
 	public  static final String VERSION		= "version";
 	private static final String SEED		= "seed";
 	private static final String CUSTOM_SEED	= "custom_seed";
+	private static final String EXPERIMENT	= "experiment";
 	private static final String DAILY	    = "daily";
 	private static final String DAILY_REPLAY= "daily_replay";
 	private static final String LAST_PLAYED = "last_played";
@@ -646,6 +650,7 @@ public class Dungeon {
 			bundle.put( VERSION, version = Game.versionCode );
 			bundle.put( SEED, seed );
 			bundle.put( CUSTOM_SEED, customSeedText );
+			bundle.put( EXPERIMENT, experiment );
 			bundle.put( DAILY, daily );
 			bundle.put( DAILY_REPLAY, dailyReplay );
 			bundle.put( LAST_PLAYED, lastPlayed = Game.realTime);
@@ -747,6 +752,7 @@ public class Dungeon {
 
 		seed = bundle.contains( SEED ) ? bundle.getLong( SEED ) : DungeonSeed.randomSeed();
 		customSeedText = bundle.getString( CUSTOM_SEED );
+		experiment = bundle.getBoolean( EXPERIMENT );
 		daily = bundle.getBoolean( DAILY );
 		dailyReplay = bundle.getBoolean( DAILY_REPLAY );
 

@@ -212,7 +212,6 @@ public class ScrollOfMetamorphosis extends ExoticScroll {
 
 			for (HeroClass cls : HeroClass.values()){
 
-				if (cls == HeroClass.TESTER) continue;
 				if (cls == HeroClass.VAMPIRE && Dungeon.hero.heroClass != HeroClass.VAMPIRE) continue;
 
 				ArrayList<LinkedHashMap<Talent, Integer>> clsTalents = new ArrayList<>();

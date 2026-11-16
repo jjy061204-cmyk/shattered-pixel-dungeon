@@ -182,7 +182,7 @@ public class WndHeroInfo extends WndTabbed {
 				case VAMPIRE:
 					icons = new Image[]{ new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL),
 							Icons.TALENT.get(),
-							new ItemSprite(ItemSpriteSheet.RAPIER),
+							new ItemSprite(ItemSpriteSheet.ORNAMENTAL_SWORD),
 							new ItemSprite(ItemSpriteSheet.POTION_CRIMSON)};
 					break;
 				case COLLECTOR:

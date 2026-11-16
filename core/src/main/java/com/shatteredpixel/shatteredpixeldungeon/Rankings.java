@@ -82,6 +82,9 @@ public enum Rankings {
 
 	public void submit( boolean win, Object cause ) {
 
+		//모드: 실험 모드는 순위표·점수·일일 기록에 남지 않음
+		if (Dungeon.experiment) return;
+
 		load();
 		
 		Record rec = new Record();

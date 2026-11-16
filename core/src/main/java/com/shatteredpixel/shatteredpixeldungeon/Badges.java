@@ -955,7 +955,7 @@ public class Badges {
 			case CLERIC:
 				badge = Badge.MASTERY_CLERIC;
 				break;
-			case COLLECTOR: case VAMPIRE: case TESTER:
+			case COLLECTOR: case VAMPIRE:
 				return; //모드 직업은 배지 없음
 		}
 		
@@ -1175,6 +1175,8 @@ public class Badges {
 		if (badge == null || (badge.type != BadgeType.JOURNAL && !Dungeon.customSeedText.isEmpty())) {
 			return;
 		}
+		//모드: 실험 모드에서는 어떤 배지도 얻지 못함
+		if (Dungeon.experiment) return;
 		
 		if (isUnlocked( badge )) {
 			
@@ -1209,6 +1211,7 @@ public class Badges {
 	}
 	
 	public static void unlock( Badge badge ){
+		if (Dungeon.experiment) return; //모드: 실험 모드
 		if (!isUnlocked(badge) && (badge.type == BadgeType.JOURNAL || Dungeon.customSeedText.isEmpty())){
 			global.add( badge );
 			saveNeeded = true;

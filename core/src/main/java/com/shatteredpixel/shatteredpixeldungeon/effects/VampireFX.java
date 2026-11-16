@@ -31,7 +31,13 @@ public class VampireFX extends Image {
 	public static final String SHEET = "effects/vampire_fx.png";
 	private static final int SIZE = 48, FRAMES = 8;
 
+	//갑옷 능력 전용 큰 이펙트 (effects/vampire_fx_big.png, 96x96 칸, 한 줄에 10장)
+	public static final String BIG_SHEET = "effects/vampire_fx_big.png";
+	private static final int BIG_SIZE = 96, BIG_FRAMES = 10;
+	public static final int B_CHARGE = 0, B_STAKE = 1, B_IMPACT = 2, B_CROWN = 3, B_SIGIL = 4, B_HEART = 5, B_REVIVE = 6, B_AURA = 7;
+
 	private final TextureFilm film;
+	private final int size, frames;
 	private final int row;
 	private final float dur;
 	private float t = 0, delay = 0;
@@ -43,16 +49,35 @@ public class VampireFX extends Image {
 	private float offX = 0, offY = 0, rise = 0;
 
 	private VampireFX( int row, CharSprite follow, PointF center, float size, float dur ){
-		super( SHEET );
-		film = new TextureFilm( texture, SIZE, SIZE );
+		this( SHEET, SIZE, FRAMES, row, follow, center, size, dur );
+	}
+
+	private VampireFX( String sheet, int cell, int frameCount, int row, CharSprite follow, PointF center, float size, float dur ){
+		super( sheet );
+		this.size = cell;
+		this.frames = frameCount;
+		film = new TextureFilm( texture, cell, cell );
 		this.row = row;
 		this.follow = follow;
 		this.center = center;
 		this.size0 = this.size1 = size;
 		this.dur = dur;
-		origin.set( SIZE / 2f, SIZE / 2f );
-		frame( film.get( row * FRAMES ) );
+		origin.set( cell / 2f, cell / 2f );
+		frame( film.get( row * frameCount ) );
 		visible = false;
+	}
+
+	//큰 이펙트: 칸 가운데 / 캐릭터를 따라다니며 (size 1 = 6칸 너비)
+	public static VampireFX atBig( int cell, int row, float size, float dur ){
+		VampireFX fx = new VampireFX( BIG_SHEET, BIG_SIZE, BIG_FRAMES, row, null, DungeonTilemap.raisedTileCenterToWorld( cell ), size, dur );
+		GameScene.effect( fx );
+		return fx;
+	}
+
+	public static VampireFX onBig( CharSprite sprite, int row, float size, float dur ){
+		VampireFX fx = new VampireFX( BIG_SHEET, BIG_SIZE, BIG_FRAMES, row, sprite, sprite != null ? sprite.center() : new PointF(), size, dur );
+		if (sprite != null) GameScene.effect( fx );
+		return fx;
 	}
 
 	//칸 가운데에 재생 (size 1 = 3칸 너비)
@@ -93,19 +118,19 @@ public class VampireFX extends Image {
 			return;
 		}
 		visible = true;
-		int f = Math.min( FRAMES - 1, (int)(p * FRAMES) );
-		if (reverse) f = FRAMES - 1 - f;
-		frame( film.get( row * FRAMES + f ) );
+		int f = Math.min( frames - 1, (int)(p * frames) );
+		if (reverse) f = frames - 1 - f;
+		frame( film.get( row * frames + f ) );
 		scale.set( size0 + (size1 - size0) * p );
 		if (follow != null && follow.parent != null) center = follow.center();
-		x = center.x + offX - SIZE / 2f;
-		y = center.y + offY - rise * p - SIZE / 2f;
+		x = center.x + offX - size / 2f;
+		y = center.y + offY - rise * p - size / 2f;
 	}
 
 	//날아가는 것: 피의 창(날아가는 쪽으로 돌려 그림), 박쥐(날갯짓하며 날아감). 닿으면 callback
 	public static class Projectile extends Image {
 
-		public static final int LANCE = 0, BAT = 1;
+		public static final int LANCE = 0, BAT = 1, STAKE = 2;
 
 		private final TextureFilm film;
 		private final int kind;
@@ -114,18 +139,25 @@ public class VampireFX extends Image {
 		private final Callback callback;
 		private float t = 0, delay;
 
+		private final int cell;
+
 		public Projectile( int kind, PointF from, PointF to, float delay, Callback callback ){
-			super( SHEET );
-			film = new TextureFilm( texture, SIZE, SIZE );
+			super( kind == STAKE ? BIG_SHEET : SHEET );
+			cell = kind == STAKE ? BIG_SIZE : SIZE;
+			film = new TextureFilm( texture, cell, cell );
 			this.kind = kind;
 			this.from = from;
 			this.to = to;
 			this.delay = delay;
 			this.callback = callback;
 			float dist = (float) Math.hypot( to.x - from.x, to.y - from.y );
-			dur = Math.max( 0.12f, dist / (kind == LANCE ? 320f : 190f) );
-			origin.set( SIZE / 2f, SIZE / 2f );
-			if (kind == LANCE){
+			dur = Math.max( 0.12f, dist / (kind == BAT ? 190f : (kind == STAKE ? 280f : 320f)) );
+			origin.set( cell / 2f, cell / 2f );
+			if (kind == STAKE){
+				angle = (float)(Math.atan2( to.y - from.y, to.x - from.x ) * 180 / Math.PI);
+				scale.set( 0.45f );
+				frame( film.get( B_STAKE * BIG_FRAMES ) );
+			} else if (kind == LANCE){
 				angle = (float)(Math.atan2( to.y - from.y, to.x - from.x ) * 180 / Math.PI);
 				scale.set( 0.6f );
 				frame( film.get( PROJ * FRAMES ) );
@@ -155,8 +187,11 @@ public class VampireFX extends Image {
 				return;
 			}
 			visible = true;
-			x = from.x + (to.x - from.x) * p - SIZE / 2f;
-			y = from.y + (to.y - from.y) * p - SIZE / 2f;
+			x = from.x + (to.x - from.x) * p - cell / 2f;
+			y = from.y + (to.y - from.y) * p - cell / 2f;
+			if (kind == STAKE){
+				frame( film.get( B_STAKE * BIG_FRAMES + ((int)(t / 0.06f) % 4) ) );
+			}
 			if (kind == BAT){
 				y += (float) Math.sin( p * Math.PI * 3 ) * 2f;
 				frame( film.get( PROJ * FRAMES + 1 + ((int)(t / 0.07f) % 2) ) );
@@ -219,6 +254,57 @@ public class VampireFX extends Image {
 			place();
 			visible = follow.visible;
 			alpha( follow.alpha() );
+		}
+	}
+
+	//불멸의 피: 지속되는 동안 발밑에서 고동치는 붉은 고리와 피어오르는 방울 (반복)
+	public static class Pulse extends Image {
+
+		private final TextureFilm film;
+		private final CharSprite follow;
+		private float t = 0;
+
+		public Pulse( CharSprite follow ){
+			super( BIG_SHEET );
+			film = new TextureFilm( texture, BIG_SIZE, BIG_SIZE );
+			this.follow = follow;
+			origin.set( BIG_SIZE / 2f, BIG_SIZE / 2f );
+			scale.set( 0.5f );
+			frame( film.get( B_AURA * BIG_FRAMES ) );
+		}
+
+		public static Pulse on( CharSprite sprite ){
+			if (sprite == null || sprite.parent == null) return null;
+			Pulse p = new Pulse( sprite );
+			sprite.parent.addToBack( p );
+			return p;
+		}
+
+		public boolean follows( CharSprite s ){
+			return follow == s;
+		}
+
+		@Override
+		public void draw() {
+			Blending.setLightMode();
+			super.draw();
+			Blending.setNormalMode();
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			if (follow.parent == null || follow.ch == null || !follow.ch.isAlive()
+					|| follow.ch.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood.Tracker.class ) == null){
+				killAndErase();
+				return;
+			}
+			t += Game.elapsed;
+			frame( film.get( B_AURA * BIG_FRAMES + ((int)(t * 9f)) % 6 ) );
+			PointF c = follow.center();
+			x = c.x - BIG_SIZE / 2f;
+			y = c.y - 6f - BIG_SIZE / 2f;
+			visible = follow.visible;
 		}
 	}
 

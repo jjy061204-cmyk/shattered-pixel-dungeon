@@ -86,6 +86,9 @@ public class TitleScene extends PixelScene {
 		
 		super.create();
 
+		//모드: 판 밖에서는 실험 모드가 아님
+		Dungeon.experiment = false;
+
 		Music.INSTANCE.playTracks(
 				new String[]{Assets.Music.THEME_1, Assets.Music.THEME_2},
 				new float[]{1, 1},

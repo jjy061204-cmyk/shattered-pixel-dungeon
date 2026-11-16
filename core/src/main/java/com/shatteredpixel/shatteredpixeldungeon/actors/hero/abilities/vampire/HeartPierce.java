@@ -73,14 +73,14 @@ public class HeartPierce extends ArmorAbility {
 		hero.busy();
 		hero.sprite.zap( enemy.pos );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 1f, 0.7f );
-		VampireFX.on( hero.sprite, VampireFX.SIPHON, 0.7f, 0.3f );
+		//손끝에 핏빛 기운이 나선으로 모여 응축됨 → 말뚝이 날아감 → 심장이 갈라지며 터짐
+		VampireFX.onBig( hero.sprite, VampireFX.B_CHARGE, 0.42f, 0.4f ).offset( 0, -3f );
 
-		VampireFX.shootScaled( VampireFX.Projectile.LANCE, hero.sprite.center(),
-				enemy.sprite != null ? enemy.sprite.center() : hero.sprite.center(), 0.25f, 1.1f, new Callback() {
+		VampireFX.shoot( VampireFX.Projectile.STAKE, hero.sprite.center(),
+				enemy.sprite != null ? enemy.sprite.center() : hero.sprite.center(), 0.3f, new Callback() {
 			@Override
 			public void call() {
-				VampireFX.at( enemy.pos, VampireFX.SPLASH, 1.1f, 0.45f );
-				VampireFX.at( enemy.pos, VampireFX.NOVA, 0.7f, 0.4f );
+				VampireFX.atBig( enemy.pos, VampireFX.B_IMPACT, 0.62f, 0.6f );
 				PixelScene.shake( 2f, 0.3f );
 				Sample.INSTANCE.play( Assets.Sounds.BLAST, 1f, 0.8f );
 				Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG );

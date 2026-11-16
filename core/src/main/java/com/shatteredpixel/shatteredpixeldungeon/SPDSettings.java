@@ -252,6 +252,17 @@ public class SPDSettings extends GameSettings {
 		return getInt( KEY_CHALLENGES, 0, 0, Challenges.MAX_VALUE );
 	}
 
+	public static final String KEY_EXPERIMENT	= "experiment_mode";
+
+	//모드: 실험 모드 켜기/끄기 (영웅 선택 화면의 톱니바퀴)
+	public static void experiment( boolean value ){
+		put( KEY_EXPERIMENT, value );
+	}
+
+	public static boolean experiment() {
+		return getBoolean( KEY_EXPERIMENT, false );
+	}
+
 	public static void customSeed( String value ){
 		put( KEY_CUSTOM_SEED, value );
 	}

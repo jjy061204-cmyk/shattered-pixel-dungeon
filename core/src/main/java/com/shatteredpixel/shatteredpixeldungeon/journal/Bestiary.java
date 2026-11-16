@@ -303,6 +303,7 @@ public enum Bestiary {
 	}
 
 	public static void setSeen(Class<?> cls){
+		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.experiment) return; //모드: 실험 모드는 도감에 영향 없음
 		if (classConversions.containsKey(cls)){
 			cls = classConversions.get(cls);
 		}
@@ -332,6 +333,7 @@ public enum Bestiary {
 	}
 
 	public static void countEncounters(Class<?> cls, int encounters){
+		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.experiment) return; //모드: 실험 모드는 도감에 영향 없음
 		if (skipCountingEncounters){
 			return;
 		}

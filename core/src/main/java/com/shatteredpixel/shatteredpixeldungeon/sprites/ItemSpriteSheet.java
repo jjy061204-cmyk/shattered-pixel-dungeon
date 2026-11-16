@@ -996,11 +996,13 @@ public class ItemSpriteSheet {
 	public static final int KNIGHT_LONGSWORD  = MOD_WEAPON+4;
 	public static final int EXCALIBUR         = MOD_WEAPON+5;
 	public static final int SEALED_EXCALIBUR  = MOD_WEAPON+6;
+	public static final int ORNAMENTAL_SWORD  = MOD_WEAPON+7;   //뱀파이어의 장식용 검
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);
 		assignItemRect(KNIGHT_LONGSWORD, 16, 16);
 		assignItemRect(EXCALIBUR, 16, 16);
 		assignItemRect(SEALED_EXCALIBUR, 16, 16);
+		assignItemRect(ORNAMENTAL_SWORD, 16, 16);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);
 		assignItemRect(DAKKOCHI, 15, 12);

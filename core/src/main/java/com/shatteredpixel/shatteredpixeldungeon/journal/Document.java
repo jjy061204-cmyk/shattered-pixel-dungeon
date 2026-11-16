@@ -64,6 +64,7 @@ public enum Document {
 	private LinkedHashMap<String, Integer> pagesStates = new LinkedHashMap<>();
 	
 	public boolean findPage( String page ) {
+		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.experiment) return false; //모드: 실험 모드는 도감에 영향 없음
 		if (pagesStates.containsKey(page) && pagesStates.get(page) == NOT_FOUND){
 			pagesStates.put(page, FOUND);
 			Journal.saveNeeded = true;
@@ -130,6 +131,7 @@ public enum Document {
 	}
 
 	public boolean readPage( String page ) {
+		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.experiment) return false; //모드: 실험 모드는 도감에 영향 없음
 		if (pagesStates.containsKey(page)){
 			pagesStates.put(page, READ);
 			Journal.saveNeeded = true;

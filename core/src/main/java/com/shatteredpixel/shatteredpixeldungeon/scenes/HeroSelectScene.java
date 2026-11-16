@@ -399,8 +399,15 @@ public class HeroSelectScene extends PixelScene {
 
 	}
 
+	private static String experimentLabel(){
+		return Messages.get(HeroSelectScene.class, "experiment") + " : "
+				+ Messages.get(HeroSelectScene.class, SPDSettings.experiment() ? "experiment_on" : "experiment_off");
+	}
+
 	private void updateOptionsColor(){
-		if (!SPDSettings.customSeed().isEmpty()){
+		if (SPDSettings.experiment()){
+			btnOptions.icon().hardlight(1.6f, 0.7f, 1.6f);
+		} else if (!SPDSettings.customSeed().isEmpty()){
 			btnOptions.icon().hardlight(1f, 1.5f, 0.67f);
 		} else if (SPDSettings.challenges() != 0){
 			btnOptions.icon().hardlight(2f, 1.33f, 0.5f);
@@ -693,6 +700,33 @@ public class HeroSelectScene extends PixelScene {
 			if (!SPDSettings.customSeed().isEmpty()) seedButton.icon().hardlight(1f, 1.5f, 0.67f);;
 			buttons.add(seedButton);
 			add(seedButton);
+
+			//모드: 실험 모드 - 테스터가 쓰던 아이템을 들고 시작. 도감·배지·점수에 영향 없음
+			StyledButton experimentButton = new StyledButton(Chrome.Type.BLANK, experimentLabel(), 6){
+				@Override
+				protected void onClick() {
+					final StyledButton self = this;
+					ShatteredPixelDungeon.scene().addToFront(new WndOptions(
+							new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.CRYSTAL_CHEST),
+							Messages.get(HeroSelectScene.class, "experiment"),
+							Messages.get(HeroSelectScene.class, "experiment_desc"),
+							Messages.get(HeroSelectScene.class, "experiment_turn_on"),
+							Messages.get(HeroSelectScene.class, "experiment_turn_off")){
+						@Override
+						protected void onSelect(int index) {
+							SPDSettings.experiment(index == 0);
+							self.text(experimentLabel());
+							self.icon().alpha(SPDSettings.experiment() ? 1f : 0.4f);
+							updateOptionsColor();
+						}
+					});
+				}
+			};
+			experimentButton.leftJustify = true;
+			experimentButton.icon(new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.CRYSTAL_CHEST));
+			experimentButton.icon().alpha(SPDSettings.experiment() ? 1f : 0.4f);
+			buttons.add(experimentButton);
+			add(experimentButton);
 
 			StyledButton dailyButton = new StyledButton(Chrome.Type.BLANK, Messages.get(HeroSelectScene.class, "daily"), 6){
 

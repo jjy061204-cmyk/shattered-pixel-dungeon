@@ -62,8 +62,8 @@ public class UndyingBlood extends ArmorAbility {
 		heal( hero, Math.round( hero.HT * pct ) );
 
 		hero.sprite.operate( hero.pos );
-		VampireFX.on( hero.sprite, VampireFX.MEND, 0.85f, 0.7f );
-		VampireFX.at( hero.pos, VampireFX.SIPHON, 1.0f, 0.5f );
+		//커다란 심장이 두 번 고동치며 핏줄이 뻗어 나감
+		VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.5f, 0.9f ).offset( 0, -2f );
 		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 0.6f );
 
@@ -107,9 +107,9 @@ public class UndyingBlood extends ArmorAbility {
 
 		if (hero.sprite != null){
 			hero.sprite.idle();
-			VampireFX.at( hero.pos, VampireFX.NOVA, 1.3f, 0.5f ).grow( 1.5f );
-			VampireFX.on( hero.sprite, VampireFX.WINGS, 0.9f, 0.6f ).rise( 6f );
-			VampireFX.on( hero.sprite, VampireFX.MEND, 0.85f, 0.7f );
+			//빛기둥이 솟고 거대한 날개가 펼쳐지며 발밑에 고리가 퍼짐
+			VampireFX.onBig( hero.sprite, VampireFX.B_REVIVE, 0.62f, 0.95f ).offset( 0, -8f );
+			VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.4f, 0.7f ).delay( 0.25f );
 			hero.sprite.showStatus( CharSprite.POSITIVE, Messages.get( UndyingBlood.class, "revived_status" ) );
 		}
 		GameScene.flash( 0x80CC1030 );
@@ -190,10 +190,26 @@ public class UndyingBlood extends ArmorAbility {
 			return Messages.get( this, "desc", (int) left );
 		}
 
+		private VampireFX.Pulse pulse;
+
 		@Override
 		public void fx( boolean on ) {
-			if (on) target.sprite.add( CharSprite.State.HEALING );
-			else target.sprite.remove( CharSprite.State.HEALING );
+			if (on){
+				ensureFx( target.sprite );
+			} else if (pulse != null){
+				pulse.killAndErase();
+				pulse = null;
+			}
+		}
+
+		//발밑 고동이 지금 영웅 그림을 따라다니는지 확인하고, 없으면 붙임 (HeroSprite.update에서도 부름)
+		public static void ensureFx( CharSprite s ){
+			if (s == null || s.ch == null || s.parent == null) return;
+			Tracker t = s.ch.buff( Tracker.class );
+			if (t == null) return;
+			if (t.pulse != null && t.pulse.parent != null && t.pulse.follows( s )) return;
+			if (t.pulse != null) t.pulse.killAndErase();
+			t.pulse = VampireFX.Pulse.on( s );
 		}
 
 		private static final String LEFT = "left", TOTAL = "total", PARTIAL = "partial";

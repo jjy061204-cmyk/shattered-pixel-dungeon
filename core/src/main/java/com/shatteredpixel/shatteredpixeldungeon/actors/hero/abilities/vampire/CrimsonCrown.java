@@ -66,8 +66,9 @@ public class CrimsonCrown extends ArmorAbility {
 		}
 
 		hero.sprite.operate( hero.pos );
-		VampireFX.on( hero.sprite, VampireFX.INFUSE, 0.8f, 0.6f ).offset( 0, -5f );
-		VampireFX.at( hero.pos, VampireFX.NOVA, 1.0f, 0.45f );
+		//발밑에 문양이 돌고, 두 줄기 핏빛 나선이 머리 위로 솟아 왕관으로 맺힘
+		VampireFX.onBig( hero.sprite, VampireFX.B_SIGIL, 0.55f, 1.0f ).offset( 0, -6f );
+		VampireFX.onBig( hero.sprite, VampireFX.B_CROWN, 0.5f, 0.85f ).offset( 0, -5f );
 		GameScene.flash( 0x60CC1030 );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 		Sample.INSTANCE.play( Assets.Sounds.LEVELUP, 0.6f, 0.8f );

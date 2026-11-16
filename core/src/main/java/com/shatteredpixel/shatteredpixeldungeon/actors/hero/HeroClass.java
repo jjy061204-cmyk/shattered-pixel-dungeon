@@ -100,9 +100,7 @@ public enum HeroClass {
 	//모드: 유물수집가 - 유물마다 고유한 추가 효과를 얻는 영웅
 	COLLECTOR( HeroSubClass.CHANNELER, HeroSubClass.CURATOR ),
 	//모드: 뱀파이어 - 적의 생명력을 빼앗아 핏빛 성배에 담고, 그것으로 기술을 씀 (갑옷 기술만 전사의 것을 빌림)
-	VAMPIRE( HeroSubClass.TRUE_ANCESTOR, HeroSubClass.BLOOD_LORD ),
-	//아이템 테스트용 직업: 전사의 전직·특성을 그대로 사용
-	TESTER( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
+	VAMPIRE( HeroSubClass.TRUE_ANCESTOR, HeroSubClass.BLOOD_LORD );
 
 	private HeroSubClass[] subClasses;
 
@@ -166,9 +164,11 @@ public enum HeroClass {
 				initVampire( hero );
 				break;
 
-			case TESTER:
-				initTester( hero );
-				break;
+		}
+
+		//모드: 실험 모드 - 테스터가 쓰던 아이템을 들고 시작
+		if (Dungeon.experiment){
+			giveExperimentKit( hero );
 		}
 
 		if (SPDSettings.quickslotWaterskin()) {
@@ -196,7 +196,7 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_DUELIST;
 			case CLERIC:
 				return Badges.Badge.MASTERY_CLERIC;
-			case COLLECTOR: case VAMPIRE: case TESTER:
+			case COLLECTOR: case VAMPIRE:
 				return null;
 		}
 		return null;
@@ -269,7 +269,7 @@ public enum HeroClass {
 	}
 
 	private static void initVampire( Hero hero ) {
-		(hero.belongings.weapon = new Rapier()).identify();
+		(hero.belongings.weapon = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.OrnamentalSword()).identify();
 		hero.belongings.weapon.activate( hero );
 
 		com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail grail =
@@ -325,16 +325,8 @@ public enum HeroClass {
 		new ScrollOfRemoveCurse().identify();
 	}
 
-	private static void initTester( Hero hero ) {
-		//전사와 같은 기본 무기
-		(hero.belongings.weapon = new WornShortsword()).identify();
-
-		//높은 체력과 힘
-		hero.HTBoost = 80;
-		hero.updateHT( false );
-		hero.HP = hero.HT;
-		hero.STR = 20;
-
+	//실험 모드: 직업의 시작 아이템에 더해, 예전 테스터가 쓰던 개발용 아이템을 받음
+	private static void giveExperimentKit( Hero hero ) {
 		//넉넉한 돈과 감정 주문서
 		Dungeon.gold += 10000;
 		new ScrollOfIdentify().quantity(20).identify().collect();
@@ -350,16 +342,22 @@ public enum HeroClass {
 			((Ring)Reflection.newInstance(cls)).setKnown();
 		}
 
-		//원하는 아이템을 바로 얻을 수 있는 개발자 상자
+		//원하는 아이템을 바로 얻을 수 있는 개발자 상자, 층 이동과 몬스터·보스 소환을 하는 리모컨
 		DevChest chest = new DevChest();
 		chest.collect();
-		Dungeon.quickslot.setSlot(0, chest);
-
-		//층 이동과 몬스터·보스 소환을 하는 테스터 리모컨
 		new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis().identify().collect();
 		com.shatteredpixel.shatteredpixeldungeon.items.DevRemote remote = new com.shatteredpixel.shatteredpixeldungeon.items.DevRemote();
 		remote.collect();
-		Dungeon.quickslot.setSlot(1, remote);
+
+		//빈 빠른 칸에 차례로 넣음 (직업의 시작 아이템은 그대로 둠)
+		for (Item it : new Item[]{ chest, remote }){
+			for (int s = 0; s < QuickSlot.SIZE; s++){
+				if (Dungeon.quickslot.getItem(s) == null){
+					Dungeon.quickslot.setSlot(s, it);
+					break;
+				}
+			}
+		}
 	}
 
 	public String title() {
@@ -417,8 +415,6 @@ public enum HeroClass {
 				return Assets.Sprites.COLLECTOR;
 			case VAMPIRE:
 				return Assets.Sprites.VAMPIRE;
-			case TESTER:
-				return Assets.Sprites.TESTER;
 		}
 	}
 
@@ -449,8 +445,6 @@ public enum HeroClass {
 				return Assets.Splashes.COLLECTOR;
 			case VAMPIRE:
 				return Assets.Splashes.VAMPIRE;
-			case TESTER:
-				return Assets.Splashes.TESTER;
 		}
 	}
 	
@@ -471,7 +465,7 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
 			case CLERIC:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_CLERIC);
-			case COLLECTOR: case VAMPIRE: case TESTER:
+			case COLLECTOR: case VAMPIRE:
 				return true;
 		}
 	}
