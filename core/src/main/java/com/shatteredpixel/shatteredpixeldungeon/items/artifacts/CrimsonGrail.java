@@ -888,14 +888,15 @@ public class CrimsonGrail extends Artifact {
 				GLog.w( Messages.get( CrimsonGrail.this, "cursed" ) );
 				return;
 			}
-			if (!canUse( Dungeon.hero, quickSkill )){
-				GLog.w( Messages.get( CrimsonGrail.this, "no_skill" ) );
-				return;
-			}
-			//조준 중에 한 번 더 누르면, 조준점이 있는 적에게 씀
-			if (aimSkill == quickSkill && aimTarget != null && aimTarget.isAlive()){
+			//어떤 기술이든 조준 중이면, 이 버튼을 눌러 조준점이 있는 적에게 곧바로 씀
+			// (빠른 사용 기술이 아니라 기술 창에서 고른 매혹의 시선·박쥐 떼·피의 창·진조의 포식도 같음)
+			if (aimSkill != null && aimTarget != null && aimTarget.isAlive()){
 				int cell = QuickSlotButton.autoAim( aimTarget, CrimsonGrail.this );
 				GameScene.handleCell( cell != -1 ? cell : aimTarget.pos );
+				return;
+			}
+			if (!canUse( Dungeon.hero, quickSkill )){
+				GLog.w( Messages.get( CrimsonGrail.this, "no_skill" ) );
 				return;
 			}
 			use( quickSkill );
