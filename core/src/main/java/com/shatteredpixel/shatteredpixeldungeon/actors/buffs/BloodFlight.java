@@ -23,10 +23,10 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-//짧게 떠올랐다가, 끝나면 내려앉으며 주변 8칸의 적에게 피해를 주고 2턴 동안 불구로 만듦
+//진조 흡혈귀의 기술: 6턴 동안 떠올랐다가, 끝나면 내려앉으며 주변 8칸의 적에게 큰 피해를 주고 3턴 동안 불구로 만듦
 public class BloodFlight extends BloodWings {
 
-	public static final float TURNS = 4f;
+	public static final float TURNS = 6f;
 
 	@Override
 	public void detach() {
@@ -39,13 +39,13 @@ public class BloodFlight extends BloodWings {
 		for (int n : PathFinder.NEIGHBOURS8){
 			Char e = Actor.findChar( ch.pos + n );
 			if (e != null && e.alignment != ch.alignment && e.alignment != Char.Alignment.NEUTRAL){
-				e.damage( Random.NormalIntRange( 3 + lvl / 3, 6 + lvl * 2 / 3 ), this );
-				if (e.isAlive()) Buff.prolong( e, Cripple.class, 2f );
+				e.damage( Random.NormalIntRange( 6 + lvl / 2, 12 + lvl ), this );
+				if (e.isAlive()) Buff.prolong( e, Cripple.class, 3f );
 				if (e.sprite != null) e.sprite.emitter().burst( BloodParticle.BURST, 6 );
 				hit = true;
 			}
 		}
-		com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX.at( ch.pos, com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX.SLAM, 0.9f, 0.45f ).grow( 1.05f );
+		com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX.at( ch.pos, com.shatteredpixel.shatteredpixeldungeon.effects.VampireFX.SLAM, 1.0f, 0.5f ).grow( 1.2f );
 		Sample.INSTANCE.play( Assets.Sounds.BLAST, hit ? 1f : 0.6f, 1.2f );
 		if (ch == Dungeon.hero) PixelScene.shake( 1.5f, 0.3f );
 	}

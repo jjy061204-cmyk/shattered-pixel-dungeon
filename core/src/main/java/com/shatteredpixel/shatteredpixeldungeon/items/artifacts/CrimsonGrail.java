@@ -96,7 +96,7 @@ public class CrimsonGrail extends Artifact {
 	public enum Skill {
 		//처음부터
 		DRAIN( 0, 0, null, null ),
-		DIVE( 5, 0, null, null ),
+		SLASH( 4, 0, null, null ),
 		MIST( 6, 0, null, null ),
 		MEND( 8, 0, null, null ),
 		//1단계 특성
@@ -110,7 +110,7 @@ public class CrimsonGrail extends Artifact {
 		NOVA( 10, 3, Talent.BLOOD_NOVA, null ),
 		//진조 흡혈귀
 		FEAST( 6, 3, null, HeroSubClass.TRUE_ANCESTOR ),
-		BATFORM( 8, 3, null, HeroSubClass.TRUE_ANCESTOR ),
+		DIVE( 7, 3, null, HeroSubClass.TRUE_ANCESTOR ),
 		MASS_DRAIN( 8, 3, Talent.MASS_DRAIN, null ),
 		//피의 지배자
 		BLADE( 5, 3, null, HeroSubClass.BLOOD_LORD ),
@@ -429,8 +429,44 @@ public class CrimsonGrail extends Artifact {
 				} );
 				break;
 
+			case SLASH:
+				//보이는 적을 향해 핏빛 검기를 날려, 5칸 안 직선 위의 적 모두에게 피해와 약한 출혈
+				pickEnemy( hero, skill, 5, new OnTarget() {
+					@Override
+					public void hit( Char target, final int cell ) {
+						spend( hero, skill );
+						Invisibility.dispel();
+						hero.busy();
+						final Ballistica line = new Ballistica( hero.pos, cell, Ballistica.STOP_SOLID );
+						final int reach = Math.max( 1, Math.min( line.dist, 5 ) );
+						final int endCell = line.path.get( reach );
+						hero.sprite.attack( cell, new Callback() {
+							@Override
+							public void call() {
+								Sample.INSTANCE.play( Assets.Sounds.HIT_SLASH, 1f, 0.8f );
+								VampireFX.shoot( VampireFX.Projectile.SLASH, hero.sprite.center(),
+										com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.raisedTileCenterToWorld( endCell ), 0f, new Callback() {
+									@Override
+									public void call() {
+										for (int c : line.subPath( 1, reach )){
+											Char ch = Actor.findChar( c );
+											if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) continue;
+											int dmg = Random.NormalIntRange( 2 + lvl / 3, 5 + lvl * 2 / 3 );
+											ch.damage( dmg, CrimsonGrail.this );
+											VampireFX.at( c, VampireFX.SPLASH, 0.45f, 0.35f );
+											if (ch.isAlive() && isLiving( ch )) Buff.affect( ch, Bleeding.class ).set( Math.max( 1f, dmg * 0.3f ) );
+										}
+										finish( hero, 1f );
+									}
+								} );
+							}
+						} );
+					}
+				} );
+				break;
+
 			case DIVE:
-				//4턴 동안 떠오른 뒤, 내려앉으며 주변 8칸에 피해 (BloodFlight)
+				//진조 흡혈귀: 6턴 동안 떠오른 뒤, 내려앉으며 주변 8칸에 큰 피해 (BloodFlight)
 				spend( hero, skill );
 				BloodWings.fly( hero, BloodFlight.class, BloodFlight.TURNS );
 				VampireFX.on( hero.sprite, VampireFX.WINGS, 0.8f, 0.5f ).rise( 6f );
@@ -655,17 +691,6 @@ public class CrimsonGrail extends Artifact {
 						} );
 					}
 				} );
-				break;
-
-			case BATFORM:
-				spend( hero, skill );
-				//박쥐로 변해 8턴 동안 날고 6턴 동안 가속
-				BloodWings.fly( hero, BloodWings.class, 8f );
-				Buff.affect( hero, Haste.class, 6f );
-				VampireFX.on( hero.sprite, VampireFX.BATBURST, 0.9f, 0.6f );
-				hero.sprite.emitter().burst( ShadowParticle.CURSE, 6 );
-				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				finish( hero, 1f );
 				break;
 
 			case MASS_DRAIN: {

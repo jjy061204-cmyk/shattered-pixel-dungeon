@@ -63,7 +63,8 @@ public class UndyingBlood extends ArmorAbility {
 
 		hero.sprite.operate( hero.pos );
 		//커다란 심장이 두 번 고동치며 핏줄이 뻗어 나감
-		VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.5f, 0.9f ).offset( 0, -2f );
+		VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.42f, 0.9f ).offset( 0, -10f );
+		VampireFX.onBig( hero.sprite, VampireFX.B_RISE, 0.45f, 0.9f ).offset( 0, -6f );
 		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 0.6f );
 
@@ -108,8 +109,8 @@ public class UndyingBlood extends ArmorAbility {
 		if (hero.sprite != null){
 			hero.sprite.idle();
 			//빛기둥이 솟고 거대한 날개가 펼쳐지며 발밑에 고리가 퍼짐
-			VampireFX.onBig( hero.sprite, VampireFX.B_REVIVE, 0.62f, 0.95f ).offset( 0, -8f );
-			VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.4f, 0.7f ).delay( 0.25f );
+			VampireFX.onBig( hero.sprite, VampireFX.B_REVIVE, 0.6f, 1.0f ).offset( 0, -6f );
+			VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.36f, 0.7f ).offset( 0, -14f ).delay( 0.3f );
 			hero.sprite.showStatus( CharSprite.POSITIVE, Messages.get( UndyingBlood.class, "revived_status" ) );
 		}
 		GameScene.flash( 0x80CC1030 );

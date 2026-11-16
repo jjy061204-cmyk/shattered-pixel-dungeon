@@ -26,15 +26,19 @@ import com.watabou.utils.PointF;
 public class VampireFX extends Image {
 
 	public static final int BITE = 0, WINGS = 1, SLAM = 2, MIST = 3, MEND = 4, CHARM = 5, BATS = 6, SPLASH = 7, VEIL = 8,
-			DREAD = 9, NOVA = 10, JAWS = 11, BATBURST = 12, SIPHON = 13, BLADE = 14, INFUSE = 15, SHACKLE = 16, PROJ = 17, AURA = 18;
+			DREAD = 9, NOVA = 10, JAWS = 11, BATBURST = 12, SIPHON = 13, BLADE = 14, INFUSE = 15, SHACKLE = 16, PROJ = 17, AURA = 18,
+			SLASH_WAVE = 19;
 
 	public static final String SHEET = "effects/vampire_fx.png";
 	private static final int SIZE = 48, FRAMES = 8;
 
 	//갑옷 능력 전용 큰 이펙트 (effects/vampire_fx_big.png, 96x96 칸, 한 줄에 10장)
+	// 명암을 살린 도트라 빛 섞기 없이 보통으로 그림
 	public static final String BIG_SHEET = "effects/vampire_fx_big.png";
 	private static final int BIG_SIZE = 96, BIG_FRAMES = 10;
-	public static final int B_CHARGE = 0, B_STAKE = 1, B_IMPACT = 2, B_CROWN = 3, B_SIGIL = 4, B_HEART = 5, B_REVIVE = 6, B_AURA = 7;
+	public static final int B_CHARGE = 0, B_STAKE = 1, B_IMPACT = 2, B_SPARKLE = 3, B_RISE = 4, B_HEART = 5, B_REVIVE = 6, B_AURA = 7;
+
+	private boolean light = true;
 
 	private final TextureFilm film;
 	private final int size, frames;
@@ -70,12 +74,14 @@ public class VampireFX extends Image {
 	//큰 이펙트: 칸 가운데 / 캐릭터를 따라다니며 (size 1 = 6칸 너비)
 	public static VampireFX atBig( int cell, int row, float size, float dur ){
 		VampireFX fx = new VampireFX( BIG_SHEET, BIG_SIZE, BIG_FRAMES, row, null, DungeonTilemap.raisedTileCenterToWorld( cell ), size, dur );
+		fx.light = false;
 		GameScene.effect( fx );
 		return fx;
 	}
 
 	public static VampireFX onBig( CharSprite sprite, int row, float size, float dur ){
 		VampireFX fx = new VampireFX( BIG_SHEET, BIG_SIZE, BIG_FRAMES, row, sprite, sprite != null ? sprite.center() : new PointF(), size, dur );
+		fx.light = false;
 		if (sprite != null) GameScene.effect( fx );
 		return fx;
 	}
@@ -102,6 +108,10 @@ public class VampireFX extends Image {
 
 	@Override
 	public void draw() {
+		if (!light){
+			super.draw();
+			return;
+		}
 		Blending.setLightMode();
 		super.draw();
 		Blending.setNormalMode();
@@ -130,7 +140,7 @@ public class VampireFX extends Image {
 	//날아가는 것: 피의 창(날아가는 쪽으로 돌려 그림), 박쥐(날갯짓하며 날아감). 닿으면 callback
 	public static class Projectile extends Image {
 
-		public static final int LANCE = 0, BAT = 1, STAKE = 2;
+		public static final int LANCE = 0, BAT = 1, STAKE = 2, SLASH = 3;
 
 		private final TextureFilm film;
 		private final int kind;
@@ -157,6 +167,10 @@ public class VampireFX extends Image {
 				angle = (float)(Math.atan2( to.y - from.y, to.x - from.x ) * 180 / Math.PI);
 				scale.set( 0.45f );
 				frame( film.get( B_STAKE * BIG_FRAMES ) );
+			} else if (kind == SLASH){
+				angle = (float)(Math.atan2( to.y - from.y, to.x - from.x ) * 180 / Math.PI);
+				scale.set( 0.75f );
+				frame( film.get( SLASH_WAVE * FRAMES ) );
 			} else if (kind == LANCE){
 				angle = (float)(Math.atan2( to.y - from.y, to.x - from.x ) * 180 / Math.PI);
 				scale.set( 0.6f );
@@ -170,6 +184,10 @@ public class VampireFX extends Image {
 
 		@Override
 		public void draw() {
+			if (kind == STAKE){
+				super.draw();
+				return;
+			}
 			Blending.setLightMode();
 			super.draw();
 			Blending.setNormalMode();
@@ -191,6 +209,8 @@ public class VampireFX extends Image {
 			y = from.y + (to.y - from.y) * p - cell / 2f;
 			if (kind == STAKE){
 				frame( film.get( B_STAKE * BIG_FRAMES + ((int)(t / 0.06f) % 4) ) );
+			} else if (kind == SLASH){
+				frame( film.get( SLASH_WAVE * FRAMES + ((int)(t / 0.05f) % 4) ) );
 			}
 			if (kind == BAT){
 				y += (float) Math.sin( p * Math.PI * 3 ) * 2f;
@@ -284,12 +304,6 @@ public class VampireFX extends Image {
 			return follow == s;
 		}
 
-		@Override
-		public void draw() {
-			Blending.setLightMode();
-			super.draw();
-			Blending.setNormalMode();
-		}
 
 		@Override
 		public void update() {
@@ -348,17 +362,25 @@ public class VampireFX extends Image {
 		GameScene.effect( p );
 	}
 
-	//진조의 왕관: 영웅 머리 위에 얹힌 금빛 왕관 (effects/vampire_crown.png, 11x9 두 장, 이따금 보석이 반짝임)
+	//진조의 왕관: 영웅 머리 위에 얹힌 얇은 은빛 왕관 (effects/vampire_crown.png, 36x26 칸 16장)
+	// 쓰는 순간 위에서 천천히 내려와 머리에 얹히고, 그 뒤로는 제자리에서 느리게 돎
 	public static class CrownImage extends Image {
+
+		private static final int CW = 36, CH = 26, CFRAMES = 16;
+		private static final float CSCALE = 0.33f;
 
 		private final TextureFilm film;
 		private final CharSprite follow;
 		private float t = 0;
+		private final boolean descend;
 
-		public CrownImage( CharSprite follow ){
+		public CrownImage( CharSprite follow, boolean descend ){
 			super( "effects/vampire_crown.png" );
-			film = new TextureFilm( texture, 11, 9 );
+			film = new TextureFilm( texture, CW, CH );
 			this.follow = follow;
+			this.descend = descend;
+			com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.smooth( texture );
+			scale.set( CSCALE );
 			frame( film.get( 0 ) );
 			place();
 		}
@@ -367,9 +389,9 @@ public class VampireFX extends Image {
 			return follow == s;
 		}
 
-		public static CrownImage on( CharSprite sprite ){
+		public static CrownImage on( CharSprite sprite, boolean descend ){
 			if (sprite == null) return null;
-			CrownImage c = new CrownImage( sprite );
+			CrownImage c = new CrownImage( sprite, descend );
 			GameScene.effect( c );
 			return c;
 		}
@@ -378,8 +400,13 @@ public class VampireFX extends Image {
 			//64칸 그림에서 머리 꼭대기(약 9칸 아래)에 얹음, 좌우를 뒤집으면 머리 가운데도 따라 옮김
 			float sx = follow.scale.x, sy = follow.scale.y;
 			float headX = follow.flipHorizontal ? 33.5f : 30.5f;
-			x = follow.x + headX * sx - width / 2f;
-			y = follow.y + 9f * sy - height;
+			float drop = 0;
+			if (descend && t < 0.7f){
+				float p = t / 0.7f;
+				drop = -10f * (1 - p) * (1 - p);
+			}
+			x = follow.x + headX * sx - CW * CSCALE / 2f;
+			y = follow.y + 10f * sy - CH * CSCALE + drop;
 		}
 
 		@Override
@@ -391,10 +418,12 @@ public class VampireFX extends Image {
 				return;
 			}
 			t += Game.elapsed;
-			frame( film.get( (t % 2.4f) < 0.25f ? 1 : 0 ) );
+			//초당 5장: 16장이 한 바퀴의 1/4(무늬가 되풀이되는 간격)이라 계속 천천히 도는 것처럼 보임
+			frame( film.get( ((int)(t * 5f)) % CFRAMES ) );
 			place();
 			visible = follow.visible;
-			alpha( follow.alpha() );
+			float fade = descend ? Math.min( 1f, t / 0.4f ) : 1f;
+			alpha( fade * follow.alpha() );
 		}
 	}
 

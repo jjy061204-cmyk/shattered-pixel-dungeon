@@ -66,9 +66,8 @@ public class CrimsonCrown extends ArmorAbility {
 		}
 
 		hero.sprite.operate( hero.pos );
-		//발밑에 문양이 돌고, 두 줄기 핏빛 나선이 머리 위로 솟아 왕관으로 맺힘
-		VampireFX.onBig( hero.sprite, VampireFX.B_SIGIL, 0.55f, 1.0f ).offset( 0, -6f );
-		VampireFX.onBig( hero.sprite, VampireFX.B_CROWN, 0.5f, 0.85f ).offset( 0, -5f );
+		//은빛 왕관이 위에서 내려와 머리에 얹히며 둘레에 은빛 별이 반짝임
+		VampireFX.onBig( hero.sprite, VampireFX.B_SPARKLE, 0.45f, 1.0f ).offset( 0, -2f );
 		GameScene.flash( 0x60CC1030 );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 		Sample.INSTANCE.play( Assets.Sounds.LEVELUP, 0.6f, 0.8f );
@@ -169,8 +168,9 @@ public class CrimsonCrown extends ArmorAbility {
 			Crown c = s.ch.buff( Crown.class );
 			if (c == null) return;
 			if (c.image != null && c.image.parent != null && c.image.follows( s )) return;
+			boolean first = c.image == null;
 			if (c.image != null) c.image.killAndErase();
-			c.image = VampireFX.CrownImage.on( s );
+			c.image = VampireFX.CrownImage.on( s, first && c.cooldown() > c.total - 1f );
 		}
 
 		private static final String TOTAL = "total";

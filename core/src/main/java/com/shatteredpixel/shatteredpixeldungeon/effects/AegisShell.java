@@ -27,10 +27,27 @@ public class AegisShell extends Image {
 	private float time = 0;
 	private int lastIndex = -1;
 
+	//세밀한 도트 영웅용: 영웅 그림과 같은 64x64 칸·같은 순서로 그린 맞춤 껍데기
+	private boolean hd = false;
+
 	public AegisShell( CharSprite target, String tex ){
 		super( tex );
 		this.target = target;
 		film = new TextureFilm( texture, W, H );
+		frame( film.get( 0 ) );
+	}
+
+	public AegisShell( CharSprite target, String tex, boolean hd ){
+		super( tex );
+		this.target = target;
+		this.hd = hd;
+		if (hd){
+			film = new TextureFilm( texture, com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.HD_WIDTH,
+					com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.HD_HEIGHT );
+			com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.smooth( texture );
+		} else {
+			film = new TextureFilm( texture, W, H );
+		}
 		frame( film.get( 0 ) );
 	}
 
@@ -54,6 +71,23 @@ public class AegisShell extends Image {
 	//위치·프레임 맞추기. 영웅의 이동 트위너가 이 그림보다 늦게 갱신될 수 있어,
 	//그리기 직전에도 한 번 더 맞춰 한 프레임씩 뒤처지지 않게 함
 	private void sync(){
+		if (hd){
+			//영웅 그림의 지금 칸과 같은 칸을 같은 크기·같은 자리에 씌움
+			int idx = heroIndex();
+			visible = target.visible;
+			if (!visible) return;
+			if (idx != lastIndex && film.get( idx ) != null){
+				frame( film.get( idx ) );
+				lastIndex = idx;
+			}
+			flipHorizontal = target.flipHorizontal;
+			scale.set( target.scale );
+			origin.set( target.origin );
+			angle = target.angle;
+			x = target.x;
+			y = target.y;
+			return;
+		}
 		boolean big = target.width() > HERO_W * 1.2f;
 		//세밀한 큰 도트 영웅은 동작 순서가 달라 갑옷은 서 있는 모습 하나로 씌움
 		int idx = big ? 0 : heroIndex();
