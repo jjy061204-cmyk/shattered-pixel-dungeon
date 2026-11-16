@@ -232,7 +232,19 @@ public class CrimsonGrail extends Artifact {
 		aimSkill = skill;
 		aimTarget = target;
 		QuickSlotButton.target( target );
-		aimMark = VampireFX.Mark.on( target.sprite );
+		//성배가 도구 모음에 있으면 원작처럼 그 칸에도 조준 표시가 뜨고, 성배 칸을 한 번 더 눌러도 씀
+		if (Dungeon.quickslot.contains( this )){
+			QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
+		} else {
+			aimMark = VampireFX.Mark.on( target.sprite );
+		}
+	}
+
+	//자동 조준이 노릴 칸: 피의 창만 날아가다 막히고, 나머지 기술은 고른 칸에 그대로 닿음
+	@Override
+	public int targetingPos( Hero user, int dst ) {
+		if (aimSkill == Skill.LANCE) return new Ballistica( user.pos, dst, Ballistica.PROJECTILE ).collisionPos;
+		return dst;
 	}
 
 	private void endAim(){
@@ -312,8 +324,10 @@ public class CrimsonGrail extends Artifact {
 				endAim();
 				if (cell == null) return;
 				Char ch = Actor.findChar( cell );
-				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY || !Dungeon.level.heroFOV[cell]
-						|| Dungeon.level.distance( hero.pos, cell ) > range){
+				//피의 창은 비스듬히 노린 칸으로도 쏠 수 있음 (날아가다 처음 닿는 적)
+				if (ch == null && skill == Skill.LANCE) ch = Actor.findChar( new Ballistica( hero.pos, cell, Ballistica.PROJECTILE ).collisionPos );
+				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY || !Dungeon.level.heroFOV[ch.pos]
+						|| Dungeon.level.distance( hero.pos, ch.pos ) > range){
 					GLog.w( Messages.get( CrimsonGrail.class, "enemy_invalid", range ) );
 					return;
 				}
@@ -880,7 +894,8 @@ public class CrimsonGrail extends Artifact {
 			}
 			//조준 중에 한 번 더 누르면, 조준점이 있는 적에게 씀
 			if (aimSkill == quickSkill && aimTarget != null && aimTarget.isAlive()){
-				GameScene.handleCell( aimTarget.pos );
+				int cell = QuickSlotButton.autoAim( aimTarget, CrimsonGrail.this );
+				GameScene.handleCell( cell != -1 ? cell : aimTarget.pos );
 				return;
 			}
 			use( quickSkill );
