@@ -575,7 +575,8 @@ public class Generator {
 					UnstableSpellbook.class,
 					com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis.class   //모드: 룬 성갑의 문장
 			};
-			ARTIFACT.defaultProbs = new float[]{ 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1 };
+			//모드: 수호의 반지(마지막 칸)는 삭제되어 나오지 않음
+			ARTIFACT.defaultProbs = new float[]{ 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0 };
 			ARTIFACT.probs = ARTIFACT.defaultProbs.clone();
 
 			//Trinkets are unique like artifacts, but unlike them you can only have one at once
@@ -957,7 +958,7 @@ public class Generator {
 				}
 
 				//pre-v3.3.0 conversion for artifacts (addition of tome and key)
-				if (cat == Category.ARTIFACT && probs.length != cat.defaultProbs.length){
+				if (cat == Category.ARTIFACT && probs.length < cat.defaultProbs.length){
 					int keyIDX = 9;
 					int j = 0;
 					for (int i = 0; i < probs.length; i++){
@@ -968,6 +969,11 @@ public class Generator {
 						cat.probs[j] = probs[i];
 						j++;
 					}
+				}
+
+				//모드: 삭제된 수호의 반지는 예전 저장에서도 다시 나오지 않게
+				if (cat == Category.ARTIFACT && cat.probs != null && cat.probs.length == cat.classes.length){
+					cat.probs[cat.probs.length - 1] = 0;
 				}
 
 			}

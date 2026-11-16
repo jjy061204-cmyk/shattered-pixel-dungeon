@@ -44,7 +44,6 @@ public class AegisShell extends Image {
 		if (hd){
 			film = new TextureFilm( texture, com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.HD_WIDTH,
 					com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.HD_HEIGHT );
-			com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.smooth( texture );
 		} else {
 			film = new TextureFilm( texture, W, H );
 		}
@@ -53,6 +52,32 @@ public class AegisShell extends Image {
 
 	public CharSprite target(){
 		return target;
+	}
+
+	//영웅의 모습에 맞는 껍데기: 세밀한 도트 영웅(유물수집가·뱀파이어)은 각자 맞춤 껍데기
+	public static AegisShell forSprite( CharSprite sprite ){
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass look = null;
+		if (sprite.ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero){
+			look = ((com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) sprite.ch).heroClass;
+		}
+		if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.COLLECTOR){
+			return new AegisShell( sprite, "sprites/collector_aegis.png", true );
+		} else if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE){
+			return new AegisShell( sprite, "sprites/vampire_aegis.png", true );
+		}
+		return new AegisShell( sprite, "sprites/rune_aegis_shell.png" );
+	}
+
+	//색 입히기 (불멸의 피는 붉은빛)
+	private float tr = 1f, tg = 1f, tb = 1f;
+	public AegisShell tint( float r, float g, float b ){
+		tr = r; tg = g; tb = b;
+		hardlight( r, g, b );
+		return this;
+	}
+
+	public boolean follows( CharSprite s ){
+		return target == s;
 	}
 
 	public void setLook( String tex ){
@@ -128,9 +153,16 @@ public class AegisShell extends Image {
 		alpha( pulse * Math.min( 1f, target.alpha() ) );
 	}
 
+	private boolean smoothed = false;
+
 	@Override
 	public void draw() {
 		if (target == null || target.parent == null) return;
+		//텍스처 필터는 그래픽 장치를 건드리므로 그리기 차례(화면 스레드)에서만 바꿈
+		if (hd && !smoothed){
+			com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.smooth( texture );
+			smoothed = true;
+		}
 		sync();
 		if (!visible) return;
 		super.draw();

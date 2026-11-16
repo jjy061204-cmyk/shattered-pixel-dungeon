@@ -107,16 +107,7 @@ public class RuneAegisForm extends Buff {
 		if (target == null || target.sprite == null || target.sprite.parent == null) return;
 		if (shell != null && shell.parent != null && shell.target() == target.sprite) return;
 		if (shell != null) shell.killAndErase();
-		//세밀한 도트 영웅(유물수집가·뱀파이어)은 각자 맞춤 껍데기를 씀
-		com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass look =
-				target instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero ? ((com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) target).heroClass : null;
-		if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.COLLECTOR){
-			shell = new AegisShell( target.sprite, "sprites/collector_aegis.png", true );
-		} else if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE){
-			shell = new AegisShell( target.sprite, "sprites/vampire_aegis.png", true );
-		} else {
-			shell = new AegisShell( target.sprite, RuneAegis.SHELL );
-		}
+		shell = AegisShell.forSprite( target.sprite );
 		target.sprite.parent.add( shell );
 	}
 

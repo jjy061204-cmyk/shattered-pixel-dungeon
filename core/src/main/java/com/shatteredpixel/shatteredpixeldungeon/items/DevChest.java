@@ -83,102 +83,114 @@ public class DevChest extends Item {
 		return Messages.get(DevChest.class, key, args);
 	}
 
-	//1단계: 분류 고르기
+	//개발자 상자 창: 모든 아이템을 분류별 제목 아래 아이콘 격자로 한 화면에 늘어놓고 위아래로 넘겨 봄.
+	// 아이콘을 누르면 바로 받고, 창은 열린 채로 남아 여러 개를 연달아 고를 수 있음.
+	// 아래 단추로 받을 개수(쌓이는 아이템)와 강화 수치(강화할 수 있는 아이템)를 정함. 마지막 위치와 설정은 기억함
 	private static void showCategories( final int page ){
-		final ArrayList<Catalog> cats = new ArrayList<>();
-		for (Catalog cat : Catalog.values()){
-			if (!itemClasses(cat).isEmpty()) cats.add(cat);
-		}
-
-		final int start = page * PER_PAGE;
-		final int end = Math.min(start + PER_PAGE, cats.size());
-		final boolean hasPrev = page > 0;
-		final boolean hasNext = end < cats.size();
-
-		ArrayList<String> options = new ArrayList<>();
-		for (int i = start; i < end; i++){
-			options.add(Messages.titleCase(cats.get(i).title()));
-		}
-		final int listSize = options.size();
-		if (hasPrev) options.add(txt("prev"));
-		if (hasNext) options.add(txt("next"));
-
-		GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.CRYSTAL_CHEST),
-				Messages.titleCase(txt("name")),
-				txt("choose_category", page + 1, (cats.size() + PER_PAGE - 1) / PER_PAGE),
-				options.toArray(new String[0])){
-			@Override
-			protected void onSelect(int index) {
-				if (index < listSize){
-					showItems(cats.get(start + index), 0);
-				} else if (hasPrev && index == listSize){
-					showCategories(page - 1);
-				} else {
-					showCategories(page + 1);
-				}
-			}
-		});
+		GameScene.show( new WndDevChest() );
 	}
 
-	//2단계: 분류 안의 아이템 고르기
-	private static void showItems( final Catalog cat, final int page ){
-		final ArrayList<Class<?>> classes = itemClasses(cat);
+	public static class WndDevChest extends com.shatteredpixel.shatteredpixeldungeon.ui.Window {
 
-		final int start = page * PER_PAGE;
-		final int end = Math.min(start + PER_PAGE, classes.size());
-		final boolean hasPrev = page > 0;
-		final boolean hasNext = end < classes.size();
+		private static final int[] QTY = { 1, 5, 20, 100 };
+		private static final int[] LVL = { 0, 1, 3, 6, 10 };
+		private static int qtyIdx = 0, lvlIdx = 0;
+		private static float lastScroll = 0;
 
-		final ArrayList<Item> samples = new ArrayList<>();
-		ArrayList<String> options = new ArrayList<>();
-		for (int i = start; i < end; i++){
-			Item sample = (Item) Reflection.newInstance(classes.get(i));
-			samples.add(sample);
-			options.add(sample == null ? classes.get(i).getSimpleName() : Messages.titleCase(sample.trueName()));
-		}
-		final int listSize = options.size();
-		if (hasPrev) options.add(txt("prev"));
-		if (hasNext) options.add(txt("next"));
-		options.add(txt("back"));
+		private final com.shatteredpixel.shatteredpixeldungeon.ui.ScrollingGridPane grid;
 
-		GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.CRYSTAL_CHEST),
-				Messages.titleCase(cat.title()),
-				txt("choose_item", page + 1, (classes.size() + PER_PAGE - 1) / PER_PAGE),
-				options.toArray(new String[0])){
+		public WndDevChest(){
+			super();
+			boolean wide = com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.landscape();
+			int width = wide ? 230 : 136;
+			int height = Math.min( (int) com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera.height - 24, wide ? 200 : 240 );
 
-			@Override
-			protected boolean hasIcon(int index) {
-				return index < listSize && samples.get(index) != null;
-			}
+			com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock title =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.renderTextBlock( Messages.titleCase( txt( "name" ) ), 9 );
+			title.hardlight( TITLE_COLOR );
+			title.setPos( (width - title.width()) / 2f, 2 );
+			add( title );
 
-			@Override
-			protected Image getIcon(int index) {
-				return new ItemSprite(samples.get(index));
-			}
+			com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock hint =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.renderTextBlock( txt( "hint" ), 6 );
+			hint.maxWidth( width );
+			hint.setPos( (width - hint.width()) / 2f, title.bottom() + 2 );
+			add( hint );
 
-			@Override
-			protected void onSelect(int index) {
-				if (index < listSize){
-					give(classes.get(start + index));
-					//여러 개를 연달아 고를 수 있도록 같은 화면을 다시 엶
-					showItems(cat, page);
-				} else if (hasPrev && index == listSize){
-					showItems(cat, page - 1);
-				} else if (hasNext && index == listSize + (hasPrev ? 1 : 0)){
-					showItems(cat, page + 1);
-				} else {
-					showCategories(0);
+			final com.shatteredpixel.shatteredpixeldungeon.ui.RedButton qtyBtn = new com.shatteredpixel.shatteredpixeldungeon.ui.RedButton( qtyLabel(), 7 ){
+				@Override
+				protected void onClick() {
+					qtyIdx = (qtyIdx + 1) % QTY.length;
+					text( qtyLabel() );
+				}
+			};
+			final com.shatteredpixel.shatteredpixeldungeon.ui.RedButton lvlBtn = new com.shatteredpixel.shatteredpixeldungeon.ui.RedButton( lvlLabel(), 7 ){
+				@Override
+				protected void onClick() {
+					lvlIdx = (lvlIdx + 1) % LVL.length;
+					text( lvlLabel() );
+				}
+			};
+			float btnY = height - 16;
+			qtyBtn.setRect( 0, btnY, width / 2f - 1, 16 );
+			lvlBtn.setRect( width / 2f + 1, btnY, width / 2f - 1, 16 );
+			add( qtyBtn );
+			add( lvlBtn );
+
+			grid = new com.shatteredpixel.shatteredpixeldungeon.ui.ScrollingGridPane();
+			add( grid );
+			for (Catalog cat : Catalog.values()){
+				ArrayList<Class<?>> classes = itemClasses( cat );
+				if (classes.isEmpty()) continue;
+				grid.addHeader( "_" + Messages.titleCase( cat.title() ) + "_" );
+				for (final Class<?> cls : classes){
+					Item sample = (Item) Reflection.newInstance( cls );
+					if (sample == null) continue;
+					com.shatteredpixel.shatteredpixeldungeon.ui.ScrollingGridPane.GridItem cell =
+							new com.shatteredpixel.shatteredpixeldungeon.ui.ScrollingGridPane.GridItem( new ItemSprite( sample ) ){
+						@Override
+						public boolean onClick( float x, float y ) {
+							if (inside( x, y )){
+								give( cls, QTY[qtyIdx], LVL[lvlIdx] );
+								return true;
+							}
+							return false;
+						}
+					};
+					grid.addItem( cell );
 				}
 			}
-		});
+			float top = hint.bottom() + 3;
+			grid.setRect( 0, top, width, btnY - 2 - top );
+			resize( width, height );
+			grid.scrollTo( 0, lastScroll );
+		}
+
+		private static String qtyLabel(){ return txt( "qty", QTY[qtyIdx] ); }
+		private static String lvlLabel(){ return txt( "lvl", LVL[lvlIdx] ); }
+
+		@Override
+		public void hide() {
+			lastScroll = grid.content().camera.scroll.y;
+			super.hide();
+		}
 	}
 
 	//선택한 아이템을 감정된 상태로 가방에 넣음 (가방이 가득 차면 발밑에 떨어뜨림)
 	private static void give( Class<?> cls ){
+		give( cls, 1, 0 );
+	}
+
+	private static void give( Class<?> cls, int qty, int lvl ){
 		Item item = (Item) Reflection.newInstance(cls);
 		if (item == null) return;
 
 		item.identify();
+		//쌓이는 아이템은 고른 개수만큼, 강화할 수 있는 아이템은 고른 수치까지 강화
+		if (item.stackable && qty > 1) item.quantity( qty );
+		if (lvl > 0 && item.isUpgradable()){
+			for (int i = 0; i < lvl; i++) item.upgrade();
+		}
 		//현대 세계 코인은 넉넉하게 1000개
 		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.modern.ModernCoin) item.quantity(1000);
 		String name = Messages.titleCase(item.name());

@@ -63,8 +63,8 @@ public class UndyingBlood extends ArmorAbility {
 
 		hero.sprite.operate( hero.pos );
 		//커다란 심장이 두 번 고동치며 핏줄이 뻗어 나감
-		VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.42f, 0.9f ).offset( 0, -10f );
-		VampireFX.onBig( hero.sprite, VampireFX.B_RISE, 0.45f, 0.9f ).offset( 0, -6f );
+		//몸을 붉은빛 껍데기가 감쌈 (Tracker.fx)
+		GameScene.flash( 0x40CC1030 );
 		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 0.6f );
 
@@ -109,8 +109,7 @@ public class UndyingBlood extends ArmorAbility {
 		if (hero.sprite != null){
 			hero.sprite.idle();
 			//빛기둥이 솟고 거대한 날개가 펼쳐지며 발밑에 고리가 퍼짐
-			VampireFX.onBig( hero.sprite, VampireFX.B_REVIVE, 0.6f, 1.0f ).offset( 0, -6f );
-			VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.36f, 0.7f ).offset( 0, -14f ).delay( 0.3f );
+			hero.sprite.emitter().burst( com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle.BURST, 16 );
 			hero.sprite.showStatus( CharSprite.POSITIVE, Messages.get( UndyingBlood.class, "revived_status" ) );
 		}
 		GameScene.flash( 0x80CC1030 );
@@ -191,26 +190,28 @@ public class UndyingBlood extends ArmorAbility {
 			return Messages.get( this, "desc", (int) left );
 		}
 
-		private VampireFX.Pulse pulse;
+		//수호의 반지와 같은 껍데기를 붉은빛으로 씌움
+		private com.shatteredpixel.shatteredpixeldungeon.effects.AegisShell shell;
 
 		@Override
 		public void fx( boolean on ) {
 			if (on){
 				ensureFx( target.sprite );
-			} else if (pulse != null){
-				pulse.killAndErase();
-				pulse = null;
+			} else if (shell != null){
+				shell.killAndErase();
+				shell = null;
 			}
 		}
 
-		//발밑 고동이 지금 영웅 그림을 따라다니는지 확인하고, 없으면 붙임 (HeroSprite.update에서도 부름)
+		//껍데기가 지금 영웅 그림을 따라다니는지 확인하고, 없으면 씌움 (HeroSprite.update에서도 부름)
 		public static void ensureFx( CharSprite s ){
 			if (s == null || s.ch == null || s.parent == null) return;
 			Tracker t = s.ch.buff( Tracker.class );
 			if (t == null) return;
-			if (t.pulse != null && t.pulse.parent != null && t.pulse.follows( s )) return;
-			if (t.pulse != null) t.pulse.killAndErase();
-			t.pulse = VampireFX.Pulse.on( s );
+			if (t.shell != null && t.shell.parent != null && t.shell.follows( s )) return;
+			if (t.shell != null) t.shell.killAndErase();
+			t.shell = com.shatteredpixel.shatteredpixeldungeon.effects.AegisShell.forSprite( s ).tint( 1.7f, 0.32f, 0.36f );
+			s.parent.add( t.shell );
 		}
 
 		private static final String LEFT = "left", TOTAL = "total", PARTIAL = "partial";

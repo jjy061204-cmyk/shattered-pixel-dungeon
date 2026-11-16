@@ -74,14 +74,14 @@ public class VampireFX extends Image {
 	//큰 이펙트: 칸 가운데 / 캐릭터를 따라다니며 (size 1 = 6칸 너비)
 	public static VampireFX atBig( int cell, int row, float size, float dur ){
 		VampireFX fx = new VampireFX( BIG_SHEET, BIG_SIZE, BIG_FRAMES, row, null, DungeonTilemap.raisedTileCenterToWorld( cell ), size, dur );
-		fx.light = false;
+		fx.light = row <= B_IMPACT;
 		GameScene.effect( fx );
 		return fx;
 	}
 
 	public static VampireFX onBig( CharSprite sprite, int row, float size, float dur ){
 		VampireFX fx = new VampireFX( BIG_SHEET, BIG_SIZE, BIG_FRAMES, row, sprite, sprite != null ? sprite.center() : new PointF(), size, dur );
-		fx.light = false;
+		fx.light = row <= B_IMPACT;
 		if (sprite != null) GameScene.effect( fx );
 		return fx;
 	}
@@ -184,10 +184,6 @@ public class VampireFX extends Image {
 
 		@Override
 		public void draw() {
-			if (kind == STAKE){
-				super.draw();
-				return;
-			}
 			Blending.setLightMode();
 			super.draw();
 			Blending.setNormalMode();
@@ -379,7 +375,6 @@ public class VampireFX extends Image {
 			film = new TextureFilm( texture, CW, CH );
 			this.follow = follow;
 			this.descend = descend;
-			com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.smooth( texture );
 			scale.set( CSCALE );
 			frame( film.get( 0 ) );
 			place();
@@ -387,6 +382,18 @@ public class VampireFX extends Image {
 
 		public boolean follows( CharSprite s ){
 			return follow == s;
+		}
+
+		//텍스처 필터는 그래픽 장치를 건드리므로, 게임 진행 스레드(능력을 쓰는 순간)가 아니라 그리기 차례에 바꿈
+		private boolean smoothed = false;
+
+		@Override
+		public void draw() {
+			if (!smoothed){
+				com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.smooth( texture );
+				smoothed = true;
+			}
+			super.draw();
 		}
 
 		public static CrownImage on( CharSprite sprite, boolean descend ){

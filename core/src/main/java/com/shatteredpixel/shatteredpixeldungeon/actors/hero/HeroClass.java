@@ -345,7 +345,6 @@ public enum HeroClass {
 		//원하는 아이템을 바로 얻을 수 있는 개발자 상자, 층 이동과 몬스터·보스 소환을 하는 리모컨
 		DevChest chest = new DevChest();
 		chest.collect();
-		new com.shatteredpixel.shatteredpixeldungeon.items.quest.RuneAegis().identify().collect();
 		com.shatteredpixel.shatteredpixeldungeon.items.DevRemote remote = new com.shatteredpixel.shatteredpixeldungeon.items.DevRemote();
 		remote.collect();
 
