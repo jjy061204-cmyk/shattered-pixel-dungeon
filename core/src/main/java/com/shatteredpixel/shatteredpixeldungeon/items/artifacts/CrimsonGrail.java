@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodBlade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodFlight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodWings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
@@ -217,14 +218,73 @@ public class CrimsonGrail extends Artifact {
 
 	private interface OnTarget { void hit( Char ch, int cell ); }
 
+	//------------------------------------------------------------------ 조준
+	// 성직자의 성서처럼: 대상을 고르는 기술을 쓰면 가까운 적에게 조준점이 뜨고,
+	// 빠른 사용 버튼을 한 번 더 누르면 그 적에게 곧바로 씀 (다른 적은 화면에서 눌러 고를 수 있음)
+
+	private Skill aimSkill = null;
+	private Char aimTarget = null;
+	private VampireFX.Mark aimMark = null;
+
+	private void startAim( Skill skill, Char target ){
+		endAim();
+		if (target == null) return;
+		aimSkill = skill;
+		aimTarget = target;
+		QuickSlotButton.target( target );
+		aimMark = VampireFX.Mark.on( target.sprite );
+	}
+
+	private void endAim(){
+		aimSkill = null;
+		aimTarget = null;
+		if (aimMark != null) aimMark.killAndErase();
+		aimMark = null;
+	}
+
+	private static boolean validFoe( Hero hero, Char ch ){
+		return ch != null && ch != hero && ch.isAlive() && ch.alignment == Char.Alignment.ENEMY
+				&& ch.invisible <= 0 && Dungeon.level.heroFOV[ch.pos]
+				&& !Char.hasProp( ch, Char.Property.OBJECT );
+	}
+
+	//바로 옆의 적 가운데 하나 (마지막으로 노린 적이 옆에 있으면 그 적)
+	private static Char nearAdjacent( Hero hero ){
+		Char last = QuickSlotButton.lastTarget;
+		if (validFoe( hero, last ) && Dungeon.level.adjacent( hero.pos, last.pos )) return last;
+		Char best = null;
+		for (int n : PathFinder.NEIGHBOURS8){
+			Char ch = Actor.findChar( hero.pos + n );
+			if (validFoe( hero, ch ) && (best == null || ch.HP < best.HP)) best = ch;
+		}
+		return best;
+	}
+
+	//거리 안의 보이는 적 가운데 가장 가까운 것 (마지막으로 노린 적이 거리 안이면 그 적)
+	private static Char nearEnemy( Hero hero, int range ){
+		Char last = QuickSlotButton.lastTarget;
+		if (validFoe( hero, last ) && Dungeon.level.distance( hero.pos, last.pos ) <= range) return last;
+		Char best = null;
+		for (Mob mob : Dungeon.level.mobs){
+			if (validFoe( hero, mob ) && Dungeon.level.distance( hero.pos, mob.pos ) <= range
+					&& (best == null || Dungeon.level.distance( hero.pos, mob.pos ) < Dungeon.level.distance( hero.pos, best.pos ))){
+				best = mob;
+			}
+		}
+		return best;
+	}
+
 	//바로 옆의 적을 고름
 	private void pickAdjacent( final Hero hero, final Skill skill, final OnTarget then ){
-		if (Dungeon.quickslot.contains( this )){
-			QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
+		Char suggest = nearAdjacent( hero );
+		if (suggest == null){
+			GLog.w( Messages.get( CrimsonGrail.class, "adjacent_none" ) );
+			return;
 		}
 		GameScene.selectCell( new CellSelector.Listener() {
 			@Override
 			public void onSelect( Integer cell ) {
+				endAim();
 				if (cell == null) return;
 				Char ch = Actor.findChar( cell );
 				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY
@@ -240,16 +300,16 @@ public class CrimsonGrail extends Artifact {
 				return Messages.get( CrimsonGrail.class, "adjacent_prompt", skill.title() );
 			}
 		} );
+		startAim( skill, suggest );
 	}
 
 	//보이는 적을 고름 (거리 제한)
 	private void pickEnemy( final Hero hero, final Skill skill, final int range, final OnTarget then ){
-		if (Dungeon.quickslot.contains( this )){
-			QuickSlotButton.useTargeting( Dungeon.quickslot.getSlot( this ) );
-		}
+		Char suggest = nearEnemy( hero, range );
 		GameScene.selectCell( new CellSelector.Listener() {
 			@Override
 			public void onSelect( Integer cell ) {
+				endAim();
 				if (cell == null) return;
 				Char ch = Actor.findChar( cell );
 				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY || !Dungeon.level.heroFOV[cell]
@@ -265,6 +325,7 @@ public class CrimsonGrail extends Artifact {
 				return Messages.get( CrimsonGrail.class, "enemy_prompt", skill.title() );
 			}
 		} );
+		startAim( skill, suggest );
 	}
 
 	//기본 공격 한 번의 피해 (대상의 방어를 뺀 값)에 배율을 곱함
@@ -343,7 +404,7 @@ public class CrimsonGrail extends Artifact {
 			case DIVE:
 				//4턴 동안 떠오른 뒤, 내려앉으며 주변 8칸에 피해 (BloodFlight)
 				spend( hero, skill );
-				Buff.affect( hero, BloodFlight.class, BloodFlight.TURNS );
+				BloodWings.fly( hero, BloodFlight.class, BloodFlight.TURNS );
 				VampireFX.on( hero.sprite, VampireFX.WINGS, 0.8f, 0.5f ).rise( 6f );
 				hero.sprite.emitter().burst( BloodParticle.BURST, 8 );
 				Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 0.7f );
@@ -571,7 +632,7 @@ public class CrimsonGrail extends Artifact {
 			case BATFORM:
 				spend( hero, skill );
 				//박쥐로 변해 8턴 동안 날고 6턴 동안 가속
-				Buff.affect( hero, Levitation.class, 8f );
+				BloodWings.fly( hero, BloodWings.class, 8f );
 				Buff.affect( hero, Haste.class, 6f );
 				VampireFX.on( hero.sprite, VampireFX.BATBURST, 0.9f, 0.6f );
 				hero.sprite.emitter().burst( ShadowParticle.CURSE, 6 );
@@ -815,6 +876,11 @@ public class CrimsonGrail extends Artifact {
 			}
 			if (!canUse( Dungeon.hero, quickSkill )){
 				GLog.w( Messages.get( CrimsonGrail.this, "no_skill" ) );
+				return;
+			}
+			//조준 중에 한 번 더 누르면, 조준점이 있는 적에게 씀
+			if (aimSkill == quickSkill && aimTarget != null && aimTarget.isAlive()){
+				GameScene.handleCell( aimTarget.pos );
 				return;
 			}
 			use( quickSkill );

@@ -66,6 +66,20 @@ public class Levitation extends FlavourBuff {
 		}
 	}
 
+	//모드: 구름(부유 표시)을 쓰는지. 뱀파이어의 핏빛 날개는 구름 대신 날개를 그림
+	protected boolean showsClouds(){
+		return true;
+	}
+
+	//모드: 걸려 있는 부유 효과(핏빛 날개 포함) 가운데 가장 늦게 끝나는 것
+	public static Levitation longest( Char ch ){
+		Levitation best = null;
+		for (Levitation l : ch.buffs( Levitation.class )){
+			if (best == null || l.cooldown() > best.cooldown()) best = l;
+		}
+		return best;
+	}
+
 	protected boolean otherFlight(){
 		if (target == null) return false;
 		for (Levitation l : target.buffs( Levitation.class )){
@@ -104,7 +118,14 @@ public class Levitation extends FlavourBuff {
 	
 	@Override
 	public void fx(boolean on) {
+		if (on && !showsClouds()) return;
 		if (on) target.sprite.add(CharSprite.State.LEVITATING);
-		else if (!otherFlight()) target.sprite.remove(CharSprite.State.LEVITATING);
+		else {
+			boolean clouds = false;
+			for (Levitation l : target.buffs( Levitation.class )){
+				if (l != this && l.showsClouds()) clouds = true;
+			}
+			if (!clouds) target.sprite.remove(CharSprite.State.LEVITATING);
+		}
 	}
 }

@@ -12,6 +12,8 @@ package com.shatteredpixel.shatteredpixeldungeon.effects;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
+import com.watabou.glwrap.Blending;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.TextureFilm;
@@ -20,10 +22,11 @@ import com.watabou.utils.PointF;
 
 //뱀파이어의 성배 기술 이펙트 (effects/vampire_fx.png, 48x48 칸, 한 줄에 8장)
 // 한 줄이 한 가지 이펙트. 칸 위(at)나 캐릭터 위(on)에 한 번 재생되고 사라짐
+// 반투명한 붉은 에너지로 보이도록 빛 섞기(더하기)로 그림
 public class VampireFX extends Image {
 
 	public static final int BITE = 0, WINGS = 1, SLAM = 2, MIST = 3, MEND = 4, CHARM = 5, BATS = 6, SPLASH = 7, VEIL = 8,
-			DREAD = 9, NOVA = 10, JAWS = 11, BATBURST = 12, SIPHON = 13, BLADE = 14, INFUSE = 15, SHACKLE = 16, PROJ = 17;
+			DREAD = 9, NOVA = 10, JAWS = 11, BATBURST = 12, SIPHON = 13, BLADE = 14, INFUSE = 15, SHACKLE = 16, PROJ = 17, AURA = 18;
 
 	public static final String SHEET = "effects/vampire_fx.png";
 	private static final int SIZE = 48, FRAMES = 8;
@@ -71,6 +74,13 @@ public class VampireFX extends Image {
 	public VampireFX grow( float to ){ size1 = to; return this; }
 	public VampireFX offset( float dx, float dy ){ offX = dx; offY = dy; return this; }
 	public VampireFX rise( float px ){ rise = px; return this; }
+
+	@Override
+	public void draw() {
+		Blending.setLightMode();
+		super.draw();
+		Blending.setNormalMode();
+	}
 
 	@Override
 	public void update() {
@@ -127,6 +137,13 @@ public class VampireFX extends Image {
 		}
 
 		@Override
+		public void draw() {
+			Blending.setLightMode();
+			super.draw();
+			Blending.setNormalMode();
+		}
+
+		@Override
 		public void update() {
 			super.update();
 			t += Game.elapsed;
@@ -144,6 +161,98 @@ public class VampireFX extends Image {
 				y += (float) Math.sin( p * Math.PI * 3 ) * 2f;
 				frame( film.get( PROJ * FRAMES + 1 + ((int)(t / 0.07f) % 2) ) );
 			}
+		}
+	}
+
+	//비행 버프(핏빛 날개): 캐릭터 등 뒤에서 퍼덕이는 에너지 날개. 캐릭터 그림이 사라지거나 kill되면 같이 사라짐
+	public static class Wings extends Image {
+
+		private final TextureFilm film;
+		private final CharSprite follow;
+		private float t = 0;
+
+		public Wings( CharSprite follow ){
+			super( SHEET );
+			film = new TextureFilm( texture, SIZE, SIZE );
+			this.follow = follow;
+			origin.set( SIZE / 2f, SIZE / 2f );
+			scale.set( 0.62f );
+			frame( film.get( AURA * FRAMES ) );
+			place();
+		}
+
+		public static Wings on( CharSprite sprite ){
+			if (sprite == null || sprite.parent == null) return null;
+			Wings w = new Wings( sprite );
+			//캐릭터들 뒤, 바닥 위에 그림
+			sprite.parent.addToBack( w );
+			return w;
+		}
+
+		public boolean follows( CharSprite s ){
+			return follow == s;
+		}
+
+		private void place(){
+			PointF c = follow.center();
+			x = c.x - SIZE / 2f;
+			y = c.y - 3f - SIZE / 2f;
+		}
+
+		@Override
+		public void draw() {
+			Blending.setLightMode();
+			super.draw();
+			Blending.setNormalMode();
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			if (follow.parent == null || follow.ch == null || !follow.ch.isAlive()
+					|| follow.ch.buffs( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodWings.class ).isEmpty()){
+				killAndErase();
+				return;
+			}
+			t += Game.elapsed;
+			frame( film.get( AURA * FRAMES + ((int)(t * 8f)) % 4 ) );
+			place();
+			visible = follow.visible;
+			alpha( follow.alpha() );
+		}
+	}
+
+	//성배 기술의 조준점: 고른 적 위에 붉은 조준 표시가 따라다님
+	public static class Mark extends Image {
+
+		private final CharSprite follow;
+		private float t = 0;
+
+		public Mark( CharSprite follow ){
+			super();
+			copy( Icons.TARGET.get() );
+			this.follow = follow;
+			hardlight( 1f, 0.25f, 0.3f );
+			point( follow.center( this ) );
+		}
+
+		public static Mark on( CharSprite sprite ){
+			if (sprite == null || sprite.parent == null) return null;
+			Mark m = new Mark( sprite );
+			sprite.parent.addToFront( m );
+			return m;
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			if (follow.parent == null){
+				killAndErase();
+				return;
+			}
+			t += Game.elapsed;
+			point( follow.center( this ) );
+			alpha( 0.75f + 0.25f * (float) Math.sin( t * 8f ) );
 		}
 	}
 

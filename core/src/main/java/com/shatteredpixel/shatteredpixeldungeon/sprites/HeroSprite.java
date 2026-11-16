@@ -268,6 +268,9 @@ public class HeroSprite extends CharSprite {
 		
 		super.update();
 
+		//모드: 뱀파이어의 핏빛 날개가 새 그림에도 붙어 있게 함
+		if (ch != null && ch.flying) com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodWings.ensureFx( this );
+
 		//가만히 서 있으면 몇 초마다 고유 대기 동작을 함
 		if (specials != null && ch != null && ch.isAlive() && !sleeping && !isMoving && curAnim == idle && !ch.flying){
 			idleTimer += Game.elapsed;

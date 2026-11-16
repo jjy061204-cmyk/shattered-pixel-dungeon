@@ -24,7 +24,7 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 //짧게 떠올랐다가, 끝나면 내려앉으며 주변 8칸의 적에게 피해를 주고 2턴 동안 불구로 만듦
-public class BloodFlight extends Levitation {
+public class BloodFlight extends BloodWings {
 
 	public static final float TURNS = 4f;
 
@@ -50,8 +50,4 @@ public class BloodFlight extends Levitation {
 		if (ch == Dungeon.hero) PixelScene.shake( 1.5f, 0.3f );
 	}
 
-	@Override
-	public float iconFadePercent() {
-		return Math.max( 0, (TURNS - visualcooldown()) / TURNS );
-	}
 }
