@@ -9,6 +9,15 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.GreaterSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -67,6 +76,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndForestWand;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundle;
@@ -81,6 +91,7 @@ public class ForestWand extends Weapon {
 	public static final String AC_SHOOT  = "SHOOT";
 	public static final String AC_IMBUE  = "IMBUE";
 	public static final String AC_SPIRITS = "SPIRITS";
+	public static final String AC_CONTRACT = "CONTRACT";   //정령 계약자: 정령계에서 상급 정령 소환
 
 	//촉매에서 정령을 불러올 수 있는 거리
 	public static final int IMBUE_RANGE = 3;
@@ -98,14 +109,25 @@ public class ForestWand extends Weapon {
 		FLAME  ( true,  0xFF3311 ),
 		FROST  ( true,  0x99E6FF ),
 		SHOCK  ( true,  0xFFF566 ),
-		CHAOS  ( true,  0xD077FF );
+		CHAOS  ( true,  0xD077FF ),
+		//정령 계약자가 정령계에서 불러오는 상급 정령 (각각 하나뿐)
+		UNDINE     ( true, 0x3FA8FF, true ),
+		SALAMANDER ( true, 0xFF5A1E, true ),
+		GNOME      ( true, 0xD9A55A, true ),
+		SYLPH      ( true, 0x9CFFC8, true );
 
 		public final boolean strong;
+		public final boolean greater;
 		public final int color;
 
 		Spirit( boolean strong, int color ){
+			this( strong, color, false );
+		}
+
+		Spirit( boolean strong, int color, boolean greater ){
 			this.strong = strong;
 			this.color = color;
+			this.greater = greater;
 		}
 
 		public String title(){
@@ -118,11 +140,11 @@ public class ForestWand extends Weapon {
 
 		public Emitter.Factory particle(){
 			switch (this){
-				case WATER:  return FlowParticle.FACTORY;
-				case WIND:   return WindParticle.FACTORY;
+				case WATER: case UNDINE:  return FlowParticle.FACTORY;
+				case WIND: case SYLPH:    return WindParticle.FACTORY;
 				case NATURE: return LeafParticle.GENERAL;
-				case FIRE: case FLAME: return FlameParticle.FACTORY;
-				case EARTH: case ROCK: return EarthParticle.SMALL;
+				case FIRE: case FLAME: case SALAMANDER: return FlameParticle.FACTORY;
+				case EARTH: case ROCK: case GNOME: return EarthParticle.SMALL;
 				case FROST:  return SnowParticle.FACTORY;
 				case SHOCK:  return SparkParticle.STATIC;
 				default:     return RainbowParticle.BURST;
@@ -172,6 +194,7 @@ public class ForestWand extends Weapon {
 		actions.add( AC_SHOOT );
 		actions.add( AC_IMBUE );
 		actions.add( AC_SPIRITS );
+		if (hero.subClass == HeroSubClass.SPIRIT_CONTRACTOR) actions.add( AC_CONTRACT );
 		return actions;
 	}
 
@@ -195,6 +218,9 @@ public class ForestWand extends Weapon {
 
 		} else if (action.equals( AC_SPIRITS )) {
 			GameScene.show( new WndForestWand( this ) );
+
+		} else if (action.equals( AC_CONTRACT )) {
+			contract( hero );
 		}
 	}
 
@@ -612,6 +638,43 @@ public class ForestWand extends Weapon {
 				break;
 			}
 
+			//운디네: 물의 힘이 훨씬 거세고, 준 피해의 1/3만큼 쓰는 이를 치유
+			case UNDINE: {
+				fx( defender, s, "undine" );
+				int before = defender.HP;
+				damage = spiritHit( Spirit.WATER, attacker, defender, damage, mul*1.5f );
+				heal( attacker, Math.max( 1, (before - Math.max( 0, defender.HP ))/3 ) );
+				break;
+			}
+
+			//샐러맨더: 화염 폭발이 더 거세게 번지고, 타고 있는 적은 불길이 거세짐
+			case SALAMANDER:
+				fx( defender, s, "salamander" );
+				if (defender.buff( Burning.class ) != null) elemHit( Spirit.FIRE, defender, mul*0.5f );
+				damage = spiritHit( Spirit.FLAME, attacker, defender, damage, mul*1.25f );
+				break;
+
+			//노움: 바위의 일격과 대지 결속이 한꺼번에
+			case GNOME:
+				fx( defender, s, "gnome" );
+				damage = spiritHit( Spirit.ROCK, attacker, defender, damage, mul );
+				if (defender.isAlive()) damage = spiritHit( Spirit.EARTH, attacker, defender, damage, mul );
+				break;
+
+			//실피드: 거센 돌풍으로 날려 보내고, 둘레의 적도 칼바람에 베임
+			case SYLPH:
+				fx( defender, s, "sylph" );
+				for (int n : PathFinder.NEIGHBOURS8){
+					Char other = Actor.findChar( defender.pos + n );
+					if (foe( attacker, other ) && other != defender){
+						elemHit( Spirit.WIND, other, mul*0.4f );
+						if (other.sprite != null) other.sprite.centerEmitter().burst( WindParticle.FACTORY, 5 );
+					}
+				}
+				damage = spiritHit( Spirit.WIND, attacker, defender, damage, mul*1.5f );
+				if (attacker != null && attacker.isAlive()) Buff.prolong( attacker, Haste.class, 3f );
+				break;
+
 			//혼돈: 서로 다른 두 정령의 힘이 한꺼번에 터지고, 가끔 정신을 흐리게 함
 			case CHAOS: default: {
 				Spirit[] pool = { Spirit.WATER, Spirit.WIND, Spirit.NATURE, Spirit.FIRE, Spirit.EARTH,
@@ -632,10 +695,161 @@ public class ForestWand extends Weapon {
 		return damage;
 	}
 
+	//장비 설명 줄: "물의 정령이 깃들어 있습니다." / "물의 정령과 불의 정령이 깃들어 있습니다."
+	public static String dwells( Spirit a, Spirit b ){
+		if (b == null) return Messages.get( Weapon.class, "spirit_dwells", a.title() );
+		return Messages.get( Weapon.class, "spirit_dwells2", a.title(), b.title() );
+	}
+
 	//설명용: 지금 깊이의 속성 피해 기준
 	public static String elemBaseDesc(){
 		int d = Dungeon.scalingDepth();
 		return Messages.get( ForestWand.class, "elem_base", 5 + d, 10 + d*2 );
+	}
+
+	// ── 정령 계약자: 정령계에서 상급 정령을 불러오고, 실체화시켜 함께 싸움 ──
+
+	public static final float CONTRACT_COOLDOWN = 100f;
+	public static final Spirit[] GREATER = { Spirit.UNDINE, Spirit.SALAMANDER, Spirit.GNOME, Spirit.SYLPH };
+
+	//정령계의 문이 다시 열리기까지
+	public static class ContractCooldown extends FlavourBuff {
+		{
+			type = buffType.NEUTRAL;
+			announced = false;
+		}
+		@Override public int icon() { return BuffIndicator.TIME; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( 0.65f, 0.45f, 1f ); }
+		@Override public float iconFadePercent() { return Math.max( 0, visualcooldown() / CONTRACT_COOLDOWN ); }
+	}
+
+	//상급 정령은 각각 하나뿐: 완드·장비·실체화한 정령 중에 이미 있는지
+	public static boolean greaterExists( Hero hero, Spirit s ){
+		for (Item i : hero.belongings){
+			if (i instanceof ForestWand){
+				for (Spirit w : ((ForestWand) i).slots) if (w == s) return true;
+			} else if (i instanceof Weapon && ((Weapon) i).enchantment instanceof SpiritEnchant){
+				SpiritEnchant e = (SpiritEnchant) ((Weapon) i).enchantment;
+				if (e.spirit == s || e.spirit2 == s) return true;
+			} else if (i instanceof Armor && ((Armor) i).glyph instanceof SpiritGlyph){
+				SpiritGlyph g = (SpiritGlyph) ((Armor) i).glyph;
+				if (g.spirit == s || g.spirit2 == s) return true;
+			}
+		}
+		for (Char ch : Actor.chars()){
+			if (ch instanceof GreaterSpirit && ((GreaterSpirit) ch).spirit() == s) return true;
+		}
+		return false;
+	}
+
+	private void contract( final Hero hero ){
+		ContractCooldown cd = hero.buff( ContractCooldown.class );
+		if (cd != null){
+			GLog.w( Messages.get( ForestWand.class, "contract_cooldown", (int)Math.ceil( cd.visualcooldown() ) ) );
+			return;
+		}
+		if (freeSlot() < 0){
+			GLog.w( Messages.get( ForestWand.class, "full" ) );
+			return;
+		}
+		String[] opts = new String[GREATER.length];
+		for (int i = 0; i < GREATER.length; i++) opts[i] = GREATER[i].title();
+		GameScene.show( new WndOptions( new ItemSprite( this ),
+				Messages.get( ForestWand.class, "contract_title" ),
+				Messages.get( ForestWand.class, "contract_body" ), opts ){
+			@Override
+			protected boolean enabled( int index ) {
+				return !greaterExists( hero, GREATER[index] );
+			}
+			@Override
+			protected void onSelect( int index ) {
+				summonGreater( hero, GREATER[index] );
+			}
+		} );
+	}
+
+	private void summonGreater( Hero hero, Spirit s ){
+		int slot = freeSlot();
+		if (slot < 0 || greaterExists( hero, s )) return;
+		slots[slot] = s;
+		updateQuickslot();
+		Buff.affect( hero, ContractCooldown.class, CONTRACT_COOLDOWN );
+		if (hero.sprite != null){
+			hero.sprite.operate( hero.pos );
+			hero.sprite.centerEmitter().burst( s.particle(), 24 );
+			hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 10 );
+			hero.sprite.showStatus( s.color, s.title() );
+		}
+		imbueFx( hero.pos, s );
+		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
+		Sample.INSTANCE.play( Assets.Sounds.TELEPORT, 0.6f );
+		GLog.p( Messages.get( ForestWand.class, "contracted", s.title() ) );
+		hero.spendAndNext( 1f );
+	}
+
+	//완드의 상급 정령을 실체화: 영웅 곁에 나타나 함께 싸움
+	public boolean materialize( Hero hero, int slot ){
+		Spirit s = slots[slot];
+		if (s == null || !s.greater) return false;
+		ArrayList<Integer> spots = new ArrayList<>();
+		for (int n : PathFinder.NEIGHBOURS8){
+			int p = hero.pos + n;
+			if (Actor.findChar( p ) == null && (Dungeon.level.passable[p] || Dungeon.level.avoid[p])) spots.add( p );
+		}
+		if (spots.isEmpty()){
+			GLog.w( Messages.get( ForestWand.class, "no_space" ) );
+			return false;
+		}
+		GreaterSpirit ally = GreaterSpirit.create( s );
+		ally.pos = Random.element( spots );
+		GameScene.add( ally );
+		ScrollOfTeleportation.appear( ally, ally.pos );
+		if (ally.sprite != null){
+			ally.sprite.centerEmitter().burst( s.particle(), 16 );
+			ally.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 6 );
+		}
+		slots[slot] = null;
+		updateQuickslot();
+		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
+		GLog.p( Messages.get( ForestWand.class, "materialized", s.title() ) );
+		if (hero.sprite != null) hero.sprite.zap( ally.pos );
+		hero.spendAndNext( 1f );
+		return true;
+	}
+
+	public static ArrayList<GreaterSpirit> materializedSpirits(){
+		ArrayList<GreaterSpirit> list = new ArrayList<>();
+		for (Char ch : Actor.chars()){
+			if (ch instanceof GreaterSpirit && ch.isAlive()) list.add( (GreaterSpirit) ch );
+		}
+		return list;
+	}
+
+	//실체화한 정령을 모두 완드로 거둠 (빈 칸이 있는 만큼)
+	public void recallMaterialized( Hero hero ){
+		int n = 0;
+		for (GreaterSpirit g : materializedSpirits()){
+			int slot = freeSlot();
+			if (slot < 0){
+				GLog.w( Messages.get( ForestWand.class, "full" ) );
+				break;
+			}
+			slots[slot] = g.spirit();
+			if (g.sprite != null){
+				CellEmitter.get( g.pos ).burst( g.spirit().particle(), 12 );
+				CellEmitter.get( g.pos ).burst( Speck.factory( Speck.LIGHT ), 4 );
+			}
+			g.destroy();
+			if (g.sprite != null) g.sprite.killAndErase();
+			GLog.i( Messages.get( ForestWand.class, "unmaterialized", g.spirit().title() ) );
+			n++;
+		}
+		if (n > 0){
+			updateQuickslot();
+			Sample.INSTANCE.play( Assets.Sounds.MELD );
+			if (hero.sprite != null) hero.sprite.operate( hero.pos );
+			hero.spendAndNext( 1f );
+		}
 	}
 
 	// ── 역소환: 장비에서 정령이 떨어져 나갈 때 (강화, 다른 정령·마법 부여) 알아서 숲의 완드로 돌아옴 ──
@@ -720,7 +934,10 @@ public class ForestWand extends Weapon {
 
 	public static void imbueFx( int from, Spirit s ){
 		switch (s){
-			case WATER:  CellEmitter.get( from ).burst( Speck.factory( Speck.STEAM ), 6 ); break;
+			case WATER: case UNDINE: CellEmitter.get( from ).burst( Speck.factory( Speck.STEAM ), 6 ); break;
+			case SYLPH:  CellEmitter.get( from ).burst( Speck.factory( Speck.JET ), 8 ); break;
+			case GNOME:  CellEmitter.get( from ).burst( EarthParticle.FACTORY, 14 ); break;
+			case SALAMANDER: CellEmitter.get( from ).burst( FlameParticle.FACTORY, 14 ); break;
 			case WIND:   CellEmitter.get( from ).burst( Speck.factory( Speck.JET ), 6 ); break;
 			case NATURE: CellEmitter.get( from ).burst( LeafParticle.GENERAL, 10 ); break;
 			case EARTH: case ROCK: CellEmitter.get( from ).burst( EarthParticle.FACTORY, 10 ); break;
@@ -739,6 +956,10 @@ public class ForestWand extends Weapon {
 			case WIND: return MagicMissile.FORCE;
 			case EARTH: case ROCK: return MagicMissile.EARTH;
 			case SHOCK: return MagicMissile.SHAMAN_BLUE;
+			case UNDINE: return MagicMissile.FROST;
+			case SALAMANDER: return MagicMissile.FIRE;
+			case GNOME: return MagicMissile.EARTH;
+			case SYLPH: return MagicMissile.FORCE;
 			case CHAOS: return MagicMissile.RAINBOW;
 			default: return MagicMissile.FOLIAGE;
 		}

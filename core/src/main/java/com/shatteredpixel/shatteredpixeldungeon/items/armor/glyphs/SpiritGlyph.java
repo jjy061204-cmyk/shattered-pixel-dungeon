@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -45,21 +46,31 @@ public class SpiritGlyph extends Armor.Glyph {
 	public SpiritGlyph(){}
 	public SpiritGlyph( ForestWand.Spirit s ){ spirit = s; }
 
+	public ForestWand.Spirit spirit2 = null;
+
 	@Override
 	public int proc( Armor armor, Char attacker, Char defender, int damage ) {
 		int level = Math.max( 0, armor.buffedLvl() );
-		// +0 29%, +2 36%, +5 45% …
-		float chance = (level + 2f) / (level + 7f) * procChanceMultiplier( defender );
-		if (spirit.strong) chance *= 1.15f;
-		if (Random.Float() >= chance) return damage;
-		return defend( spirit, attacker, defender, damage, level );
+		boolean boost = SpiritEnchant.enchanter( defender );
+		damage = roll( spirit, level, boost, attacker, defender, damage );
+		if (spirit2 != null) damage = roll( spirit2, level, boost, attacker, defender, damage );
+		return damage;
 	}
 
-	private static int defend( ForestWand.Spirit s, Char attacker, Char defender, int damage, int level ){
+	private int roll( ForestWand.Spirit s, int level, boolean boost, Char attacker, Char defender, int damage ){
+		// +0 29%, +2 36%, +5 45% … (정령 부여사는 ×1.2)
+		float chance = (level + 2f) / (level + 7f) * procChanceMultiplier( defender );
+		if (s.strong) chance *= 1.15f;
+		if (boost) chance *= 1.2f;
+		if (Random.Float() >= chance) return damage;
+		return defend( s, attacker, defender, damage, level, boost ? 1.3f : 1f );
+	}
+
+	public static int defend( ForestWand.Spirit s, Char attacker, Char defender, int damage, int level, float pow ){
 		boolean adjacent = attacker != null && attacker.isAlive() && Dungeon.level.adjacent( attacker.pos, defender.pos );
 		switch (s){
 			case WATER: {   //물: 받은 피해의 1/3을 회복하고 몸의 불을 끔. 붙어 있는 적에겐 물줄기를 되쏨
-				int heal = Math.min( Math.max( 1, damage/3 ), defender.HT - defender.HP );
+				int heal = Math.min( Math.max( 1, Math.round( damage/3f*pow ) ), defender.HT - defender.HP );
 				Buff.detach( defender, Burning.class );
 				if (heal > 0){
 					defender.HP += heal;
@@ -72,7 +83,7 @@ public class SpiritGlyph extends Armor.Glyph {
 				ForestWand.fx( defender, s, "g_water" );
 				if (adjacent){
 					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( FlowParticle.FACTORY, 8 );
-					ForestWand.elemHit( s, attacker, 0.4f );
+					ForestWand.elemHit( s, attacker, (0.4f)*pow );
 				}
 				return damage;
 			}
@@ -99,7 +110,7 @@ public class SpiritGlyph extends Armor.Glyph {
 					boolean strong = s == ForestWand.Spirit.FLAME;
 					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( FlameParticle.FACTORY, strong ? 14 : 10 );
 					ForestWand.fx( defender, s, "g_fire" );
-					ForestWand.elemHit( s, attacker, strong ? 0.75f : 0.4f );
+					ForestWand.elemHit( s, attacker, (strong ? 0.75f : 0.4f)*pow );
 					if (attacker.isAlive()) Buff.affect( attacker, Burning.class ).reignite( attacker, strong ? 8f : 4f );
 				}
 				return damage;
@@ -114,7 +125,7 @@ public class SpiritGlyph extends Armor.Glyph {
 				ForestWand.fx( defender, s, "g_rock" );
 				int blocked = damage - damage/2;
 				if (adjacent && blocked >= 2){
-					attacker.damage( blocked/2, new ForestWand.ElemSource( s ) );
+					attacker.damage( Math.round( blocked/2f*pow ), new ForestWand.ElemSource( s ) );
 					if (attacker.sprite != null && attacker.sprite.visible) PixelScene.shake( 1, 0.1f );
 				}
 				return damage/2;
@@ -124,7 +135,7 @@ public class SpiritGlyph extends Armor.Glyph {
 					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( SnowParticle.FACTORY, 10 );
 					ForestWand.fx( defender, s, "g_frost" );
 					boolean chilled = attacker.buff( Chill.class ) != null;
-					ForestWand.elemHit( s, attacker, 0.4f );
+					ForestWand.elemHit( s, attacker, (0.4f)*pow );
 					if (attacker.isAlive()){
 						if (chilled && !attacker.isImmune( Frost.class )) Buff.affect( attacker, ForestWand.FreezeNext.class );
 						else Buff.prolong( attacker, Chill.class, 4f );
@@ -137,27 +148,47 @@ public class SpiritGlyph extends Armor.Glyph {
 					attacker.sprite.centerEmitter().burst( SparkParticle.FACTORY, 6 );
 					Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 					ForestWand.fx( defender, s, "g_shock" );
-					attacker.damage( Math.max( 1, damage/2 ), new ForestWand.ElemSource( s ) );
-					ForestWand.elemHit( s, attacker, 0.3f );
+					attacker.damage( Math.max( 1, Math.round( damage/2f*pow ) ), new ForestWand.ElemSource( s ) );
+					ForestWand.elemHit( s, attacker, (0.3f)*pow );
 				}
 				return damage;
+			//상급 정령: 바탕 원소의 보호 능력을 훨씬 강하게
+			case UNDINE:
+				ForestWand.fx( defender, s, "g_undine" );
+				return defend( ForestWand.Spirit.WATER, attacker, defender, damage, level, pow*1.6f );
+			case SALAMANDER:
+				ForestWand.fx( defender, s, "g_salamander" );
+				return defend( ForestWand.Spirit.FLAME, attacker, defender, damage, level, pow*1.4f );
+			case GNOME:
+				ForestWand.fx( defender, s, "g_gnome" );
+				return defend( ForestWand.Spirit.ROCK, attacker, defender,
+						defend( ForestWand.Spirit.EARTH, attacker, defender, damage, level, pow ), level, pow*1.3f );
+			case SYLPH:
+				ForestWand.fx( defender, s, "g_sylph" );
+				Buff.prolong( defender, Haste.class, 5f );
+				return defend( ForestWand.Spirit.WIND, attacker, defender, damage, level, pow*1.5f );
 			case CHAOS: default:
 				ForestWand.Spirit[] pool = { ForestWand.Spirit.WATER, ForestWand.Spirit.WIND, ForestWand.Spirit.NATURE,
 						ForestWand.Spirit.FIRE, ForestWand.Spirit.EARTH, ForestWand.Spirit.ROCK,
 						ForestWand.Spirit.FLAME, ForestWand.Spirit.FROST, ForestWand.Spirit.SHOCK };
 				if (defender.sprite != null) defender.sprite.centerEmitter().burst( RainbowParticle.BURST, 10 );
 				ForestWand.fx( defender, s, "chaos" );
-				return defend( Random.element( pool ), attacker, defender, damage, level );
+				return defend( Random.element( pool ), attacker, defender, damage, level, pow );
 		}
 	}
 
 	@Override
 	public String name( String armorName ) {
+		if (spirit2 != null) return Messages.get( SpiritGlyph.class, "name2", spirit.title(), spirit2.title(), armorName );
 		return Messages.get( SpiritGlyph.class, "name", spirit.title(), armorName );
 	}
 
 	@Override
 	public String desc() {
+		if (spirit2 != null){
+			return "_" + spirit.title() + "_: " + Messages.get( SpiritGlyph.class, "desc_" + spirit.name().toLowerCase() )
+					+ "\n\n_" + spirit2.title() + "_: " + Messages.get( SpiritGlyph.class, "desc_" + spirit2.name().toLowerCase() );
+		}
 		return Messages.get( SpiritGlyph.class, "desc_" + spirit.name().toLowerCase() );
 	}
 
@@ -169,10 +200,15 @@ public class SpiritGlyph extends Armor.Glyph {
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		bundle.put( "spirit", spirit.name() );
+		if (spirit2 != null) bundle.put( "spirit2", spirit2.name() );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		try { spirit = ForestWand.Spirit.valueOf( bundle.getString( "spirit" ) ); } catch (Exception e) { spirit = ForestWand.Spirit.EARTH; }
+		spirit2 = null;
+		if (bundle.contains( "spirit2" )){
+			try { spirit2 = ForestWand.Spirit.valueOf( bundle.getString( "spirit2" ) ); } catch (Exception e) { spirit2 = null; }
+		}
 	}
 }

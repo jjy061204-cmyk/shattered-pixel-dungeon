@@ -164,9 +164,23 @@ public class Messages {
 	 * String Utility Methods
 	 */
 
+	//모드: 받침 없이 끝나는 상급 정령 이름 뒤의 조사를 바로잡음 (운디네이 → 운디네가)
+	private static final String[] VOWEL_NAMES = { "운디네", "샐러맨더", "실피드" };
+	private static final String[][] JOSA = { {"이 ","가 "}, {"을 ","를 "}, {"은 ","는 "}, {"과 ","와 "}, {"이.","가."}, {"_이 ","_가 "}, {"_을 ","_를 "}, {"_은 ","_는 "}, {"_과 ","_와 "} };
+	public static String fixJosa( String s ){
+		if (s == null) return null;
+		for (String n : VOWEL_NAMES){
+			if (!s.contains( n )) continue;
+			for (String[] j : JOSA){
+				s = s.replace( n + j[0], n + j[1] );
+			}
+		}
+		return s;
+	}
+
 	public static String format( String format, Object...args ) {
 		try {
-			return String.format(locale(), format, args);
+			return fixJosa(String.format(locale(), format, args));
 		} catch (IllegalFormatException e) {
 			ShatteredPixelDungeon.reportException( new Exception("formatting error for the string: " + format, e) );
 			return format;

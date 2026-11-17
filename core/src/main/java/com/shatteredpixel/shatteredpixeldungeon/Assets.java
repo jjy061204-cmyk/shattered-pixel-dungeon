@@ -369,6 +369,7 @@ public class Assets {
 		public static final String LOTUS    = "sprites/lotus.png";
 		public static final String NINJA_LOG        = "sprites/ninja_log.png";
 		public static final String SPIRIT_HAWK      = "sprites/spirit_hawk.png";
+		public static final String GREATER_SPIRITS  = "sprites/greater_spirits.png"; //모드: 정령 계약자의 상급 정령
 		public static final String SENTRY           = "sprites/sentry.png";
 		public static final String CRYSTAL_WISP     = "sprites/crystal_wisp.png";
 		public static final String CRYSTAL_GUARDIAN = "sprites/crystal_guardian.png";

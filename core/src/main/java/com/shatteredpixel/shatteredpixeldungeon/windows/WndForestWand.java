@@ -1,6 +1,8 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
  * 숲의 완드에 깃든 정령 3칸 관리: 가운데에 놓기 / 정령 부여(다른 장비로 옮김) / 소환 해제, 장비에서 정령 거두기
+ *  - 정령 부여사: 한 장비에 정령을 둘까지 깃들임 (둘 다 차 있으면 어느 쪽과 바꿀지 고름)
+ *  - 정령 계약자: 상급 정령을 실체화시키고, 실체화한 정령을 다시 완드로 거둠
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
@@ -8,6 +10,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Enchanting;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -25,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+
+import java.util.ArrayList;
 
 public class WndForestWand extends Window {
 
@@ -75,8 +80,23 @@ public class WndForestWand extends Window {
 		};
 		recall.setRect( 0, y + 3, WIDTH, BTN_H );
 		add( recall );
+		float bottom = recall.bottom();
 
-		resize( WIDTH, (int)(recall.bottom()) + 1 );
+		//정령 계약자: 실체화한 상급 정령을 완드로 거둠
+		if (!ForestWand.materializedSpirits().isEmpty()){
+			RedButton unmat = new RedButton( Messages.get( this, "unmaterialize" ), 8 ){
+				@Override
+				protected void onClick() {
+					hide();
+					WndForestWand.this.wand.recallMaterialized( Dungeon.hero );
+				}
+			};
+			unmat.setRect( 0, bottom + GAP, WIDTH, BTN_H );
+			add( unmat );
+			bottom = unmat.bottom();
+		}
+
+		resize( WIDTH, (int)bottom + 1 );
 	}
 
 	private void reopen(){
@@ -84,22 +104,39 @@ public class WndForestWand extends Window {
 		GameScene.show( new WndForestWand( wand ) );
 	}
 
+	private static boolean enchanter(){
+		return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.SPIRIT_ENCHANTER;
+	}
+
+	private static boolean contractor(){
+		return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.SPIRIT_CONTRACTOR;
+	}
+
 	private void slotMenu( final int slot ){
 		final ForestWand.Spirit s = wand.slots[slot];
 		if (s == null) return;
 		final boolean center = slot == ForestWand.CENTER;
-		String[] opts = center
-				? new String[]{ Messages.get( this, "bestow" ), Messages.get( this, "release" ) }
-				: new String[]{ Messages.get( this, "to_center" ), Messages.get( this, "bestow" ), Messages.get( this, "release" ) };
+
+		final ArrayList<String> keys = new ArrayList<>();
+		if (!center) keys.add( "to_center" );
+		if (s.greater && contractor()) keys.add( "materialize" );
+		keys.add( "bestow" );
+		keys.add( "release" );
+		String[] opts = new String[keys.size()];
+		for (int i = 0; i < opts.length; i++) opts[i] = Messages.get( this, keys.get( i ) );
+
 		GameScene.show( new WndOptions( s.title(), Messages.get( ForestWand.class, "shot_" + s.name().toLowerCase() ), opts ){
 			@Override
 			protected void onSelect( int index ) {
-				if (!center) index -= 1;
-				if (index == -1){
+				String k = keys.get( index );
+				if (k.equals( "to_center" )){
 					wand.moveToCenter( slot );
 					GLog.i( Messages.get( WndForestWand.class, "centered", s.title() ) );
 					reopen();
-				} else if (index == 0){
+				} else if (k.equals( "materialize" )){
+					WndForestWand.this.hide();
+					wand.materialize( Dungeon.hero, slot );
+				} else if (k.equals( "bestow" )){
 					WndForestWand.this.hide();
 					bestow( slot );
 				} else {
@@ -127,32 +164,102 @@ public class WndForestWand extends Window {
 			}
 			@Override
 			public void onSelect( Item item ) {
-				ForestWand.Spirit s = wand.slots[slot];
+				final ForestWand.Spirit s = wand.slots[slot];
 				if (item == null || s == null) return;
-				Hero hero = Dungeon.hero;
+
 				if (item instanceof Weapon){
-					Weapon w = (Weapon) item;
+					final Weapon w = (Weapon) item;
 					if (w.hasCurseEnchant()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
+					//정령 부여사: 이미 정령이 깃든 무기에 하나 더
+					if (enchanter() && w.enchantment instanceof SpiritEnchant){
+						final SpiritEnchant e = (SpiritEnchant) w.enchantment;
+						if (e.spirit2 == null){
+							wand.slots[slot] = null;
+							e.spirit2 = s;
+							finish( item, s );
+						} else {
+							chooseReplace( item, slot, s, e.spirit, e.spirit2, new Replacer(){
+								@Override public ForestWand.Spirit replace( int which ){
+									ForestWand.Spirit old;
+									if (which == 0){ old = e.spirit; e.spirit = s; } else { old = e.spirit2; e.spirit2 = s; }
+									return old;
+								}
+							} );
+						}
+						return;
+					}
 					if (w.enchantment != null && !(w.enchantment instanceof SpiritEnchant)) GLog.w( Messages.get( WndForestWand.class, "replaced", w.enchantment.name() ) );
 					//완드에서 먼저 꺼내야, 장비에 있던 정령이 비워진 칸으로 역소환될 수 있음
 					wand.slots[slot] = null;
 					w.enchant( new SpiritEnchant( s ) );
 				} else {
-					Armor a = (Armor) item;
+					final Armor a = (Armor) item;
 					if (a.hasCurseGlyph()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
+					if (enchanter() && a.glyph instanceof SpiritGlyph){
+						final SpiritGlyph g = (SpiritGlyph) a.glyph;
+						if (g.spirit2 == null){
+							wand.slots[slot] = null;
+							g.spirit2 = s;
+							finish( item, s );
+						} else {
+							chooseReplace( item, slot, s, g.spirit, g.spirit2, new Replacer(){
+								@Override public ForestWand.Spirit replace( int which ){
+									ForestWand.Spirit old;
+									if (which == 0){ old = g.spirit; g.spirit = s; } else { old = g.spirit2; g.spirit2 = s; }
+									return old;
+								}
+							} );
+						}
+						return;
+					}
 					if (a.glyph != null && !(a.glyph instanceof SpiritGlyph)) GLog.w( Messages.get( WndForestWand.class, "replaced", a.glyph.name() ) );
 					wand.slots[slot] = null;
 					a.inscribe( new SpiritGlyph( s ) );
 				}
-				Item.updateQuickslot();
-				Enchanting.show( hero, item );
-				ForestWand.imbueFx( hero.pos, s );
-				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				GLog.p( Messages.get( WndForestWand.class, "bestowed", s.title(), item.name() ) );
-				hero.sprite.operate( hero.pos );
-				hero.spendAndNext( 1f );
+				finish( item, s );
 			}
 		} );
+	}
+
+	private interface Replacer {
+		ForestWand.Spirit replace( int which );
+	}
+
+	//정령이 둘 다 깃든 장비: 어느 정령과 바꿀지 고름 (밀려난 정령은 완드로 역소환)
+	private void chooseReplace( final Item item, final int slot, final ForestWand.Spirit s,
+	                            ForestWand.Spirit a, ForestWand.Spirit b, final Replacer r ){
+		GameScene.show( new WndOptions( Messages.get( WndForestWand.class, "swap_title" ),
+				Messages.get( WndForestWand.class, "swap_body", s.title() ), a.title(), b.title() ){
+			@Override
+			protected void onSelect( int index ) {
+				if (wand.slots[slot] != s) return;
+				wand.slots[slot] = null;
+				ForestWand.Spirit old = r.replace( index );
+				ForestWand.returnToWand( old );
+				finish( item, s );
+			}
+		} );
+	}
+
+	private void finish( Item item, ForestWand.Spirit s ){
+		Hero hero = Dungeon.hero;
+		Item.updateQuickslot();
+		Enchanting.show( hero, item );
+		ForestWand.imbueFx( hero.pos, s );
+		Sample.INSTANCE.play( Assets.Sounds.MELD );
+		GLog.p( Messages.get( WndForestWand.class, "bestowed", s.title(), item.name() ) );
+		hero.sprite.operate( hero.pos );
+		hero.spendAndNext( 1f );
+	}
+
+	private static int spiritsOn( Item item ){
+		if (item instanceof Weapon && ((Weapon) item).enchantment instanceof SpiritEnchant){
+			return ((SpiritEnchant) ((Weapon) item).enchantment).spirit2 != null ? 2 : 1;
+		}
+		if (item instanceof Armor && ((Armor) item).glyph instanceof SpiritGlyph){
+			return ((SpiritGlyph) ((Armor) item).glyph).spirit2 != null ? 2 : 1;
+		}
+		return 0;
 	}
 
 	//장비에 부여한 정령을 다시 완드로 거둠
@@ -169,14 +276,15 @@ public class WndForestWand extends Window {
 			}
 			@Override
 			public boolean itemSelectable( Item item ) {
-				return (item instanceof Weapon && ((Weapon) item).enchantment instanceof SpiritEnchant)
-						|| (item instanceof Armor && ((Armor) item).glyph instanceof SpiritGlyph);
+				return spiritsOn( item ) > 0;
 			}
 			@Override
 			public void onSelect( Item item ) {
 				if (item == null) return;
-				int slot = wand.freeSlot();
-				if (slot < 0){ GLog.w( Messages.get( ForestWand.class, "full" ) ); return; }
+				if (ForestWand.SLOTS - wand.spiritCount() < spiritsOn( item )){
+					GLog.w( Messages.get( ForestWand.class, "full" ) );
+					return;
+				}
 				//장비에서 떼어 내면 정령은 알아서 숲의 완드로 역소환됨
 				if (item instanceof Weapon) ((Weapon) item).enchant( null );
 				else                        ((Armor) item).inscribe( null );

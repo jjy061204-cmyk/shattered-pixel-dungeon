@@ -623,7 +623,7 @@ public class Armor extends EquipableItem {
 			info += " " + Messages.get(HolyWard.class, "glyph_desc");
 		} else if (glyph != null  && (cursedKnown || !glyph.curse())) {
 			if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph){
-				info += "\n\n" + Messages.get(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.class, "spirit_dwells", ((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) glyph).spirit.title());
+				info += "\n\n" + com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.dwells(((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) glyph).spirit, ((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) glyph).spirit2);
 			} else
 			info += "\n\n" +  Messages.capitalize(Messages.get(Armor.class, "inscribed", glyph.name()));
 			if (glyphHardened) info += " " + Messages.get(Armor.class, "glyph_hardened");
@@ -737,6 +737,7 @@ public class Armor extends EquipableItem {
 		//모드: 깃든 정령이 다른 정령·마법에 밀려나거나 지워지면 숲의 완드로 역소환
 		if (this.glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph && this.glyph != glyph){
 			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.returnToWand(((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) this.glyph).spirit);
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.returnToWand(((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) this.glyph).spirit2);
 		}
 		if (glyph == null || !glyph.curse()) curseInfusionBonus = false;
 		this.glyph = glyph;

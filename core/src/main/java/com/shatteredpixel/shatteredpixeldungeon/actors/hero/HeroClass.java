@@ -102,7 +102,7 @@ public enum HeroClass {
 	//모드: 뱀파이어 - 적의 생명력을 빼앗아 핏빛 성배에 담고, 그것으로 기술을 씀 (갑옷 기술만 전사의 것을 빌림)
 	VAMPIRE( HeroSubClass.TRUE_ANCESTOR, HeroSubClass.BLOOD_LORD ),
 	//모드: 정령사 - 숲의 완드에 지형지물의 정령을 깃들여 정령 마법을 씀 (전직·특성·갑옷 기술은 아직 전사의 것을 빌림)
-	ELEMENTALIST( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
+	ELEMENTALIST( HeroSubClass.SPIRIT_ENCHANTER, HeroSubClass.SPIRIT_CONTRACTOR );
 
 	private HeroSubClass[] subClasses;
 

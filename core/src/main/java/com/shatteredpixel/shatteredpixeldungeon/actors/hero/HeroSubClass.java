@@ -56,7 +56,11 @@ public enum HeroSubClass {
 
 	//모드: 뱀파이어의 전직
 	TRUE_ANCESTOR(HeroIcon.TRUE_ANCESTOR),
-	BLOOD_LORD(HeroIcon.BLOOD_LORD);
+	BLOOD_LORD(HeroIcon.BLOOD_LORD),
+
+	//모드: 정령사의 전직
+	SPIRIT_ENCHANTER(HeroIcon.SPIRIT_ENCHANTER),
+	SPIRIT_CONTRACTOR(HeroIcon.SPIRIT_CONTRACTOR);
 
 	int icon;
 

@@ -458,6 +458,7 @@ abstract public class Weapon extends KindOfWeapon {
 		//모드: 깃든 정령이 다른 정령·마법에 밀려나거나 지워지면 숲의 완드로 역소환
 		if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant && enchantment != ench){
 			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.returnToWand(((com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchantment).spirit);
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.returnToWand(((com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchantment).spirit2);
 		}
 		if (ench == null || !ench.curse()) curseInfusionBonus = false;
 		enchantment = ench;

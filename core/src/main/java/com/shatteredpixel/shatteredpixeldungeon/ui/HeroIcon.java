@@ -54,6 +54,9 @@ public class HeroIcon extends Image {
 	public static final int CURATOR     = 13;
 	public static final int TRUE_ANCESTOR = 14;
 	public static final int BLOOD_LORD  = 15;
+	//모드: 정령사의 전직
+	public static final int SPIRIT_ENCHANTER  = 38;
+	public static final int SPIRIT_CONTRACTOR = 39;
 
 	//abilities
 	public static final int HEROIC_LEAP     = 16;
