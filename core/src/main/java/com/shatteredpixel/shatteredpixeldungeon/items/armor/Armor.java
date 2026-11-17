@@ -477,6 +477,9 @@ public class Armor extends EquipableItem {
 			} else if (hasCurseGlyph()){
 				if (Random.Int(3) == 0) inscribe(null);
 
+			//모드: 정령사가 부여한 정령은 강화해도 떨어져 나가지 않음
+			} else if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) {
+
 			//otherwise chance to lose glyph is 10/20/40/80/100% when upgrading from +4/5/6/7/8
 			} else {
 

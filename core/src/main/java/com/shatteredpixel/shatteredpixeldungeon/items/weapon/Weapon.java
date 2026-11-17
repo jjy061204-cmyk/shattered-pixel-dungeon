@@ -391,6 +391,9 @@ abstract public class Weapon extends KindOfWeapon {
 			} else if (hasCurseEnchant()) {
 				if (Random.Int(3) == 0) enchant(null);
 
+			//모드: 정령사가 부여한 정령은 강화해도 떨어져 나가지 않음
+			} else if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) {
+
 			//otherwise chance to lose enchant is 10/20/40/80/100% when upgrading from +4/5/6/7/8
 			} else if (level() >= 4 && Random.Float(10) < Math.pow(2, level()-4)){
 				enchant(null);
