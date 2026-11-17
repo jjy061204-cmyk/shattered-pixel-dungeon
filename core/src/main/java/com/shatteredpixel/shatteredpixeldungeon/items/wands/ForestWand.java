@@ -140,13 +140,6 @@ public class ForestWand extends DamageWand {
 	}
 
 	@Override
-	public String status() {
-		String s = super.status();
-		if (s != null && spirit != Spirit.NONE) s += " " + spiritUses;
-		return s;
-	}
-
-	@Override
 	public ItemSprite.Glowing glowing() {
 		if (spirit == Spirit.NONE) return super.glowing();
 		return new ItemSprite.Glowing( spirit.color, spirit.strong ? 1f : 2f );
