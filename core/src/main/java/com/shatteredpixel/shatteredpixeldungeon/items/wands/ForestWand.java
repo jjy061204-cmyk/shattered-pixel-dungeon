@@ -168,6 +168,7 @@ public class ForestWand extends Weapon {
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.remove( AC_EQUIP );
+		actions.remove( AC_THROW );   //완드를 던질 일은 없으니 버튼 자리를 비움
 		actions.add( AC_SHOOT );
 		actions.add( AC_IMBUE );
 		actions.add( AC_SPIRITS );
@@ -866,14 +867,8 @@ public class ForestWand extends Weapon {
 			case NONE:
 		}
 
-		info += "\n\n" + Messages.get( ForestWand.class, "slots_title" );
-		for (int i = 0; i < SLOTS; i++){
-			String where = Messages.get( ForestWand.class, "slot_" + i );
-			info += "\n" + where + ": " + (slots[i] == null ? Messages.get( ForestWand.class, "slot_empty" ) : slots[i].title());
-		}
 		if (active() != null){
 			info += "\n\n" + Messages.get( ForestWand.class, "shot_" + active().name().toLowerCase() );
-			info += "\n\n" + elemBaseDesc() + " " + Messages.get( ForestWand.class, "shot_mul" );
 		}
 		else info += "\n\n" + Messages.get( ForestWand.class, "shot_none" );
 

@@ -40,8 +40,7 @@ public class SpiritEnchant extends Weapon.Enchantment {
 
 	@Override
 	public String desc() {
-		return Messages.get( SpiritEnchant.class, "desc_" + spirit.name().toLowerCase() )
-				+ "\n\n" + ForestWand.elemBaseDesc();
+		return Messages.get( SpiritEnchant.class, "desc_" + spirit.name().toLowerCase() );
 	}
 
 	@Override

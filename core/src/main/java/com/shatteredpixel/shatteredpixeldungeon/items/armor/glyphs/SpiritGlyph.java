@@ -158,13 +158,7 @@ public class SpiritGlyph extends Armor.Glyph {
 
 	@Override
 	public String desc() {
-		String d = Messages.get( SpiritGlyph.class, "desc_" + spirit.name().toLowerCase() );
-		switch (spirit){
-			case WATER: case FIRE: case FLAME: case FROST: case SHOCK:
-				d += "\n\n" + ForestWand.elemBaseDesc();
-			default:
-		}
-		return d;
+		return Messages.get( SpiritGlyph.class, "desc_" + spirit.name().toLowerCase() );
 	}
 
 	@Override
