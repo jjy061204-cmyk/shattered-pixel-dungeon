@@ -1027,7 +1027,6 @@ public class ItemSpriteSheet {
 			SLOT.put( PARFAIT, new int[]{ 0, 24 } );
 			SLOT.put( EXCALIBUR, new int[]{ 1, 20 } );
 			SLOT.put( SEALED_EXCALIBUR, new int[]{ 2, 20 } );
-			SLOT.put( CRIMSON_GRAIL, new int[]{ 3, 32 } );   //핏빛 성배 (32x32)
 		}
 
 		public static boolean has( int image ){
