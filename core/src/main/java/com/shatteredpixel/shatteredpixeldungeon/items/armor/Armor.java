@@ -462,6 +462,9 @@ public class Armor extends EquipableItem {
 	
 	public Item upgrade( boolean inscribe ) {
 
+		//모드: 정령이 깃든 갑옷을 강화하면 정령은 알아서 숲의 완드로 역소환
+		if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) inscribe(null);
+
 		if (inscribe){
 			if (glyph == null){
 				inscribe( Glyph.random() );
@@ -476,9 +479,6 @@ public class Armor extends EquipableItem {
 			//chance to remove curse is a static 33%
 			} else if (hasCurseGlyph()){
 				if (Random.Int(3) == 0) inscribe(null);
-
-			//모드: 정령사가 부여한 정령은 강화해도 떨어져 나가지 않음
-			} else if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) {
 
 			//otherwise chance to lose glyph is 10/20/40/80/100% when upgrading from +4/5/6/7/8
 			} else {
@@ -734,6 +734,10 @@ public class Armor extends EquipableItem {
 	}
 
 	public Armor inscribe( Glyph glyph ) {
+		//모드: 깃든 정령이 다른 정령·마법에 밀려나거나 지워지면 숲의 완드로 역소환
+		if (this.glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph && this.glyph != glyph){
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.returnToWand(((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) this.glyph).spirit);
+		}
 		if (glyph == null || !glyph.curse()) curseInfusionBonus = false;
 		this.glyph = glyph;
 		updateQuickslot();

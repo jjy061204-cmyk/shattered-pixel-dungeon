@@ -376,6 +376,9 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	public Item upgrade(boolean enchant ) {
 
+		//모드: 정령이 깃든 무기를 강화하면 정령은 알아서 숲의 완드로 역소환
+		if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchant(null);
+
 		if (enchant){
 			if (enchantment == null){
 				enchant(Enchantment.random());
@@ -390,9 +393,6 @@ abstract public class Weapon extends KindOfWeapon {
 			//chance to remove curse is a static 33%
 			} else if (hasCurseEnchant()) {
 				if (Random.Int(3) == 0) enchant(null);
-
-			//모드: 정령사가 부여한 정령은 강화해도 떨어져 나가지 않음
-			} else if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) {
 
 			//otherwise chance to lose enchant is 10/20/40/80/100% when upgrading from +4/5/6/7/8
 			} else if (level() >= 4 && Random.Float(10) < Math.pow(2, level()-4)){
@@ -455,6 +455,10 @@ abstract public class Weapon extends KindOfWeapon {
 	}
 	
 	public Weapon enchant( Enchantment ench ) {
+		//모드: 깃든 정령이 다른 정령·마법에 밀려나거나 지워지면 숲의 완드로 역소환
+		if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant && enchantment != ench){
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.returnToWand(((com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchantment).spirit);
+		}
 		if (ench == null || !ench.curse()) curseInfusionBonus = false;
 		enchantment = ench;
 		updateQuickslot();

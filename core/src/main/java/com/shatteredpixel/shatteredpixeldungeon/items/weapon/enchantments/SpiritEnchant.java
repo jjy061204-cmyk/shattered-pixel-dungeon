@@ -1,7 +1,7 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
  * 정령사가 '정령 부여'로 무기에 옮겨 담은 정령: 정령마다 다른 전용 인챈트.
- * 깃든 정령은 강화해도 떨어져 나가지 않으며, 다른 장비로 옮기거나 완드로 거두기 전까지 남음
+ * 장비를 강화하거나 다른 정령·마법을 부여하면 깃든 정령은 알아서 숲의 완드로 역소환됨
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
@@ -28,7 +28,7 @@ public class SpiritEnchant extends Weapon.Enchantment {
 		float chance = (level + 2f) / (level + 6f) * procChanceMultiplier( attacker );
 		if (spirit.strong) chance *= 1.15f;
 		if (Random.Float() < chance){
-			damage = ForestWand.spiritHit( spirit, attacker, defender, damage, level );
+			damage = ForestWand.spiritHit( spirit, attacker, defender, damage, 1f );
 		}
 		return damage;
 	}
@@ -40,7 +40,8 @@ public class SpiritEnchant extends Weapon.Enchantment {
 
 	@Override
 	public String desc() {
-		return Messages.get( SpiritEnchant.class, "desc_" + spirit.name().toLowerCase() );
+		return Messages.get( SpiritEnchant.class, "desc_" + spirit.name().toLowerCase() )
+				+ "\n\n" + ForestWand.elemBaseDesc();
 	}
 
 	@Override

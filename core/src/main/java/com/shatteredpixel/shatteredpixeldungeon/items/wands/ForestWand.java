@@ -9,6 +9,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -253,7 +259,7 @@ public class ForestWand extends Weapon {
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 		Spirit s = active();
-		if (s != null) damage = spiritHit( s, attacker, defender, damage, buffedLvl() );
+		if (s != null) damage = spiritHit( s, attacker, defender, damage, SHOT_MUL );
 		return super.proc( attacker, defender, damage );
 	}
 
@@ -373,6 +379,9 @@ public class ForestWand extends Weapon {
 
 	// ── 정령 능력 (탄·무기 인챈트에서 같이 씀) ──
 
+	//정령 탄이 싣는 속성 피해 배율 (매번 나가므로 무기 인챈트보다 약하게)
+	public static final float SHOT_MUL = 0.5f;
+
 	//정령 능력이 나왔음을 눈에 띄게: 정령 색의 글자와 그 정령다운 입자
 	public static void fx( Char ch, Spirit s, String key ){
 		if (ch == null || ch.sprite == null || !ch.sprite.visible) return;
@@ -382,108 +391,269 @@ public class ForestWand extends Weapon {
 		if (ch != null && ch.sprite != null) ch.sprite.centerEmitter().burst( f, n );
 	}
 
-	//맞은 대상에게 정령 능력을 걸고, 바뀐 피해량을 돌려줌
-	public static int spiritHit( Spirit s, Char attacker, Char defender, int damage, int power ){
-		if (s == Spirit.CHAOS){
-			Spirit[] pool = { Spirit.FLAME, Spirit.FROST, Spirit.SHOCK, Spirit.ROCK, Spirit.WIND, Spirit.NATURE };
-			Spirit pick = Random.element( pool );
-			burst( defender, RainbowParticle.BURST, 10 );
-			fx( defender, Spirit.CHAOS, "chaos" );
-			if (Random.Int( 6 ) == 0 && defender.isAlive()) Buff.prolong( defender, Paralysis.class, 1f );
-			if (Random.Int( 6 ) == 0 && defender.isAlive()) Buff.prolong( defender, Vertigo.class, 3f );
-			if (Random.Int( 6 ) == 0 && defender.isAlive()) Buff.prolong( defender, Blindness.class, 2f );
-			return spiritHit( pick, attacker, defender, damage, power );
+	// ── 속성 피해 ──
+	//기준: 물 폭발(물 혼합물·간헐천 함정)이 화염 정령 같은 불의 적에게 주는 피해 (5+깊이 ~ 10+깊이×2)
+	public static int elemBase(){
+		int d = Dungeon.scalingDepth();
+		return Random.NormalIntRange( 5 + d, 10 + d*2 );
+	}
+
+	//속성 피해의 출처: 피해 숫자 옆에 물·불·냉기·번개 아이콘이 뜸
+	public static class ElemSource {
+		public final Spirit spirit;
+		public ElemSource( Spirit s ){ spirit = s; }
+		public int icon(){
+			switch (spirit){
+				case WATER: return FloatingText.WATER;
+				case FIRE: case FLAME: return FloatingText.BURNING;
+				case FROST: return FloatingText.FROST;
+				case SHOCK: return FloatingText.SHOCKING;
+				default: return FloatingText.MAGIC_DMG;
+			}
 		}
+	}
+
+	private static Class resistClass( Spirit s ){
 		switch (s){
-			case WATER:
+			case FIRE: case FLAME: return Burning.class;
+			case FROST: return Frost.class;
+			case SHOCK: return Electricity.class;
+			default: return null;
+		}
+	}
+
+	//속성 피해를 입히고 실제 들어간 양을 돌려줌 (면역·저항 반영, 물은 불의 적에게, 번개는 물에 선 적에게 1.5배)
+	public static int elemHit( Spirit s, Char target, float mul ){
+		if (target == null || !target.isAlive() || mul <= 0) return 0;
+		Class rc = resistClass( s );
+		if (rc != null && target.isImmune( rc )) return 0;
+		float dmg = elemBase() * mul;
+		if (rc != null) dmg *= target.resist( rc );
+		if (s == Spirit.WATER && Char.hasProp( target, Char.Property.FIERY )) dmg *= 1.5f;
+		if (s == Spirit.SHOCK && Dungeon.level.water[target.pos] && !target.flying) dmg *= 1.5f;
+		int d = Math.max( 1, Math.round( dmg ) );
+		target.damage( d, new ElemSource( s ) );
+		return d;
+	}
+
+	//얼리기는 맞는 순간 피해에 깨지므로, 공격이 끝난 직후에 얼림
+	public static class FreezeNext extends Buff {
+		@Override
+		public boolean act() {
+			if (target.isAlive()) Buff.prolong( target, Frost.class, 2f );
+			detach();
+			return true;
+		}
+	}
+
+	private static void heal( Char ch, int amount ){
+		if (ch == null || !ch.isAlive() || amount <= 0 || ch.HP >= ch.HT) return;
+		amount = Math.min( amount, ch.HT - ch.HP );
+		ch.HP += amount;
+		if (ch.sprite != null){
+			ch.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 2 );
+			ch.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
+		}
+	}
+
+	private static void shield( Char ch, int amount ){
+		if (ch == null || !ch.isAlive() || amount <= 0) return;
+		Buff.affect( ch, Barrier.class ).incShield( amount );
+		if (ch.sprite != null) ch.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.SHIELDING );
+	}
+
+	private static boolean foe( Char attacker, Char other ){
+		return other != null && other != attacker && other.isAlive()
+				&& (attacker == null || other.alignment != attacker.alignment);
+	}
+
+	//맞은 대상에게 정령 능력을 걸고, 바뀐 피해량을 돌려줌. mul은 속성 피해 배율 (무기 1, 정령 탄 0.5)
+	public static int spiritHit( Spirit s, Char attacker, Char defender, int damage, float mul ){
+		if (defender == null) return damage;
+		switch (s){
+
+			//물: 물 폭발의 피해를 그대로. 불을 끄고, 발밑을 물바다로 만들고 1칸 밀어냄
+			case WATER: {
 				Buff.detach( defender, Burning.class );
-				Splash.at( defender.sprite != null ? defender.sprite.center() : DungeonTilemap.tileCenterToWorld( defender.pos ), 0xFF55B8FF, 8 );
-				burst( defender, FlowParticle.FACTORY, 10 );
+				Splash.at( defender.sprite != null ? defender.sprite.center() : DungeonTilemap.tileCenterToWorld( defender.pos ), 0xFF55B8FF, 12 );
+				burst( defender, FlowParticle.FACTORY, 12 );
+				Sample.INSTANCE.play( Assets.Sounds.WATER, 0.9f, Random.Float( 0.9f, 1.1f ) );
 				fx( defender, s, "water" );
+				elemHit( s, defender, mul );
+				Dungeon.level.setCellToWater( false, defender.pos );
 				knockAway( attacker, defender, 1, false );
 				break;
+			}
+
+			//바람: 칼바람 피해와 함께 2칸 날려 보내고(벽에 부딪히면 추가 피해), 쓰는 이는 순풍을 타 잠시 빨라짐
 			case WIND:
-				burst( defender, WindParticle.FACTORY, 10 );
-				if (defender.sprite != null) CellEmitter.get( defender.pos ).burst( Speck.factory( Speck.JET ), 4 );
+				burst( defender, WindParticle.FACTORY, 12 );
+				CellEmitter.get( defender.pos ).burst( Speck.factory( Speck.JET ), 5 );
 				fx( defender, s, "wind" );
+				elemHit( s, defender, mul*0.5f );
 				knockAway( attacker, defender, 2, true );
+				if (attacker != null && attacker.isAlive()) Buff.prolong( attacker, Haste.class, 2f );
 				break;
-			case NATURE:
-				burst( defender, LeafParticle.GENERAL, 6 );
-				if (Random.Int( 3 ) == 0 && !defender.flying){
+
+			//자연: 가시 덩굴이 생기를 빨아들여 쓰는 이를 치유하고, 뿌리로 묶고, 발밑에 풀을 틔움
+			case NATURE: {
+				burst( defender, LeafParticle.GENERAL, 10 );
+				CellEmitter.bottom( defender.pos ).burst( LeafParticle.GENERAL, 14 );
+				int dealt = elemHit( s, defender, mul*0.5f );
+				if (defender.isAlive() && !defender.flying && !defender.properties().contains( Char.Property.IMMOVABLE )){
 					Buff.prolong( defender, Roots.class, 2f );
-					CellEmitter.bottom( defender.pos ).burst( LeafParticle.GENERAL, 12 );
-					fx( defender, s, "nature" );
 				}
-				break;
-			case FIRE:
-				if (Random.Int( 3 ) == 0){
-					Buff.affect( defender, Burning.class ).reignite( defender, 4f );
-					burst( defender, FlameParticle.FACTORY, 10 );
-					fx( defender, s, "fire" );
-				} else {
-					burst( defender, FlameParticle.FACTORY, 2 );
+				int t = Dungeon.level.map[defender.pos];
+				if (t == Terrain.EMPTY || t == Terrain.EMBERS || t == Terrain.EMPTY_DECO){
+					Level.set( defender.pos, Terrain.GRASS );
+					GameScene.updateMap( defender.pos );
 				}
+				heal( attacker, Math.max( 1, dealt/2 ) );
+				fx( defender, s, "nature" );
 				break;
-			case EARTH:
-				burst( defender, EarthParticle.SMALL, 5 );
-				if (Random.Int( 2 ) == 0){
-					Buff.prolong( defender, Cripple.class, 3f );
-					CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 10 );
-					fx( defender, s, "earth" );
-				}
+			}
+
+			//불: 불을 붙임. 이미 타고 있는 적은 불길이 거세져 두 배로 탐
+			case FIRE: {
+				boolean burning = defender.buff( Burning.class ) != null;
+				burst( defender, FlameParticle.FACTORY, burning ? 16 : 10 );
+				fx( defender, s, burning ? "fire_blaze" : "fire" );
+				elemHit( s, defender, mul*(burning ? 1f : 0.5f) );
+				if (defender.isAlive()) Buff.affect( defender, Burning.class ).reignite( defender, 4f );
 				break;
+			}
+
+			//땅: 흙더미가 발을 묶어 불구로 만들고, 떨어져 나온 흙이 쓰는 이를 감싸 보호막이 됨
+			case EARTH: {
+				burst( defender, EarthParticle.SMALL, 6 );
+				CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 10 );
+				int dealt = elemHit( s, defender, mul*0.5f );
+				if (defender.isAlive()) Buff.prolong( defender, Cripple.class, 3f );
+				shield( attacker, Math.max( 1, dealt/2 ) );
+				fx( defender, s, "earth" );
+				break;
+			}
+
+			//바위: 묵직한 일격(+20%)에 바위 파편 피해, 껍질을 부숴 3턴 동안 피해를 더 받게 함
 			case ROCK:
-				damage = Math.round( damage * 1.3f );
-				CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 8 );
+				damage = Math.round( damage * 1.2f );
+				CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 10 );
 				burst( defender, EarthParticle.SMALL, 8 );
-				if (defender.sprite != null && defender.sprite.visible) PixelScene.shake( 1, 0.12f );
+				if (defender.sprite != null && defender.sprite.visible) PixelScene.shake( 1, 0.15f );
+				Sample.INSTANCE.play( Assets.Sounds.ROCKS, 0.7f );
 				fx( defender, s, "rock" );
+				elemHit( s, defender, mul*0.6f );
+				if (defender.isAlive()) Buff.prolong( defender, Vulnerable.class, 3f );
 				break;
+
+			//화염: 대상이 폭발하듯 타오르고, 둘레의 적들도 불길에 휩싸임
 			case FLAME:
-				Buff.affect( defender, Burning.class ).reignite( defender );
-				burst( defender, FlameParticle.FACTORY, 14 );
+				burst( defender, FlameParticle.FACTORY, 16 );
 				fx( defender, s, "flame" );
+				elemHit( s, defender, mul );
+				if (defender.isAlive()) Buff.affect( defender, Burning.class ).reignite( defender );
 				for (int n : PathFinder.NEIGHBOURS8){
 					int c = defender.pos + n;
-					if (!Dungeon.level.solid[c]) CellEmitter.get( c ).burst( FlameParticle.FACTORY, 5 );
+					if (!Dungeon.level.solid[c]) CellEmitter.get( c ).burst( FlameParticle.FACTORY, 6 );
 					Char other = Actor.findChar( c );
-					if (other != null && other != attacker && other.alignment != attacker.alignment){
-						other.damage( Math.max( 1, damage/3 ), ForestWand.class );
+					if (foe( attacker, other ) && other != defender){
+						elemHit( s, other, mul*0.5f );
+						if (other.isAlive()) Buff.affect( other, Burning.class ).reignite( other, 3f );
 					}
 				}
+				if (defender.sprite != null && defender.sprite.visible) PixelScene.shake( 1, 0.1f );
 				Sample.INSTANCE.play( Assets.Sounds.BURNING );
 				break;
-			case FROST:
-				Buff.prolong( defender, Chill.class, 3f );
-				burst( defender, SnowParticle.FACTORY, 10 );
-				if (Random.Int( 4 ) == 0){
-					Buff.prolong( defender, Frost.class, 2f );
+
+			//서리: 차갑게 하고, 이미 차가운 적은 얼리고, 얼어 있는 적은 산산조각 내 큰 피해
+			case FROST: {
+				burst( defender, SnowParticle.FACTORY, 12 );
+				if (defender.buff( Frost.class ) != null){
+					CellEmitter.get( defender.pos ).burst( Speck.factory( Speck.STEAM ), 8 );
+					Sample.INSTANCE.play( Assets.Sounds.SHATTER );
+					fx( defender, s, "frost_shatter" );
+					elemHit( s, defender, mul*1.5f );
+				} else if (defender.buff( Chill.class ) != null && !defender.isImmune( Frost.class )){
 					fx( defender, s, "frost_freeze" );
+					elemHit( s, defender, mul*0.75f );
+					if (defender.isAlive()) Buff.affect( defender, FreezeNext.class );
 				} else {
 					fx( defender, s, "frost" );
+					elemHit( s, defender, mul*0.75f );
+					if (defender.isAlive()) Buff.prolong( defender, Chill.class, 3f );
 				}
 				break;
-			case SHOCK:
+			}
+
+			//전기: 번개가 둘레 2칸 안의 적 3명까지 옮겨 붙음. 물에 선 적은 감전되어 1.5배
+			case SHOCK: {
+				boolean wet = Dungeon.level.water[defender.pos] && !defender.flying;
 				ArrayList<Char> affected = new ArrayList<>();
 				ArrayList<Lightning.Arc> arcs = new ArrayList<>();
 				Shocking.arc( attacker, defender, 2, affected, arcs );
 				affected.remove( defender );
+				elemHit( s, defender, mul*0.75f );
 				int hits = 0;
 				for (Char ch : affected){
-					if (ch.alignment != attacker.alignment && hits < 2){
-						ch.damage( Math.max( 1, damage/2 ), ForestWand.class );
+					if (foe( attacker, ch ) && hits < 3){
+						elemHit( s, ch, mul*0.4f );
+						if (ch.sprite != null) ch.sprite.centerEmitter().burst( SparkParticle.FACTORY, 4 );
 						hits++;
 					}
 				}
-				if (attacker.sprite != null && attacker.sprite.parent != null) attacker.sprite.parent.addToFront( new Lightning( arcs, null ) );
-				burst( defender, SparkParticle.FACTORY, 8 );
-				fx( defender, s, hits > 0 ? "shock_chain" : "shock" );
+				if (attacker != null && attacker.sprite != null && attacker.sprite.parent != null && !arcs.isEmpty()){
+					attacker.sprite.parent.addToFront( new Lightning( arcs, null ) );
+				}
+				burst( defender, SparkParticle.FACTORY, 10 );
+				fx( defender, s, wet ? "shock_water" : hits > 0 ? "shock_chain" : "shock" );
 				Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 				break;
-			default: break;
+			}
+
+			//혼돈: 서로 다른 두 정령의 힘이 한꺼번에 터지고, 가끔 정신을 흐리게 함
+			case CHAOS: default: {
+				Spirit[] pool = { Spirit.WATER, Spirit.WIND, Spirit.NATURE, Spirit.FIRE, Spirit.EARTH,
+						Spirit.ROCK, Spirit.FLAME, Spirit.FROST, Spirit.SHOCK };
+				Spirit a = Random.element( pool ), b;
+				do { b = Random.element( pool ); } while (b == a);
+				burst( defender, RainbowParticle.BURST, 14 );
+				fx( defender, Spirit.CHAOS, "chaos" );
+				if (Random.Int( 4 ) == 0 && defender.isAlive()){
+					if (Random.Int( 2 ) == 0) Buff.prolong( defender, Vertigo.class, 3f );
+					else                      Buff.prolong( defender, Blindness.class, 2f );
+				}
+				damage = spiritHit( a, attacker, defender, damage, mul*0.75f );
+				if (defender.isAlive()) damage = spiritHit( b, attacker, defender, damage, mul*0.75f );
+				break;
+			}
 		}
 		return damage;
+	}
+
+	//설명용: 지금 깊이의 속성 피해 기준
+	public static String elemBaseDesc(){
+		int d = Dungeon.scalingDepth();
+		return Messages.get( ForestWand.class, "elem_base", 5 + d, 10 + d*2 );
+	}
+
+	// ── 역소환: 장비에서 정령이 떨어져 나갈 때 (강화, 다른 정령·마법 부여) 알아서 숲의 완드로 돌아옴 ──
+	public static void returnToWand( Spirit s ){
+		Hero hero = Dungeon.hero;
+		if (s == null || hero == null || !hero.isAlive()) return;
+		ForestWand wand = hero.belongings.getItem( ForestWand.class );
+		int slot = wand != null ? wand.freeSlot() : -1;
+		if (slot >= 0){
+			wand.slots[slot] = s;
+			updateQuickslot();
+			if (hero.sprite != null){
+				hero.sprite.centerEmitter().burst( s.particle(), 8 );
+				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
+			}
+			GLog.i( Messages.get( ForestWand.class, "returned", s.title() ) );
+		} else {
+			if (hero.sprite != null) hero.sprite.centerEmitter().burst( s.particle(), 5 );
+			GLog.w( Messages.get( ForestWand.class, "returned_lost", s.title() ) );
+		}
 	}
 
 	//대상을 기준점 반대쪽으로 밀어냄
@@ -681,7 +851,10 @@ public class ForestWand extends Weapon {
 			String where = Messages.get( ForestWand.class, "slot_" + i );
 			info += "\n" + where + ": " + (slots[i] == null ? Messages.get( ForestWand.class, "slot_empty" ) : slots[i].title());
 		}
-		if (active() != null) info += "\n\n" + Messages.get( ForestWand.class, "shot_" + active().name().toLowerCase() );
+		if (active() != null){
+			info += "\n\n" + Messages.get( ForestWand.class, "shot_" + active().name().toLowerCase() );
+			info += "\n\n" + elemBaseDesc() + " " + Messages.get( ForestWand.class, "shot_mul" );
+		}
 		else info += "\n\n" + Messages.get( ForestWand.class, "shot_none" );
 
 		if (enchantment != null && (cursedKnown || !enchantment.curse())){

@@ -130,28 +130,25 @@ public class WndForestWand extends Window {
 				ForestWand.Spirit s = wand.slots[slot];
 				if (item == null || s == null) return;
 				Hero hero = Dungeon.hero;
-				ForestWand.Spirit old = null;
 				if (item instanceof Weapon){
 					Weapon w = (Weapon) item;
 					if (w.hasCurseEnchant()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
-					if (w.enchantment instanceof SpiritEnchant) old = ((SpiritEnchant) w.enchantment).spirit;
-					else if (w.enchantment != null) GLog.w( Messages.get( WndForestWand.class, "replaced", w.enchantment.name() ) );
+					if (w.enchantment != null && !(w.enchantment instanceof SpiritEnchant)) GLog.w( Messages.get( WndForestWand.class, "replaced", w.enchantment.name() ) );
+					//완드에서 먼저 꺼내야, 장비에 있던 정령이 비워진 칸으로 역소환될 수 있음
+					wand.slots[slot] = null;
 					w.enchant( new SpiritEnchant( s ) );
 				} else {
 					Armor a = (Armor) item;
 					if (a.hasCurseGlyph()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
-					if (a.glyph instanceof SpiritGlyph) old = ((SpiritGlyph) a.glyph).spirit;
-					else if (a.glyph != null) GLog.w( Messages.get( WndForestWand.class, "replaced", a.glyph.name() ) );
+					if (a.glyph != null && !(a.glyph instanceof SpiritGlyph)) GLog.w( Messages.get( WndForestWand.class, "replaced", a.glyph.name() ) );
+					wand.slots[slot] = null;
 					a.inscribe( new SpiritGlyph( s ) );
 				}
-				//장비에 있던 정령은 그 칸으로 돌아옴 (서로 바꿔 깃들임)
-				wand.slots[slot] = old;
 				Item.updateQuickslot();
 				Enchanting.show( hero, item );
 				ForestWand.imbueFx( hero.pos, s );
 				Sample.INSTANCE.play( Assets.Sounds.MELD );
 				GLog.p( Messages.get( WndForestWand.class, "bestowed", s.title(), item.name() ) );
-				if (old != null) GLog.i( Messages.get( WndForestWand.class, "swapped", old.title() ) );
 				hero.sprite.operate( hero.pos );
 				hero.spendAndNext( 1f );
 			}
@@ -180,20 +177,11 @@ public class WndForestWand extends Window {
 				if (item == null) return;
 				int slot = wand.freeSlot();
 				if (slot < 0){ GLog.w( Messages.get( ForestWand.class, "full" ) ); return; }
-				ForestWand.Spirit s;
-				if (item instanceof Weapon){
-					s = ((SpiritEnchant) ((Weapon) item).enchantment).spirit;
-					((Weapon) item).enchant( null );
-				} else {
-					s = ((SpiritGlyph) ((Armor) item).glyph).spirit;
-					((Armor) item).inscribe( null );
-				}
-				wand.slots[slot] = s;
-				Item.updateQuickslot();
+				//장비에서 떼어 내면 정령은 알아서 숲의 완드로 역소환됨
+				if (item instanceof Weapon) ((Weapon) item).enchant( null );
+				else                        ((Armor) item).inscribe( null );
 				Hero hero = Dungeon.hero;
-				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 5 );
 				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				GLog.p( Messages.get( WndForestWand.class, "recalled", s.title() ) );
 				hero.sprite.operate( hero.pos );
 				hero.spendAndNext( 1f );
 			}

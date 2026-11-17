@@ -89,7 +89,8 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			boolean wasCursed = w.cursed;
 			boolean wasHardened = w.enchantHardened;
 			boolean hadCursedEnchant = w.hasCurseEnchant();
-			boolean hadGoodEnchant = w.hasGoodEnchant();
+			boolean hadGoodEnchant = w.hasGoodEnchant()
+					&& !(w.enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant); //모드: 정령은 역소환 메시지가 따로 나옴
 
 			item = w.upgrade();
 
@@ -109,7 +110,8 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			boolean wasCursed = a.cursed;
 			boolean wasHardened = a.glyphHardened;
 			boolean hadCursedGlyph = a.hasCurseGlyph();
-			boolean hadGoodGlyph = a.hasGoodGlyph();
+			boolean hadGoodGlyph = a.hasGoodGlyph()
+					&& !(a.glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph); //모드: 정령은 역소환 메시지가 따로 나옴
 
 			item = a.upgrade();
 
