@@ -34,7 +34,7 @@ public class HeroAttackFX extends Image {
 		film = new TextureFilm( texture, SIZE, SIZE );
 		this.row = row;
 		//칼을 내려베는 프레임(공격 3~4번째 장)에 맞춤
-		delay = row == SLASH ? 0.12f : row == LEAF ? 0.15f : 0.07f;
+		delay = row == SLASH ? 0.12f : row == LEAF ? 0.2f : 0.07f;   //정령사: 완드를 겨눠 터뜨리는 5번째 장면에 맞춤
 		frame( film.get( row * FRAMES ) );
 		origin.set( SIZE / 2f, SIZE / 2f );
 		scale.set( 0.56f );
