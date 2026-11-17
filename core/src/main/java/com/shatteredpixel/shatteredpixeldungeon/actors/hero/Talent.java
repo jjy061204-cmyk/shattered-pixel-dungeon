@@ -225,6 +225,11 @@ public enum Talent {
 	ROYAL_PRESENCE(276, 4), ENDLESS_REIGN(277, 4), BLOOD_TRIBUTE(278, 4),
 	FRESH_BLOOD(279, 4), BLOOD_RETURN(280, 4), ENDLESS_NIGHT(281, 4),
 
+	//모드: 정령사 T1
+	SPIRITED_MEAL(288), SPIRIT_INTUITION(289), CATALYST_SENSE(290), SPIRIT_WARD(291),
+	//정령사 T2
+	SPIRIT_FEAST(292), ELEMENTAL_RESONANCE(293), INSCRIBED_SPIRITS(294), SPIRIT_RESONANCE(295), SPIRIT_RELEASE(296),
+
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
 	//Ratmogrify T4
@@ -616,6 +621,21 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		if (hero.hasTalent(SPIRITED_MEAL)){
+			//정령의 식사: 다음 정령 탄 3/5발의 정령 능력이 1.5배
+			Buff.affect(hero, SpiritedMeal.class).reset(1 + 2*hero.pointsInTalent(SPIRITED_MEAL));
+			if (hero.sprite != null) hero.sprite.emitter().burst(com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle.GENERAL, 8);
+		}
+		if (hero.hasTalent(SPIRIT_FEAST)){
+			//정령의 잔치: 완드에 깃든 정령 하나당 체력 3/5 회복
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand wand = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.class);
+			int n = wand != null ? wand.spiritCount() : 0;
+			int healing = Math.min(n * (1 + 2*hero.pointsInTalent(SPIRIT_FEAST)), hero.HT - hero.HP);
+			if (healing > 0){
+				hero.HP += healing;
+				if (hero.sprite != null) hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(healing), FloatingText.HEALING);
+			}
+		}
 		if (hero.hasTalent(SANGUINE_MEAL)){
 			//성배에 생명력 3/5
 			com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.gainLife(hero, 1 + 2 * hero.pointsInTalent(SANGUINE_MEAL));
@@ -809,6 +829,19 @@ public enum Talent {
 	}
 
 	public static void onScrollUsed( Hero hero, int pos, float factor, Class<?extends Item> cls ){
+		if (hero.hasTalent(INSCRIBED_SPIRITS)
+				&& com.watabou.utils.Random.Float() < factor * hero.pointsInTalent(INSCRIBED_SPIRITS) / 3f){
+			//정령 문자: 1/3, 2/3 확률로 발밑에 강한 정령의 기운이 남음 (깃들이기 촉매)
+			Class<? extends com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant> r;
+			float roll = com.watabou.utils.Random.Float();
+			if (roll < 0.1f)       r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Chaos.class;
+			else if (roll < 0.4f)  r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Flame.class;
+			else if (roll < 0.7f)  r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Frost.class;
+			else                   r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Shock.class;
+			GameScene.add(com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(pos,
+					com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.DURATION, r));
+			if (hero.sprite != null) hero.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 5);
+		}
 		if (hero.hasTalent(INSCRIBED_RELICS)){
 			//2/3턴 동안 유물 충전
 			Buff.affect(hero, ArtifactRecharge.class).extend(factor * (1 + hero.pointsInTalent(INSCRIBED_RELICS)));
@@ -872,7 +905,28 @@ public enum Talent {
 	}
 
 	//영웅이 피해를 받은 뒤
+	//원소 감응: 액화 화염·서리 물약이 깨진 자리에 화염·서리 정령의 기운이 15/30턴 남음
+	public static void onElementalPotion( int cell, Class<? extends com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant> remnant ){
+		Hero hero = Dungeon.hero;
+		if (hero == null || !hero.hasTalent(ELEMENTAL_RESONANCE)) return;
+		GameScene.add(com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(cell, 15*hero.pointsInTalent(ELEMENTAL_RESONANCE), remnant));
+	}
+
 	public static void onHeroDamaged( Hero hero ){
+		if (hero.hasTalent(SPIRIT_WARD) && hero.isAlive() && hero.HP < hero.HT/2
+				&& hero.buff(SpiritWardCooldown.class) == null){
+			//정령의 보호막: 완드 가운데 칸의 정령이 영웅을 감쌈. 최대 체력의 10/15%, 50턴 대기
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand wand = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.class);
+			if (wand != null && wand.active() != null){
+				int shield = Math.max(1, Math.round(hero.HT * (0.05f + 0.05f*hero.pointsInTalent(SPIRIT_WARD))));
+				Buff.affect(hero, Barrier.class).setShield(shield);
+				Buff.affect(hero, SpiritWardCooldown.class, 50f);
+				if (hero.sprite != null){
+					hero.sprite.centerEmitter().burst(wand.active().particle(), 12);
+					hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);
+				}
+			}
+		}
 		if (hero.hasTalent(EMERGENCY_CHARGE) && hero.isAlive() && hero.HP < hero.HT/2
 				&& hero.buff(EmergencyChargeCooldown.class) == null){
 			//5/8턴 분량 충전, 100턴 대기
@@ -887,6 +941,20 @@ public enum Talent {
 	}
 
 	public static class EmergencyChargeCooldown extends FlavourBuff{}
+	//모드: 정령사
+	public static class SpiritWardCooldown extends FlavourBuff{}
+	public static class SpiritedMeal extends Buff {
+		{ type = buffType.POSITIVE; }
+		private int left = 0;
+		public void reset( int n ){ left = Math.max( left, n ); }
+		public void use(){ if (--left <= 0) detach(); }
+		@Override public int icon() { return BuffIndicator.WAND; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( 0.4f, 1f, 0.5f ); }
+		@Override public String iconTextDisplay() { return Integer.toString( left ); }
+		@Override public String desc() { return Messages.get( this, "desc", left ); }
+		@Override public void storeInBundle( com.watabou.utils.Bundle b ) { super.storeInBundle( b ); b.put( "left", left ); }
+		@Override public void restoreFromBundle( com.watabou.utils.Bundle b ) { super.restoreFromBundle( b ); left = b.getInt( "left" ); }
+	}
 	public static class QuickHandsCooldown extends FlavourBuff{}
 	public static class RelicResonanceTracker extends FlavourBuff{}
 
@@ -1231,6 +1299,9 @@ public enum Talent {
 			case VAMPIRE:
 				Collections.addAll(tierTalents, SANGUINE_MEAL, SHARP_FANGS, ENTHRALLING_GAZE, BAT_SWARM);
 				break;
+			case ELEMENTALIST:
+				Collections.addAll(tierTalents, SPIRITED_MEAL, SPIRIT_INTUITION, CATALYST_SENSE, SPIRIT_WARD);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1265,6 +1336,9 @@ public enum Talent {
 				break;
 			case VAMPIRE:
 				Collections.addAll(tierTalents, BLOOD_THIRST, MIST_BODY, BLOOD_LANCE, CRIMSON_VEIL, DREADFUL_EYES);
+				break;
+			case ELEMENTALIST:
+				Collections.addAll(tierTalents, SPIRIT_FEAST, ELEMENTAL_RESONANCE, INSCRIBED_SPIRITS, SPIRIT_RESONANCE, SPIRIT_RELEASE);
 				break;
 		}
 		for (Talent talent : tierTalents){

@@ -1,6 +1,6 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 상급 정령(운디네·샐러맨더·노움·실피드) 도트: greater_spirits.png 한 줄에 14칸
+ * 상급 정령(운디네·샐러맨더·노움·실피드) 도트: greater_spirits.png 한 줄에 14칸 (32x32, 화면에는 절반 크기)
  *  대기 0-3, 이동 4-7, 공격 8-10, 사라짐 11-13
  */
 
@@ -27,7 +27,10 @@ public abstract class GreaterSpiritSprite extends MobSprite {
 		super();
 
 		texture( Assets.Sprites.GREATER_SPIRITS );
-		TextureFilm frames = new TextureFilm( texture, 16, 16 );
+		//32칸 세밀한 도트를 절반 크기로 그림 (영웅의 세밀한 도트와 같은 방식)
+		TextureFilm frames = new TextureFilm( texture, 32, 32 );
+		HeroSprite.smooth( texture );
+		scale.set( 0.5f );
 		int o = row() * PER_ROW;
 
 		idle = new Animation( 6, true );

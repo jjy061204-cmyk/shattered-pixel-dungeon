@@ -9,6 +9,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
@@ -95,6 +96,10 @@ public class ForestWand extends Weapon {
 
 	//촉매에서 정령을 불러올 수 있는 거리
 	public static final int IMBUE_RANGE = 3;
+	//촉매 감응: 깃들이기 거리 +1/+2
+	public static int imbueRange( Hero hero ){
+		return IMBUE_RANGE + (hero != null ? hero.pointsInTalent( Talent.CATALYST_SENSE ) : 0);
+	}
 	//완드에 담을 수 있는 정령 수와 능력이 발현되는 칸 (가운데)
 	public static final int SLOTS = 3;
 	public static final int CENTER = 1;
@@ -287,7 +292,22 @@ public class ForestWand extends Weapon {
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 		Spirit s = active();
-		if (s != null) damage = spiritHit( s, attacker, defender, damage, SHOT_MUL );
+		float mul = SHOT_MUL;
+		//정령의 식사: 음식을 먹은 뒤 몇 발은 정령 능력이 1.5배
+		Talent.SpiritedMeal meal = attacker.buff( Talent.SpiritedMeal.class );
+		if (meal != null && s != null){
+			mul *= 1.5f;
+			meal.use();
+		}
+		if (s != null) damage = spiritHit( s, attacker, defender, damage, mul );
+		//정령 공명: 양옆 칸 정령도 15/30% 확률로 절반의 힘을 보탬
+		if (attacker instanceof Hero && ((Hero) attacker).hasTalent( Talent.SPIRIT_RESONANCE )){
+			float chance = 0.15f * ((Hero) attacker).pointsInTalent( Talent.SPIRIT_RESONANCE );
+			for (int i = 0; i < SLOTS; i++){
+				if (i == CENTER || slots[i] == null || !defender.isAlive()) continue;
+				if (Random.Float() < chance) damage = spiritHit( slots[i], attacker, defender, damage, SHOT_MUL*0.5f );
+			}
+		}
 		return super.proc( attacker, defender, damage );
 	}
 
@@ -973,8 +993,8 @@ public class ForestWand extends Weapon {
 			final Hero hero = curUser;
 			final int cell = target;
 
-			if (!Dungeon.level.heroFOV[cell] || Dungeon.level.distance( hero.pos, cell ) > IMBUE_RANGE){
-				GLog.w( Messages.get( ForestWand.class, "too_far", IMBUE_RANGE ) );
+			if (!Dungeon.level.heroFOV[cell] || Dungeon.level.distance( hero.pos, cell ) > imbueRange( hero )){
+				GLog.w( Messages.get( ForestWand.class, "too_far", imbueRange( hero ) ) );
 				return;
 			}
 
@@ -1015,7 +1035,8 @@ public class ForestWand extends Weapon {
 						hero.sprite.showStatus( s.color, s.title() );
 					}
 					GLog.p( Messages.get( ForestWand.class, slot == CENTER ? "imbued_center" : "imbued_stored", s.title() ) );
-					hero.spendAndNext( 1f );
+					//촉매 감응 +2: 깃들이기에 반 턴만 듦
+					hero.spendAndNext( hero.pointsInTalent( Talent.CATALYST_SENSE ) >= 2 ? 0.5f : 1f );
 				}
 			};
 
@@ -1102,7 +1123,7 @@ public class ForestWand extends Weapon {
 		} else if (cursedKnown && cursed) {
 			info += "\n\n" + Messages.get( Weapon.class, "cursed" );
 		}
-		info += "\n\n" + Messages.get( ForestWand.class, "catalysts", IMBUE_RANGE );
+		info += "\n\n" + Messages.get( ForestWand.class, "catalysts", imbueRange( Dungeon.hero ) );
 		return info;
 	}
 

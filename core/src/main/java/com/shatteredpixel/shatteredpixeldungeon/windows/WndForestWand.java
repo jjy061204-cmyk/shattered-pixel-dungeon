@@ -8,6 +8,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
@@ -28,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
@@ -108,6 +113,11 @@ public class WndForestWand extends Window {
 		return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.SPIRIT_ENCHANTER;
 	}
 
+	//정령의 직감 +2: 저주받은 장비에도 정령을 부여하며 저주를 씻어 냄
+	private static boolean cleanses(){
+		return Dungeon.hero != null && Dungeon.hero.pointsInTalent( Talent.SPIRIT_INTUITION ) >= 2;
+	}
+
 	private static boolean contractor(){
 		return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.SPIRIT_CONTRACTOR;
 	}
@@ -145,10 +155,30 @@ public class WndForestWand extends Window {
 					Hero hero = Dungeon.hero;
 					hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
 					GLog.i( Messages.get( WndForestWand.class, "released", s.title() ) );
-					reopen();
+					if (hero.hasTalent( Talent.SPIRIT_RELEASE )){
+						WndForestWand.this.hide();
+						releaseBurst( hero, s );
+					} else {
+						reopen();
+					}
 				}
 			}
 		} );
+	}
+
+	//정령 해방: 풀려난 정령이 터지며 둘레 1/2칸의 적에게 50/100% 힘으로 능력을 발휘
+	private static void releaseBurst( Hero hero, ForestWand.Spirit s ){
+		int pts = hero.pointsInTalent( Talent.SPIRIT_RELEASE );
+		for (int n : PathFinder.NEIGHBOURS9) CellEmitter.get( hero.pos + n ).burst( s.particle(), 6 );
+		Sample.INSTANCE.play( Assets.Sounds.BLAST, 0.7f );
+		for (Char ch : Actor.chars().toArray( new Char[0] )){
+			if (ch.alignment == Char.Alignment.ENEMY && ch.isAlive()
+					&& Dungeon.level.distance( hero.pos, ch.pos ) <= pts && Dungeon.level.heroFOV[ch.pos]){
+				ForestWand.spiritHit( s, hero, ch, 0, 0.5f * pts );
+			}
+		}
+		hero.sprite.operate( hero.pos );
+		hero.spendAndNext( 1f );
 	}
 
 	//정령 부여: 가운데든 양옆이든, 고른 칸의 정령을 무기·갑옷으로 옮김
@@ -169,7 +199,11 @@ public class WndForestWand extends Window {
 
 				if (item instanceof Weapon){
 					final Weapon w = (Weapon) item;
-					if (w.hasCurseEnchant()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
+					if (w.hasCurseEnchant()){
+						if (!cleanses()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
+						w.enchant( null ); w.cursed = false;
+						GLog.p( Messages.get( WndForestWand.class, "cleansed" ) );
+					}
 					//정령 부여사: 이미 정령이 깃든 무기에 하나 더
 					if (enchanter() && w.enchantment instanceof SpiritEnchant){
 						final SpiritEnchant e = (SpiritEnchant) w.enchantment;
@@ -194,7 +228,11 @@ public class WndForestWand extends Window {
 					w.enchant( new SpiritEnchant( s ) );
 				} else {
 					final Armor a = (Armor) item;
-					if (a.hasCurseGlyph()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
+					if (a.hasCurseGlyph()){
+						if (!cleanses()){ GLog.w( Messages.get( WndForestWand.class, "cursed" ) ); return; }
+						a.inscribe( null ); a.cursed = false;
+						GLog.p( Messages.get( WndForestWand.class, "cleansed" ) );
+					}
 					if (enchanter() && a.glyph instanceof SpiritGlyph){
 						final SpiritGlyph g = (SpiritGlyph) a.glyph;
 						if (g.spirit2 == null){
@@ -243,6 +281,8 @@ public class WndForestWand extends Window {
 
 	private void finish( Item item, ForestWand.Spirit s ){
 		Hero hero = Dungeon.hero;
+		//정령의 직감: 정령을 부여한 장비는 곧바로 감정됨
+		if (hero.hasTalent( Talent.SPIRIT_INTUITION )) item.identify();
 		Item.updateQuickslot();
 		Enchanting.show( hero, item );
 		ForestWand.imbueFx( hero.pos, s );

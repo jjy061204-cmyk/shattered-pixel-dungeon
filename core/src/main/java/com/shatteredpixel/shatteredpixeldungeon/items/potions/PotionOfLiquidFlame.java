@@ -54,6 +54,8 @@ public class PotionOfLiquidFlame extends Potion {
 
 			}
 		}
+		//모드: 정령사 특성 '원소 감응'
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.onElementalPotion(cell, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Flame.class);
 	}
 	
 	@Override
