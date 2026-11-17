@@ -305,6 +305,21 @@ public class TitleScene extends PixelScene {
 		}
 
 		fadeIn();
+	
+		//모드: 지난번에 튕겼다면 원인을 보여 줌
+		final String crash = com.shatteredpixel.shatteredpixeldungeon.utils.CrashLog.take();
+		if (crash != null){
+			add( new WndOptions( Messages.get( TitleScene.class, "crash_title" ),
+					Messages.get( TitleScene.class, "crash_body" ) + "\n\n" + com.shatteredpixel.shatteredpixeldungeon.utils.CrashLog.summary( crash ),
+					Messages.get( TitleScene.class, "crash_copy" ), Messages.get( TitleScene.class, "crash_close" ) ){
+				@Override
+				protected void onSelect( int index ) {
+					if (index == 0){
+						try { com.badlogic.gdx.Gdx.app.getClipboard().setContents( crash ); } catch (Throwable ignored) {}
+					}
+				}
+			} );
+		}
 	}
 
 	private float uiAlpha;

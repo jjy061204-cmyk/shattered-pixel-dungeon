@@ -59,6 +59,9 @@ public class ShatteredPixelDungeon extends Game {
 	public void create() {
 		super.create();
 
+		//모드: 튕기면 원인을 남겨 다음 실행 때 보여 줌
+		com.shatteredpixel.shatteredpixeldungeon.utils.CrashLog.install();
+
 		updateSystemUI();
 		SPDAction.loadBindings();
 		

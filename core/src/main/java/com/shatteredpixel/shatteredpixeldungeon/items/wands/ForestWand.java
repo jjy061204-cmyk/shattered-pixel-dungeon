@@ -9,6 +9,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
@@ -776,23 +777,42 @@ public class ForestWand extends Weapon {
 				return;
 			}
 
-			hero.busy();
-			hero.sprite.operate( cell );
-			imbueFx( cell, s );
 			consumeCatalyst( cell, s );
-			Sample.INSTANCE.play( s.strong ? Assets.Sounds.CHARGEUP : Assets.Sounds.MELD );
-			((MagicMissile) hero.sprite.parent.recycle( MagicMissile.class )).reset(
-					missileFor( s ), cell, hero.pos, new Callback() {
-						@Override
-						public void call() {
-							wand.slots[slot] = s;
-							updateQuickslot();
-							hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), s.strong ? 8 : 5 );
-							hero.sprite.showStatus( s.color, s.title() );
-							GLog.p( Messages.get( ForestWand.class, slot == CENTER ? "imbued_center" : "imbued_stored", s.title() ) );
-							hero.spendAndNext( 1f );
-						}
-					} );
+
+			//정령이 완드에 들어옴 (연출이 실패해도 정령은 반드시 들어오게)
+			final Callback done = new Callback() {
+				private boolean called = false;
+				@Override
+				public void call() {
+					if (called) return;
+					called = true;
+					wand.slots[slot] = s;
+					updateQuickslot();
+					if (hero.sprite != null){
+						hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), s.strong ? 8 : 5 );
+						hero.sprite.showStatus( s.color, s.title() );
+					}
+					GLog.p( Messages.get( ForestWand.class, slot == CENTER ? "imbued_center" : "imbued_stored", s.title() ) );
+					hero.spendAndNext( 1f );
+				}
+			};
+
+			hero.busy();
+			try {
+				hero.sprite.operate( cell );
+				imbueFx( cell, s );
+				Sample.INSTANCE.play( s.strong ? Assets.Sounds.CHARGEUP : Assets.Sounds.MELD );
+				if (cell == hero.pos){
+					//발밑의 기운은 날아올 거리가 없으므로 바로 깃듦
+					done.call();
+				} else {
+					((MagicMissile) hero.sprite.parent.recycle( MagicMissile.class )).reset(
+							missileFor( s ), cell, hero.pos, done );
+				}
+			} catch (Exception e){
+				ShatteredPixelDungeon.reportException( e );
+				done.call();
+			}
 		}
 
 		@Override
