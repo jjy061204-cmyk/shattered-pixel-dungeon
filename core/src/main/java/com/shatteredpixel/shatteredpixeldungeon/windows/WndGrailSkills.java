@@ -48,7 +48,11 @@ public class WndGrailSkills extends Window {
 			title = new IconTitle( Icons.INFO.get(), Messages.titleCase( Messages.get( this, "info_title" ) ) );
 		}
 		title.setRect( 0, 0, WIDTH, 0 );
+		title.color( 0xFF6680 );
 		add( title );
+
+		//창 테두리를 검붉게 물들임
+		chrome.hardlight( 0xE8A8B4 );
 
 		IconButton btnInfo = new IconButton( info ? new ItemSprite( grail ) : Icons.INFO.get() ){
 			@Override
@@ -69,14 +73,24 @@ public class WndGrailSkills extends Window {
 		msg.setPos( 0, title.bottom() + 4 );
 		add( msg );
 
-		//성배에 담긴 생명력
+		//성배에 담긴 생명력: 핏빛 게이지
+		float gy = msg.bottom() + 4;
+		float ratio = grail.lifeCap() <= 0 ? 0 : Math.min( 1f, grail.vitality() / (float) grail.lifeCap() );
+		addBlock( 0, gy, WIDTH, 11, 0xFF14040A );                       //테두리
+		addBlock( 1, gy + 1, WIDTH - 2, 9, 0xFF3A0A16 );                //빈 칸
+		int fillW = Math.round( (WIDTH - 2) * ratio );
+		if (fillW > 0){
+			addBlock( 1, gy + 1, fillW, 9, 0xFFA8142E );                 //피
+			addBlock( 1, gy + 1, fillW, 2, 0xFFE0485C );                 //윗면 반사
+			addBlock( 1, gy + 8, fillW, 2, 0xFF6E0A1E );                 //아랫면 그늘
+		}
 		RenderedTextBlock life = PixelScene.renderTextBlock( Messages.get( this, "life", grail.vitality(), grail.lifeCap() ), 6 );
-		life.hardlight( 0xFF6680 );
-		life.maxWidth( WIDTH );
-		life.setPos( (WIDTH - life.width()) / 2f, msg.bottom() + 4 );
+		life.hardlight( 0xFFE8EC );
+		life.setPos( (WIDTH - life.width()) / 2f, gy + (11 - life.height()) / 2f + 0.5f );
+		PixelScene.align( life );
 		add( life );
 
-		int top = (int) life.bottom() + 5;
+		int top = (int) (gy + 11) + 4;
 
 		//줄 0: 처음부터 있는 기술, 줄 1~3: 특성 단계별로 얻은 기술과 전직 기술 (성서처럼 줄 사이에 구분선)
 		boolean first = true;
@@ -84,14 +98,24 @@ public class WndGrailSkills extends Window {
 			java.util.ArrayList<CrimsonGrail.Skill> skills = CrimsonGrail.skillList( hero, row );
 			if (skills.isEmpty()) continue;
 
-			if (!first){
-				top += BTN_SIZE + 9;
-				com.watabou.noosa.ColorBlock sep = new com.watabou.noosa.ColorBlock( WIDTH, 1, 0xFF000000 );
-				sep.y = top;
-				add( sep );
-				top += 3;
-			}
+			if (!first) top += BTN_SIZE + 9;
 			first = false;
+
+			//줄 제목: ── 기본 기술 ── 처럼 양옆에 붉은 선
+			RenderedTextBlock head = PixelScene.renderTextBlock( Messages.get( WndGrailSkills.class, "section_" + row ), 6 );
+			head.hardlight( 0xD86A7C );
+			head.setPos( (WIDTH - head.width()) / 2f, top );
+			PixelScene.align( head );
+			add( head );
+			float lineY = top + head.height() / 2f;
+			float side = (WIDTH - head.width()) / 2f - 4;
+			if (side > 2){
+				addBlock( 0, lineY, side, 1, 0xFF7A1A2C );
+				addBlock( WIDTH - side, lineY, side, 1, 0xFF7A1A2C );
+				addBlock( side - 2, lineY - 1, 2, 3, 0xFFB0283E );          //선 끝의 마름모 장식
+				addBlock( WIDTH - side, lineY - 1, 2, 3, 0xFFB0283E );
+			}
+			top += (int) head.height() + 3;
 
 			int left = 2 + (WIDTH - skills.size() * (BTN_SIZE + 4)) / 2;
 			for (CrimsonGrail.Skill skill : skills){
@@ -102,12 +126,19 @@ public class WndGrailSkills extends Window {
 			}
 		}
 
-		resize( WIDTH, top + BTN_SIZE + 7 );
+		resize( WIDTH, top + BTN_SIZE + 8 );
 
 		//모바일에서는 창을 도구 모음 바로 위로 내림
 		if (SPDSettings.interfaceSize() != 2){
 			offset( 0, (int) (GameScene.uiCamera.height / 2 - 30 - height / 2) );
 		}
+	}
+
+	private com.watabou.noosa.ColorBlock addBlock( float x, float y, float w, float h, int color ){
+		com.watabou.noosa.ColorBlock b = new com.watabou.noosa.ColorBlock( w, h, color );
+		b.x = x; b.y = y;
+		add( b );
+		return b;
 	}
 
 	public class SkillButton extends IconButton {
@@ -116,7 +147,8 @@ public class WndGrailSkills extends Window {
 		CrimsonGrail grail;
 		boolean info;
 
-		NinePatch bg;
+		//검붉은 칸: 바깥 테(빠른 사용 기술은 금빛), 안쪽 바탕, 윗면 반사
+		com.watabou.noosa.ColorBlock frame, inner, shine;
 		BitmapText cost;
 
 		public SkillButton( CrimsonGrail.Skill skill, CrimsonGrail grail, boolean info ){
@@ -128,8 +160,13 @@ public class WndGrailSkills extends Window {
 
 			dim();
 
-			bg = Chrome.get( Chrome.Type.TOAST );
-			addToBack( bg );
+			boolean quick = grail.quickSkill() == skill;
+			frame = new com.watabou.noosa.ColorBlock( 1, 1, quick ? 0xFFE0B040 : 0xFF7A1A2C );
+			inner = new com.watabou.noosa.ColorBlock( 1, 1, 0xFF240810 );
+			shine = new com.watabou.noosa.ColorBlock( 1, 1, quick ? 0xFF8A6A30 : 0xFF4A1420 );
+			addToBack( shine );
+			addToBack( inner );
+			addToBack( frame );
 
 			//드는 생명력 (빠른 사용에 등록된 기술은 노랗게)
 			cost = new BitmapText( PixelScene.pixelFont );
@@ -152,10 +189,10 @@ public class WndGrailSkills extends Window {
 		@Override
 		protected void layout() {
 			super.layout();
-			if (bg != null){
-				bg.size( width, height );
-				bg.x = x;
-				bg.y = y;
+			if (frame != null){
+				frame.size( width + 2, height + 2 ); frame.x = x - 1; frame.y = y - 1;
+				inner.size( width, height );         inner.x = x;     inner.y = y;
+				shine.size( width, 1 );              shine.x = x;     shine.y = y;
 			}
 			if (cost != null){
 				cost.x = x + (width - cost.width()) / 2f;
