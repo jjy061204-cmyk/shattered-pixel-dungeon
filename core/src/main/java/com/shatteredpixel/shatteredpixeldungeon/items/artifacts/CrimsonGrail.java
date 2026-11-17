@@ -867,7 +867,6 @@ public class CrimsonGrail extends Artifact {
 		return damage + 2 + hero.lvl / 5;
 	}
 
-	@Override
 	//성배가 스스로 다른 유물을 충전하는 중(생명 주입, 피의 지배자)에는 자기 자신은 채우지 않음
 	private static boolean chargingOthers = false;
 
