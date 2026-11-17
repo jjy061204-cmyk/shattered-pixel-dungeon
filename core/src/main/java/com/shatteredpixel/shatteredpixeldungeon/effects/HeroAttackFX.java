@@ -17,10 +17,10 @@ import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.PointF;
 
 //공격 대상 칸에 겹쳐 그리는 6장짜리 이펙트 (effects/hero_fx.png, 48x48 칸)
-// 0줄: 뱀파이어의 은빛 장검 참격, 1줄: 유물수집가의 보랏빛 연금 폭발
+// 0줄: 뱀파이어의 은빛 장검 참격, 1줄: 유물수집가의 보랏빛 연금 폭발, 2줄: 정령사의 초록 정령빛과 잎사귀
 public class HeroAttackFX extends Image {
 
-	public static final int SLASH = 0, ALCHEMY = 1;
+	public static final int SLASH = 0, ALCHEMY = 1, LEAF = 2;
 	private static final int SIZE = 48, FRAMES = 6;
 	private static final float DUR = 0.32f;
 	private final float delay;
@@ -34,7 +34,7 @@ public class HeroAttackFX extends Image {
 		film = new TextureFilm( texture, SIZE, SIZE );
 		this.row = row;
 		//칼을 내려베는 프레임(공격 3~4번째 장)에 맞춤
-		delay = row == SLASH ? 0.12f : 0.07f;
+		delay = row == SLASH ? 0.12f : row == LEAF ? 0.15f : 0.07f;
 		frame( film.get( row * FRAMES ) );
 		origin.set( SIZE / 2f, SIZE / 2f );
 		scale.set( 0.56f );

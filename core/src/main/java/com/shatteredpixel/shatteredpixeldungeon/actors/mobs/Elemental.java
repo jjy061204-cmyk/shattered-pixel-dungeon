@@ -127,6 +127,20 @@ public abstract class Elemental extends Mob {
 	public void die(Object cause) {
 		flying = false;
 		super.die(cause);
+		//모드: 정령사가 숲의 완드를 가지고 있으면, 쓰러진 원소 정령의 기운이 잠시 그 자리에 남음
+		if (alignment == Alignment.ENEMY && Dungeon.hero != null
+				&& Dungeon.hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.class) != null){
+			Class<? extends com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant> r = null;
+			if (this instanceof FireElemental)        r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Flame.class;
+			else if (this instanceof FrostElemental)  r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Frost.class;
+			else if (this instanceof ShockElemental)  r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Shock.class;
+			else if (this instanceof ChaosElemental)  r = com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.Chaos.class;
+			if (r != null){
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add(
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(pos,
+								com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SpiritRemnant.DURATION, r));
+			}
+		}
 	}
 	
 	@Override

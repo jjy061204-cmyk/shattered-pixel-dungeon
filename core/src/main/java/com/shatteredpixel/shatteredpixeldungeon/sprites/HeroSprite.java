@@ -95,6 +95,20 @@ public class HeroSprite extends CharSprite {
 					{10, 54, 55, 56, 57},                                   //멈추면 바로 서고, 머리카락·드레스만 관성으로 쏠렸다 가라앉음
 					{6, 37, 38, 39, 40, 41, 41, 41, 42, 42, 43, 44, 43, 44, 39, 38, 37},   //와인을 마시며 음미
 					{6, 45, 46, 47, 48, 49, 50, 49, 50, 51, 51, 52, 53, 53}};             //꾸벅꾸벅 졸다가 깸
+			case ELEMENTALIST: return new int[][]{
+					//숨쉬기·드릴 머리와 드레스가 산들거림, 가끔 눈을 깜빡임 (59 반쯤 감음, 60 감음, 61 반쯤 뜸)
+					{12, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7,
+						0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 59, 60, 61, 6, 7, 7,
+						0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7},
+					{20, 8, 9, 10, 11, 12, 13, 14, 15},                     //진행 방향을 바라보며, 드릴 머리가 뒤로 날리는 걸음
+					{14, 16, 17, 18, 19, 20, 21},
+					{18, 22, 23, 24, 25, 26, 27},                           //두 손으로 완드를 들어 올렸다가 겨눠 정령빛을 터뜨림
+					{12, 28, 29, 30, 29, 30, 31},
+					{4, 32, 33},
+					{18, 34, 35, 36, 36, 36, 35, 36, 36, 35, 34},
+					{10, 55, 56, 57, 58},                                   //멈추면 바로 서고, 드릴 머리·드레스만 관성으로 쏠렸다 가라앉음
+					{6, 37, 38, 39, 40, 41, 42, 43, 44, 45, 45, 46, 46},   //작은 숲의 정령빛을 눈으로 좇다가 두 손에 받아 들고 방긋
+					{6, 47, 48, 49, 50, 51, 51, 52, 53, 53, 54}};           //치맛자락을 집고 무릎을 굽혀 인사
 			default: return null;
 		}
 	}
@@ -310,6 +324,7 @@ public class HeroSprite extends CharSprite {
 		if (look != null && look.hdSheet() != null && parent != null && ch != null && cell != ch.pos){
 			parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX( this, cell,
 					look == HeroClass.VAMPIRE ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.SLASH
+							: look == HeroClass.ELEMENTALIST ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.LEAF
 							: com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.ALCHEMY ) );
 		}
 	}

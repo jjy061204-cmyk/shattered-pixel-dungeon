@@ -82,6 +82,9 @@ public class WndHeroInfo extends WndTabbed {
 			case VAMPIRE:
 				tabIcon = new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL, null);
 				break;
+			case ELEMENTALIST:
+				tabIcon = new ItemSprite(ItemSpriteSheet.FOREST_WAND, null);
+				break;
 		}
 
 		int finalHeight = MIN_HEIGHT;
@@ -184,6 +187,12 @@ public class WndHeroInfo extends WndTabbed {
 							Icons.TALENT.get(),
 							new ItemSprite(ItemSpriteSheet.ORNAMENTAL_SWORD),
 							new ItemSprite(ItemSpriteSheet.POTION_CRIMSON)};
+					break;
+				case ELEMENTALIST:
+					icons = new Image[]{ new ItemSprite(ItemSpriteSheet.FOREST_WAND),
+							Icons.GRASS.get(),
+							new ItemSprite(ItemSpriteSheet.EMBER),
+							new ItemSprite(ItemSpriteSheet.SCROLL_ISAZ)};
 					break;
 				case COLLECTOR:
 					icons = new Image[]{ new ItemSprite(ItemSpriteSheet.ARTIFACT_ARMBAND),

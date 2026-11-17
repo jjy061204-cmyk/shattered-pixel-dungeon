@@ -487,6 +487,8 @@ public enum Icons {
 				return new ItemSprite(ItemSpriteSheet.ARTIFACT_ARMBAND);
 			case VAMPIRE:
 				return new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL);
+			case ELEMENTALIST:
+				return new ItemSprite(ItemSpriteSheet.FOREST_WAND);
 			default:
 				return null;
 		}

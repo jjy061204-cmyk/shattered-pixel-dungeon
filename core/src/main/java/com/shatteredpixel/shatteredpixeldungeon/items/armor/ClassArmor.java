@@ -100,7 +100,7 @@ abstract public class ClassArmor extends Armor {
 		ClassArmor classArmor = null;
 		
 		switch (owner.heroClass) {
-			case WARRIOR: case VAMPIRE:
+			case WARRIOR: case VAMPIRE: case ELEMENTALIST:
 				classArmor = new WarriorArmor();
 				break;
 			case ROGUE: case COLLECTOR:

@@ -100,7 +100,9 @@ public enum HeroClass {
 	//모드: 유물수집가 - 유물마다 고유한 추가 효과를 얻는 영웅
 	COLLECTOR( HeroSubClass.CHANNELER, HeroSubClass.CURATOR ),
 	//모드: 뱀파이어 - 적의 생명력을 빼앗아 핏빛 성배에 담고, 그것으로 기술을 씀 (갑옷 기술만 전사의 것을 빌림)
-	VAMPIRE( HeroSubClass.TRUE_ANCESTOR, HeroSubClass.BLOOD_LORD );
+	VAMPIRE( HeroSubClass.TRUE_ANCESTOR, HeroSubClass.BLOOD_LORD ),
+	//모드: 정령사 - 숲의 완드에 지형지물의 정령을 깃들여 정령 마법을 씀 (전직·특성·갑옷 기술은 아직 전사의 것을 빌림)
+	ELEMENTALIST( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR );
 
 	private HeroSubClass[] subClasses;
 
@@ -164,6 +166,10 @@ public enum HeroClass {
 				initVampire( hero );
 				break;
 
+			case ELEMENTALIST:
+				initElementalist( hero );
+				break;
+
 		}
 
 		//모드: 실험 모드 - 테스터가 쓰던 아이템을 들고 시작
@@ -196,7 +202,7 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_DUELIST;
 			case CLERIC:
 				return Badges.Badge.MASTERY_CLERIC;
-			case COLLECTOR: case VAMPIRE:
+			case COLLECTOR: case VAMPIRE: case ELEMENTALIST:
 				return null;
 		}
 		return null;
@@ -281,6 +287,18 @@ public enum HeroClass {
 
 		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing().identify();
 		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTerror().identify();
+	}
+
+	//정령사: 숲의 완드(영혼의 활처럼 고유하고 버리거나 팔 수 없음)와 장갑을 들고 시작
+	private static void initElementalist( Hero hero ) {
+		(hero.belongings.weapon = new Gloves()).identify();
+
+		com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand wand = new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand();
+		wand.identify().collect();
+		Dungeon.quickslot.setSlot(0, wand);
+
+		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame().identify();
+		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging().identify();
 	}
 
 	private static void initHuntress( Hero hero ) {
@@ -414,6 +432,8 @@ public enum HeroClass {
 				return Assets.Sprites.COLLECTOR;
 			case VAMPIRE:
 				return Assets.Sprites.VAMPIRE;
+			case ELEMENTALIST:
+				return Assets.Sprites.ELEMENTALIST;
 		}
 	}
 
@@ -422,6 +442,7 @@ public enum HeroClass {
 		switch (this){
 			case COLLECTOR: return Assets.Sprites.COLLECTOR;
 			case VAMPIRE:   return Assets.Sprites.VAMPIRE;
+			case ELEMENTALIST: return Assets.Sprites.ELEMENTALIST;
 			default:        return null;
 		}
 	}
@@ -444,6 +465,8 @@ public enum HeroClass {
 				return Assets.Splashes.COLLECTOR;
 			case VAMPIRE:
 				return Assets.Splashes.VAMPIRE;
+			case ELEMENTALIST:
+				return Assets.Splashes.ELEMENTALIST;
 		}
 	}
 	
@@ -464,7 +487,7 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
 			case CLERIC:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_CLERIC);
-			case COLLECTOR: case VAMPIRE:
+			case COLLECTOR: case VAMPIRE: case ELEMENTALIST:
 				return true;
 		}
 	}

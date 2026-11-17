@@ -91,7 +91,7 @@ public class Blacksmith extends NPC {
 
 			switch (Dungeon.hero.heroClass){
 				case WARRIOR: case VAMPIRE:   msg1 += Messages.get(Blacksmith.this, "intro_quest_warrior"); break;
-				case MAGE:      msg1 += Messages.get(Blacksmith.this, "intro_quest_mage"); break;
+				case MAGE: case ELEMENTALIST: msg1 += Messages.get(Blacksmith.this, "intro_quest_mage"); break;
 				case ROGUE: case COLLECTOR:     msg1 += Messages.get(Blacksmith.this, "intro_quest_rogue"); break;
 				case HUNTRESS:  msg1 += Messages.get(Blacksmith.this, "intro_quest_huntress"); break;
 				case DUELIST:   msg1 += Messages.get(Blacksmith.this, "intro_quest_duelist"); break;

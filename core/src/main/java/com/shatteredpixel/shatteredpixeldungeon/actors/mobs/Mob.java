@@ -1731,6 +1731,7 @@ public abstract class Mob extends Char {
 		for (Mob mob : level.mobs.toArray( new Mob[0] )) {
 			//preserve directable allies or empowered intelligent allies no matter where they are
 			if (mob instanceof DirectableAlly
+				|| mob instanceof TamedFireElemental   //모드: 정령사가 길들인 화염 정령은 언제나 따라옴
 				|| (mob.intelligentAlly && PowerOfMany.getPoweredAlly() == mob)) {
 				if (mob instanceof DirectableAlly) {
 					((DirectableAlly) mob).clearDefensingPos();

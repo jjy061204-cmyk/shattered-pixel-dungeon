@@ -93,7 +93,7 @@ public class ScrollOfTransmutation extends InventoryScroll {
 
 		//all rings, wands, trinkets, seeds, and runestones
 		} else {
-			return item instanceof Ring || item instanceof Wand || item instanceof Trinket
+			return item instanceof Ring || (item instanceof Wand && !item.unique) || item instanceof Trinket
 					|| item instanceof Plant.Seed || item instanceof Runestone;
 		}
 	}
