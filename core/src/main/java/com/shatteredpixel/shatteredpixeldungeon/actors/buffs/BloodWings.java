@@ -51,7 +51,7 @@ public class BloodWings extends Levitation {
 
 	//날개 그림이 지금 캐릭터 그림을 따라다니는지 확인하고, 없으면 하나 만듦
 	// (층을 옮기거나 불러오면 캐릭터 그림이 새로 만들어지므로 HeroSprite.update에서도 부름)
-	public static void ensureFx( CharSprite s ){
+	public static synchronized void ensureFx( CharSprite s ){
 		if (s == null || s.ch == null || s.parent == null) return;
 		BloodWings first = null;
 		for (BloodWings w : s.ch.buffs( BloodWings.class )){

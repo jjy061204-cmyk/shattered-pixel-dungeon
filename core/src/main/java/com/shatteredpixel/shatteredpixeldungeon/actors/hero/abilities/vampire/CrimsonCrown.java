@@ -163,7 +163,12 @@ public class CrimsonCrown extends ArmorAbility {
 
 		//왕관 그림이 지금 영웅 그림을 따라다니는지 확인하고, 없으면 얹음
 		// (층을 옮기거나 불러오면 영웅 그림이 새로 만들어지므로 HeroSprite.update에서도 부름)
-		public static void ensureFx( CharSprite s ){
+		public boolean isImage( VampireFX.CrownImage img ){
+			return image == img;
+		}
+
+		//게임 진행과 화면 그리기가 동시에 부르면 왕관이 두 개 생길 수 있어 한 번에 하나만
+		public static synchronized void ensureFx( CharSprite s ){
 			if (s == null || s.ch == null || s.parent == null) return;
 			Crown c = s.ch.buff( Crown.class );
 			if (c == null) return;

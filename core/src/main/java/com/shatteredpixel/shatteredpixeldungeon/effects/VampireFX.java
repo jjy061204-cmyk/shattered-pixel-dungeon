@@ -358,12 +358,13 @@ public class VampireFX extends Image {
 		GameScene.effect( p );
 	}
 
-	//진조의 왕관: 영웅 머리 위에 얹힌 왕관 (effects/vampire_crown.png, 24x14 칸 4장)
+	//진조의 왕관: 영웅 머리 위에 얹힌 왕관 (effects/vampire_crown.png, 28x18 칸 4장 - 왕관 24x14 + 둘레 여백 2칸)
 	// 뱀파이어 도트와 같은 크기의 픽셀로 찍은 그림. 4장을 천천히 넘겨 도트 애니메이션처럼 뚝뚝 끊기며 돎
 	// 쓰는 순간 위에서 천천히 내려와 머리에 얹히고, 그 뒤로는 제자리에서 느리게 돎
 	public static class CrownImage extends Image {
 
-		private static final int CW = 24, CH = 14, CFRAMES = 4;
+		//칸 둘레의 빈 여백은 부드럽게 그릴 때 옆 칸의 외곽선이 검은 점으로 번져 보이지 않게 하려는 것
+		private static final int CW = 28, CH = 18, CFRAMES = 4, PAD = 2;
 		private static final float CSCALE = com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite.HD_SCALE;
 
 		private final TextureFilm film;
@@ -414,14 +415,16 @@ public class VampireFX extends Image {
 				drop = -10f * (1 - p) * (1 - p);
 			}
 			x = follow.x + headX * sx - CW * CSCALE / 2f;
-			y = follow.y + 10f * sy - CH * CSCALE + drop;
+			y = follow.y + 10f * sy - (CH - PAD) * CSCALE + drop;
 		}
 
 		@Override
 		public void update() {
 			super.update();
-			if (follow.parent == null || follow.ch == null || !follow.ch.isAlive()
-					|| follow.ch.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.Crown.class ) == null){
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.Crown crown = follow.ch == null ? null
+					: follow.ch.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.Crown.class );
+			//왕관 효과가 없거나, 이 그림이 지금 쓰는 왕관 그림이 아니면(같은 순간 두 번 만들어진 경우) 지움
+			if (follow.parent == null || !follow.ch.isAlive() || crown == null || !crown.isImage( this )){
 				killAndErase();
 				return;
 			}

@@ -204,7 +204,7 @@ public class UndyingBlood extends ArmorAbility {
 		}
 
 		//껍데기가 지금 영웅 그림을 따라다니는지 확인하고, 없으면 씌움 (HeroSprite.update에서도 부름)
-		public static void ensureFx( CharSprite s ){
+		public static synchronized void ensureFx( CharSprite s ){
 			if (s == null || s.ch == null || s.parent == null) return;
 			Tracker t = s.ch.buff( Tracker.class );
 			if (t == null) return;

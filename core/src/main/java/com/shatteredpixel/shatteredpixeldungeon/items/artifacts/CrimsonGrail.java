@@ -730,7 +730,7 @@ public class CrimsonGrail extends Artifact {
 			case INFUSE:
 				spend( hero, skill );
 				//다른 유물을 10턴 분량만큼 곧바로 충전하고, 마법 막대를 5턴 동안 충전
-				ArtifactRecharge.chargeArtifacts( hero, 10f );
+				chargeOthers( hero, 10f );
 				Buff.affect( hero, Recharging.class, 5f );
 				VampireFX.on( hero.sprite, VampireFX.INFUSE, 0.72f, 0.6f ).offset( 0, -5f );
 				hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
@@ -800,7 +800,7 @@ public class CrimsonGrail extends Artifact {
 		}
 		//피의 지배자: 쓴 생명력이 다른 유물로 흘러 들어감 (생명력 1당 0.5턴 분량)
 		if (hero.subClass == HeroSubClass.BLOOD_LORD){
-			ArtifactRecharge.chargeArtifacts( hero, cost * 0.5f );
+			chargeOthers( hero, cost * 0.5f );
 		}
 		updateQuickslot();
 	}
@@ -868,8 +868,26 @@ public class CrimsonGrail extends Artifact {
 	}
 
 	@Override
+	//성배가 스스로 다른 유물을 충전하는 중(생명 주입, 피의 지배자)에는 자기 자신은 채우지 않음
+	private static boolean chargingOthers = false;
+
+	//유물 충전(유물 충전의 주문서·신비한 에너지 등): 충전 1턴분마다 생명력 0.25
+	public static final float LIFE_PER_RECHARGE = 0.25f;
+
+	@Override
 	public void charge( Hero target, float amount ) {
-		//다른 충전 효과로는 차지 않음 (생명력은 빼앗거나, 저절로 고이기를 기다려야 함)
+		if (cursed || chargingOthers || amount <= 0) return;
+		if (target.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune.class ) != null) return;
+		gainLife( target, amount * LIFE_PER_RECHARGE );
+	}
+
+	private static void chargeOthers( Hero hero, float turns ){
+		chargingOthers = true;
+		try {
+			ArtifactRecharge.chargeArtifacts( hero, turns );
+		} finally {
+			chargingOthers = false;
+		}
 	}
 
 	@Override
