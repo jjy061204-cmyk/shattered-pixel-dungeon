@@ -622,6 +622,9 @@ public class Armor extends EquipableItem {
 			info += "\n\n" + Messages.capitalize(Messages.get(Armor.class, "inscribed", Messages.get(HolyWard.class, "glyph_name", Messages.get(Glyph.class, "glyph"))));
 			info += " " + Messages.get(HolyWard.class, "glyph_desc");
 		} else if (glyph != null  && (cursedKnown || !glyph.curse())) {
+			if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph){
+				info += "\n\n" + Messages.get(Weapon.class, "spirit_dwells", ((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) glyph).spirit.title());
+			} else
 			info += "\n\n" +  Messages.capitalize(Messages.get(Armor.class, "inscribed", glyph.name()));
 			if (glyphHardened) info += " " + Messages.get(Armor.class, "glyph_hardened");
 			info += " " + glyph.desc();

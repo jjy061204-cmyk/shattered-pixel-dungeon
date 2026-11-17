@@ -14,7 +14,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.RainbowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SnowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.WindParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
@@ -47,46 +54,66 @@ public class SpiritGlyph extends Armor.Glyph {
 	private static int defend( ForestWand.Spirit s, Char attacker, Char defender, int damage, int level ){
 		boolean adjacent = attacker != null && Dungeon.level.adjacent( attacker.pos, defender.pos );
 		switch (s){
-			case WATER:     //물: 받은 피해 일부만큼 회복
+			case WATER: {   //물: 받은 피해 일부만큼 회복
 				int heal = Math.max( 1, damage/3 );
 				defender.HP = Math.min( defender.HT, defender.HP + heal );
 				if (defender.sprite != null){
-					defender.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 2 );
-					defender.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( heal ), com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText.HEALING );
+					defender.sprite.centerEmitter().burst( FlowParticle.FACTORY, 10 );
+					defender.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 3 );
+					defender.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( heal ), FloatingText.HEALING );
 				}
+				ForestWand.fx( defender, s, "g_water" );
 				return damage;
+			}
 			case WIND:      //바람: 붙어 있는 적을 밀쳐 냄
-				if (adjacent) ForestWand.knockAway( defender, attacker, 2, true );
+				if (adjacent){
+					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( WindParticle.FACTORY, 10 );
+					ForestWand.fx( defender, s, "g_wind" );
+					ForestWand.knockAway( defender, attacker, 2, true );
+				}
 				return damage;
 			case NATURE:    //자연: 나무껍질 방어
 				Buff.affect( defender, Barkskin.class ).set( 2 + level, 3 );
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( LeafParticle.GENERAL, 10 );
+				ForestWand.fx( defender, s, "g_nature" );
 				return damage;
 			case FIRE: case FLAME:   //불·화염: 때린 적을 불태움
-				if (adjacent && attacker.isAlive()) Buff.affect( attacker, Burning.class ).reignite( attacker, s == ForestWand.Spirit.FLAME ? 8f : 4f );
+				if (adjacent && attacker.isAlive()){
+					Buff.affect( attacker, Burning.class ).reignite( attacker, s == ForestWand.Spirit.FLAME ? 8f : 4f );
+					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( FlameParticle.FACTORY, 10 );
+					ForestWand.fx( defender, s, "g_fire" );
+				}
 				return damage;
 			case EARTH:     //땅: 피해를 1/3 줄임
-				if (defender.sprite != null) CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 4 );
+				CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 8 );
+				ForestWand.fx( defender, s, "g_earth" );
 				return damage - damage/3;
 			case ROCK:      //바위: 피해를 절반으로
-				if (defender.sprite != null) CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 6 );
+				CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 12 );
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( EarthParticle.SMALL, 8 );
+				ForestWand.fx( defender, s, "g_rock" );
 				return damage/2;
 			case FROST:     //서리: 때린 적을 얼림
 				if (adjacent && attacker.isAlive()){
 					Buff.prolong( attacker, Chill.class, 4f );
 					if (Random.Int( 3 ) == 0) Buff.prolong( attacker, Frost.class, 2f );
+					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( SnowParticle.FACTORY, 10 );
+					ForestWand.fx( defender, s, "g_frost" );
 				}
 				return damage;
 			case SHOCK:     //전기: 때린 적에게 번개를 되돌려 줌
 				if (attacker != null && attacker.isAlive() && attacker.sprite != null && defender.sprite != null){
 					attacker.damage( Math.max( 1, damage/2 ), SpiritGlyph.class );
-					attacker.sprite.centerEmitter().burst( SparkParticle.FACTORY, 3 );
+					attacker.sprite.centerEmitter().burst( SparkParticle.FACTORY, 6 );
 					defender.sprite.parent.addToFront( new Lightning( defender.sprite.center(), attacker.sprite.center(), null ) );
 					Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
+					ForestWand.fx( defender, s, "g_shock" );
 				}
 				return damage;
 			case CHAOS: default:
 				ForestWand.Spirit[] pool = { ForestWand.Spirit.WATER, ForestWand.Spirit.WIND, ForestWand.Spirit.NATURE,
 						ForestWand.Spirit.FLAME, ForestWand.Spirit.ROCK, ForestWand.Spirit.FROST, ForestWand.Spirit.SHOCK };
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( RainbowParticle.BURST, 10 );
 				return defend( Random.element( pool ), attacker, defender, damage, level );
 		}
 	}

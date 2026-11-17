@@ -54,6 +54,8 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -371,12 +373,22 @@ public class ForestWand extends Weapon {
 
 	// ── 정령 능력 (탄·무기 인챈트에서 같이 씀) ──
 
+	//정령 능력이 나왔음을 눈에 띄게: 정령 색의 글자와 그 정령다운 입자
+	public static void fx( Char ch, Spirit s, String key ){
+		if (ch == null || ch.sprite == null || !ch.sprite.visible) return;
+		ch.sprite.showStatus( s.color, Messages.get( ForestWand.class, "fx_" + key ) );
+	}
+	private static void burst( Char ch, Emitter.Factory f, int n ){
+		if (ch != null && ch.sprite != null) ch.sprite.centerEmitter().burst( f, n );
+	}
+
 	//맞은 대상에게 정령 능력을 걸고, 바뀐 피해량을 돌려줌
 	public static int spiritHit( Spirit s, Char attacker, Char defender, int damage, int power ){
 		if (s == Spirit.CHAOS){
 			Spirit[] pool = { Spirit.FLAME, Spirit.FROST, Spirit.SHOCK, Spirit.ROCK, Spirit.WIND, Spirit.NATURE };
 			Spirit pick = Random.element( pool );
-			if (defender.sprite != null) defender.sprite.centerEmitter().burst( RainbowParticle.BURST, 6 );
+			burst( defender, RainbowParticle.BURST, 10 );
+			fx( defender, Spirit.CHAOS, "chaos" );
 			if (Random.Int( 6 ) == 0 && defender.isAlive()) Buff.prolong( defender, Paralysis.class, 1f );
 			if (Random.Int( 6 ) == 0 && defender.isAlive()) Buff.prolong( defender, Vertigo.class, 3f );
 			if (Random.Int( 6 ) == 0 && defender.isAlive()) Buff.prolong( defender, Blindness.class, 2f );
@@ -385,40 +397,72 @@ public class ForestWand extends Weapon {
 		switch (s){
 			case WATER:
 				Buff.detach( defender, Burning.class );
-				if (defender.sprite != null) defender.sprite.centerEmitter().burst( FlowParticle.FACTORY, 6 );
+				Splash.at( defender.sprite != null ? defender.sprite.center() : DungeonTilemap.tileCenterToWorld( defender.pos ), 0xFF55B8FF, 8 );
+				burst( defender, FlowParticle.FACTORY, 10 );
+				fx( defender, s, "water" );
 				knockAway( attacker, defender, 1, false );
 				break;
 			case WIND:
+				burst( defender, WindParticle.FACTORY, 10 );
+				if (defender.sprite != null) CellEmitter.get( defender.pos ).burst( Speck.factory( Speck.JET ), 4 );
+				fx( defender, s, "wind" );
 				knockAway( attacker, defender, 2, true );
 				break;
 			case NATURE:
-				if (Random.Int( 3 ) == 0 && !defender.flying) Buff.prolong( defender, Roots.class, 2f );
-				if (defender.sprite != null) defender.sprite.centerEmitter().burst( LeafParticle.GENERAL, 5 );
+				burst( defender, LeafParticle.GENERAL, 6 );
+				if (Random.Int( 3 ) == 0 && !defender.flying){
+					Buff.prolong( defender, Roots.class, 2f );
+					CellEmitter.bottom( defender.pos ).burst( LeafParticle.GENERAL, 12 );
+					fx( defender, s, "nature" );
+				}
 				break;
 			case FIRE:
-				if (Random.Int( 3 ) == 0) Buff.affect( defender, Burning.class ).reignite( defender, 4f );
+				if (Random.Int( 3 ) == 0){
+					Buff.affect( defender, Burning.class ).reignite( defender, 4f );
+					burst( defender, FlameParticle.FACTORY, 10 );
+					fx( defender, s, "fire" );
+				} else {
+					burst( defender, FlameParticle.FACTORY, 2 );
+				}
 				break;
 			case EARTH:
-				if (Random.Int( 2 ) == 0) Buff.prolong( defender, Cripple.class, 3f );
-				if (defender.sprite != null) defender.sprite.centerEmitter().burst( EarthParticle.SMALL, 5 );
+				burst( defender, EarthParticle.SMALL, 5 );
+				if (Random.Int( 2 ) == 0){
+					Buff.prolong( defender, Cripple.class, 3f );
+					CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 10 );
+					fx( defender, s, "earth" );
+				}
 				break;
 			case ROCK:
 				damage = Math.round( damage * 1.3f );
-				if (defender.sprite != null) defender.sprite.centerEmitter().burst( EarthParticle.FACTORY, 4 );
+				CellEmitter.bottom( defender.pos ).burst( EarthParticle.FACTORY, 8 );
+				burst( defender, EarthParticle.SMALL, 8 );
+				if (defender.sprite != null && defender.sprite.visible) PixelScene.shake( 1, 0.12f );
+				fx( defender, s, "rock" );
 				break;
 			case FLAME:
 				Buff.affect( defender, Burning.class ).reignite( defender );
+				burst( defender, FlameParticle.FACTORY, 14 );
+				fx( defender, s, "flame" );
 				for (int n : PathFinder.NEIGHBOURS8){
-					Char other = Actor.findChar( defender.pos + n );
+					int c = defender.pos + n;
+					if (!Dungeon.level.solid[c]) CellEmitter.get( c ).burst( FlameParticle.FACTORY, 5 );
+					Char other = Actor.findChar( c );
 					if (other != null && other != attacker && other.alignment != attacker.alignment){
 						other.damage( Math.max( 1, damage/3 ), ForestWand.class );
-						CellEmitter.get( other.pos ).burst( FlameParticle.FACTORY, 4 );
 					}
 				}
+				Sample.INSTANCE.play( Assets.Sounds.BURNING );
 				break;
 			case FROST:
 				Buff.prolong( defender, Chill.class, 3f );
-				if (Random.Int( 4 ) == 0) Buff.prolong( defender, Frost.class, 2f );
+				burst( defender, SnowParticle.FACTORY, 10 );
+				if (Random.Int( 4 ) == 0){
+					Buff.prolong( defender, Frost.class, 2f );
+					fx( defender, s, "frost_freeze" );
+				} else {
+					fx( defender, s, "frost" );
+				}
 				break;
 			case SHOCK:
 				ArrayList<Char> affected = new ArrayList<>();
@@ -433,6 +477,8 @@ public class ForestWand extends Weapon {
 					}
 				}
 				if (attacker.sprite != null && attacker.sprite.parent != null) attacker.sprite.parent.addToFront( new Lightning( arcs, null ) );
+				burst( defender, SparkParticle.FACTORY, 8 );
+				fx( defender, s, hits > 0 ? "shock_chain" : "shock" );
 				Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 				break;
 			default: break;

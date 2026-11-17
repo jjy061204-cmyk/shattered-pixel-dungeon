@@ -342,6 +342,10 @@ public class MeleeWeapon extends Weapon {
 			info += "\n\n" + Messages.capitalize(Messages.get(Weapon.class, "enchanted", Messages.get(HolyWeapon.class, "ench_name", Messages.get(Enchantment.class, "enchant"))));
 			info += " " + Messages.get(HolyWeapon.class, "ench_desc");
 		} else if (enchantment != null && (cursedKnown || !enchantment.curse())){
+			if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant){
+				//모드: 정령사가 부여한 정령은 "물의 정령이 깃들어 있습니다."처럼
+				info += "\n\n" + Messages.get(Weapon.class, "spirit_dwells", ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchantment).spirit.title());
+			} else
 			info += "\n\n" + Messages.capitalize(Messages.get(Weapon.class, "enchanted", enchantment.name()));
 			if (enchantHardened) info += " " + Messages.get(Weapon.class, "enchant_hardened");
 			info += " " + enchantment.desc();
