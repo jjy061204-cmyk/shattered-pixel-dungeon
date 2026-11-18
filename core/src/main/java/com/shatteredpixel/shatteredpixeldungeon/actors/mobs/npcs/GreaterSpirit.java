@@ -11,6 +11,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
@@ -49,8 +51,13 @@ public abstract class GreaterSpirit extends DirectableAlly {
 	}
 
 	//영웅 레벨에 맞춰 체력을 다시 셈 (잃은 체력 비율은 유지)
+	//상급 정령의 활력: 체력 +20/40/60%, 피해 +10/20/30%
+	protected static int vitality(){
+		return Dungeon.hero != null ? Dungeon.hero.pointsInTalent( Talent.GREATER_VITALITY ) : 0;
+	}
+
 	public void adjustStats(){
-		int newHT = Math.round( (10 + 3*lvl()) * hpMul() );
+		int newHT = Math.round( (10 + 3*lvl()) * hpMul() * (1f + 0.2f*vitality()) );
 		if (newHT != HT){
 			float frac = HT > 0 ? HP / (float)HT : 1f;
 			HT = newHT;
@@ -90,7 +97,7 @@ public abstract class GreaterSpirit extends DirectableAlly {
 	@Override
 	public int damageRoll() {
 		int l = lvl();
-		return Math.round( Random.NormalIntRange( 1 + l/3, 4 + l*2/3 ) * dmgMul() );
+		return Math.round( Random.NormalIntRange( 1 + l/3, 4 + l*2/3 ) * dmgMul() * (1f + 0.1f*vitality()) );
 	}
 
 	@Override
@@ -103,6 +110,19 @@ public abstract class GreaterSpirit extends DirectableAlly {
 		flying = false;
 		ForestWand.Spirit s = spirit();
 		super.die( cause );
+		//영혼 연결: 1/3, 2/3, 3/3 확률로 정령계 대신 숲의 완드로 돌아옴
+		Hero h = Dungeon.hero;
+		if (h != null && h.isAlive() && Random.Float() < h.pointsInTalent( Talent.SPIRIT_LINK ) / 3f){
+			ForestWand wand = h.belongings.getItem( ForestWand.class );
+			int slot = wand != null ? wand.freeSlot() : -1;
+			if (slot >= 0){
+				wand.slots[slot] = s;
+				Item.updateQuickslot();
+				if (h.sprite != null) h.sprite.centerEmitter().burst( s.particle(), 10 );
+				GLog.p( Messages.get( GreaterSpirit.class, "linked_back", s.title() ) );
+				return;
+			}
+		}
 		GLog.w( Messages.get( GreaterSpirit.class, "returned_realm", s.title() ) );
 	}
 

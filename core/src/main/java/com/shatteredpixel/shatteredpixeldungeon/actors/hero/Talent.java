@@ -229,6 +229,12 @@ public enum Talent {
 	SPIRITED_MEAL(288), SPIRIT_INTUITION(289), CATALYST_SENSE(290), SPIRIT_WARD(291),
 	//정령사 T2
 	SPIRIT_FEAST(292), ELEMENTAL_RESONANCE(293), INSCRIBED_SPIRITS(294), SPIRIT_RESONANCE(295), SPIRIT_RELEASE(296),
+	//정령사 T3
+	ELEMENTAL_MASTERY(297, 3), SPIRIT_BOND(298, 3),
+	//정령 부여사 T3
+	TWIN_HARMONY(299, 3), SPIRIT_CONDUIT(300, 3), ANCHORED_SPIRITS(301, 3),
+	//정령 계약자 T3
+	GREATER_VITALITY(302, 3), SPIRIT_GATE(303, 3), SPIRIT_LINK(304, 3),
 
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
@@ -1375,6 +1381,9 @@ public enum Talent {
 			case VAMPIRE:
 				Collections.addAll(tierTalents, DEEP_CUP, BLOOD_NOVA);
 				break;
+			case ELEMENTALIST:
+				Collections.addAll(tierTalents, ELEMENTAL_MASTERY, SPIRIT_BOND);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1420,6 +1429,12 @@ public enum Talent {
 				break;
 			case BLOOD_LORD:
 				Collections.addAll(tierTalents, OVERFLOWING_CUP, TEMPERED_CUP, BLOOD_CHAINS);
+				break;
+			case SPIRIT_ENCHANTER:
+				Collections.addAll(tierTalents, TWIN_HARMONY, SPIRIT_CONDUIT, ANCHORED_SPIRITS);
+				break;
+			case SPIRIT_CONTRACTOR:
+				Collections.addAll(tierTalents, GREATER_VITALITY, SPIRIT_GATE, SPIRIT_LINK);
 				break;
 			case BATTLEMAGE:
 				Collections.addAll(tierTalents, EMPOWERED_STRIKE, MYSTICAL_CHARGE, EXCESS_CHARGE);

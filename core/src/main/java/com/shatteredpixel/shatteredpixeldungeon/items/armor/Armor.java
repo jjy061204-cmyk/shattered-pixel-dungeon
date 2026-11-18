@@ -463,7 +463,9 @@ public class Armor extends EquipableItem {
 	public Item upgrade( boolean inscribe ) {
 
 		//모드: 정령이 깃든 갑옷을 강화하면 정령은 알아서 숲의 완드로 역소환
-		if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) inscribe(null);
+		//(정령 부여사의 '정령 정착' 특성이 있으면 그대로 머묾)
+		if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph
+				&& !(com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null && com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.hasTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.ANCHORED_SPIRITS))) inscribe(null);
 
 		if (inscribe){
 			if (glyph == null){

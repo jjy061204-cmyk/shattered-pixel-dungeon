@@ -10,6 +10,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -34,22 +35,35 @@ public class SpiritEnchant extends Weapon.Enchantment {
 	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
 		int level = Math.max( 0, weapon.buffedLvl() );
 		boolean boost = enchanter( attacker );
-		damage = roll( spirit, level, boost, attacker, defender, damage );
-		if (spirit2 != null && defender.isAlive()){
-			damage = roll( spirit2, level, boost, attacker, defender, damage );
+		float mul = boost ? 1.3f : 1f;
+		float chanceMul = chanceBonus( attacker, level );
+		boolean p1 = Random.Float() < chance( spirit, level, boost, attacker, chanceMul );
+		boolean p2 = spirit2 != null && Random.Float() < chance( spirit2, level, boost, attacker, chanceMul );
+		//쌍정령 조화: 둘 중 하나가 발동하면 다른 하나도 20/40/60% 확률로 함께
+		if (spirit2 != null && (p1 ^ p2) && attacker instanceof Hero
+				&& Random.Float() < 0.2f * ((Hero) attacker).pointsInTalent( Talent.TWIN_HARMONY )){
+			p1 = p2 = true;
 		}
+		if (p1) damage = ForestWand.spiritHit( spirit, attacker, defender, damage, mul );
+		if (p2 && defender.isAlive()) damage = ForestWand.spiritHit( spirit2, attacker, defender, damage, mul );
 		return damage;
 	}
 
-	private int roll( ForestWand.Spirit s, int level, boolean boost, Char attacker, Char defender, int damage ){
-		// +0 33%, +2 40%, +5 50% … (강한 정령은 조금 더 자주)
-		float chance = (level + 2f) / (level + 6f) * procChanceMultiplier( attacker );
+	// +0 33%, +2 40%, +5 50% … (강한 정령은 조금 더 자주, 정령 부여사 ×1.2)
+	private float chance( ForestWand.Spirit s, int level, boolean boost, Char attacker, float chanceMul ){
+		float chance = (level + 2f) / (level + 6f) * procChanceMultiplier( attacker ) * chanceMul;
 		if (s.strong) chance *= 1.15f;
 		if (boost) chance *= 1.2f;
-		if (Random.Float() < chance){
-			damage = ForestWand.spiritHit( s, attacker, defender, damage, boost ? 1.3f : 1f );
-		}
-		return damage;
+		return chance;
+	}
+
+	//특성: 정령의 유대(+10/20/30%), 정령 정착(강화 1당 +2/3/4%)
+	public static float chanceBonus( Char ch, int level ){
+		if (!(ch instanceof Hero)) return 1f;
+		Hero h = (Hero) ch;
+		float m = 1f + 0.1f * h.pointsInTalent( Talent.SPIRIT_BOND );
+		if (h.hasTalent( Talent.ANCHORED_SPIRITS )) m *= 1f + level * 0.01f * (1 + h.pointsInTalent( Talent.ANCHORED_SPIRITS ));
+		return m;
 	}
 
 	@Override

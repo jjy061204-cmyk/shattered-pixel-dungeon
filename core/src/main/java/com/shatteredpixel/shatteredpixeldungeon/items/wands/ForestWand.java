@@ -320,6 +320,16 @@ public class ForestWand extends Weapon {
 			meal.use();
 		}
 		if (s != null) damage = spiritHit( s, attacker, defender, damage, mul );
+		//정령 전이: 정령 탄이 맞으면 손에 든 무기의 정령도 15/30/45% 확률로 발동
+		if (attacker instanceof Hero && ((Hero) attacker).hasTalent( Talent.SPIRIT_CONDUIT )
+				&& ((Hero) attacker).belongings.weapon() instanceof Weapon
+				&& ((Weapon) ((Hero) attacker).belongings.weapon()).enchantment instanceof SpiritEnchant){
+			SpiritEnchant e = (SpiritEnchant) ((Weapon) ((Hero) attacker).belongings.weapon()).enchantment;
+			float chance = 0.15f * ((Hero) attacker).pointsInTalent( Talent.SPIRIT_CONDUIT );
+			float emul = SpiritEnchant.enchanter( attacker ) ? 1.3f : 1f;
+			if (defender.isAlive() && Random.Float() < chance) damage = spiritHit( e.spirit, attacker, defender, damage, emul );
+			if (e.spirit2 != null && defender.isAlive() && Random.Float() < chance) damage = spiritHit( e.spirit2, attacker, defender, damage, emul );
+		}
 		//정령 공명: 양옆 칸 정령도 15/30% 확률로 절반의 힘을 보탬
 		if (attacker instanceof Hero && ((Hero) attacker).hasTalent( Talent.SPIRIT_RESONANCE )){
 			float chance = 0.15f * ((Hero) attacker).pointsInTalent( Talent.SPIRIT_RESONANCE );
@@ -478,6 +488,10 @@ public class ForestWand extends Weapon {
 		dmg *= target.resist( src.getClass() );
 		if (s == Spirit.WATER && Char.hasProp( target, Char.Property.FIERY )) dmg *= 1.5f;
 		if (s == Spirit.SHOCK && Dungeon.level.water[target.pos] && !target.flying) dmg *= 1.5f;
+		//원소 숙련: 정령사 편이 입히는 속성 피해 +15/30/45%
+		if (Dungeon.hero != null && target != Dungeon.hero && target.alignment != Char.Alignment.ALLY){
+			dmg *= 1f + 0.15f * Dungeon.hero.pointsInTalent( Talent.ELEMENTAL_MASTERY );
+		}
 		int d = Math.max( 1, Math.round( dmg ) );
 		target.damage( d, src );
 		return d;
@@ -874,7 +888,8 @@ public class ForestWand extends Weapon {
 		if (slot < 0 || greaterExists( hero, s )) return;
 		slots[slot] = s;
 		updateQuickslot();
-		Buff.affect( hero, ContractCooldown.class, CONTRACT_COOLDOWN );
+		//정령계의 문: 대기 100 → 75/50/25턴
+		Buff.affect( hero, ContractCooldown.class, CONTRACT_COOLDOWN - 25f * hero.pointsInTalent( Talent.SPIRIT_GATE ) );
 		if (hero.sprite != null){
 			hero.sprite.operate( hero.pos );
 			hero.sprite.centerEmitter().burst( s.particle(), 24 );

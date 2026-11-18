@@ -377,7 +377,9 @@ abstract public class Weapon extends KindOfWeapon {
 	public Item upgrade(boolean enchant ) {
 
 		//모드: 정령이 깃든 무기를 강화하면 정령은 알아서 숲의 완드로 역소환
-		if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchant(null);
+		//(정령 부여사의 '정령 정착' 특성이 있으면 그대로 머묾)
+		if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant
+				&& !(com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null && com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.hasTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.ANCHORED_SPIRITS))) enchant(null);
 
 		if (enchant){
 			if (enchantment == null){

@@ -6,6 +6,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
@@ -56,18 +58,26 @@ public class SpiritGlyph extends Armor.Glyph {
 	public int proc( Armor armor, Char attacker, Char defender, int damage ) {
 		int level = Math.max( 0, armor.buffedLvl() );
 		boolean boost = SpiritEnchant.enchanter( defender );
-		damage = roll( spirit, level, boost, attacker, defender, damage );
-		if (spirit2 != null) damage = roll( spirit2, level, boost, attacker, defender, damage );
+		float pow = boost ? 1.3f : 1f;
+		float chanceMul = SpiritEnchant.chanceBonus( defender, level );
+		boolean p1 = Random.Float() < chance( spirit, level, boost, defender, chanceMul );
+		boolean p2 = spirit2 != null && Random.Float() < chance( spirit2, level, boost, defender, chanceMul );
+		//쌍정령 조화
+		if (spirit2 != null && (p1 ^ p2) && defender instanceof Hero
+				&& Random.Float() < 0.2f * ((Hero) defender).pointsInTalent( Talent.TWIN_HARMONY )){
+			p1 = p2 = true;
+		}
+		if (p1) damage = defend( spirit, attacker, defender, damage, level, pow );
+		if (p2) damage = defend( spirit2, attacker, defender, damage, level, pow );
 		return damage;
 	}
 
-	private int roll( ForestWand.Spirit s, int level, boolean boost, Char attacker, Char defender, int damage ){
-		// +0 29%, +2 36%, +5 45% … (정령 부여사는 ×1.2)
-		float chance = (level + 2f) / (level + 7f) * procChanceMultiplier( defender );
+	// +0 29%, +2 36%, +5 45% … (정령 부여사는 ×1.2)
+	private float chance( ForestWand.Spirit s, int level, boolean boost, Char defender, float chanceMul ){
+		float chance = (level + 2f) / (level + 7f) * procChanceMultiplier( defender ) * chanceMul;
 		if (s.strong) chance *= 1.15f;
 		if (boost) chance *= 1.2f;
-		if (Random.Float() >= chance) return damage;
-		return defend( s, attacker, defender, damage, level, boost ? 1.3f : 1f );
+		return chance;
 	}
 
 	public static int defend( ForestWand.Spirit s, Char attacker, Char defender, int damage, int level, float pow ){
