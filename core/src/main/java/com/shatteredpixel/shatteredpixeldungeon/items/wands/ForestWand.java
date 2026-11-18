@@ -9,6 +9,11 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -111,6 +116,8 @@ public class ForestWand extends Weapon {
 		FIRE   ( false, 0xFF8833 ),
 		EARTH  ( false, 0xB08850 ),
 		ROCK   ( false, 0x9A9AA6 ),
+		GOLD   ( false, 0xFFD54A ),   //바닥에 떨어진 금화
+		DARK   ( false, 0x8A66CC ),   //낭떠러지의 어둠
 		FLAME  ( true,  0xFF3311 ),
 		FROST  ( true,  0x99E6FF ),
 		SHOCK  ( true,  0xFFF566 ),
@@ -152,6 +159,8 @@ public class ForestWand extends Weapon {
 				case EARTH: case ROCK: case GNOME: return EarthParticle.SMALL;
 				case FROST:  return SnowParticle.FACTORY;
 				case SHOCK:  return SparkParticle.STATIC;
+				case GOLD:   return Speck.factory( Speck.YELLOW_LIGHT );
+				case DARK:   return ShadowParticle.UP;
 				default:     return RainbowParticle.BURST;
 			}
 		}
@@ -484,6 +493,17 @@ public class ForestWand extends Weapon {
 		return d;
 	}
 
+	//황금의 정령에 물든 적: 이 동안 쓰러지면 금화를 떨어뜨림 (Mob.die에서 확인)
+	public static class Gilded extends FlavourBuff {
+		{ type = buffType.NEUTRAL; announced = false; }
+	}
+	public static void onMobDeath( Mob mob ){
+		if (mob.buff( Gilded.class ) == null || Dungeon.level == null) return;
+		int amount = Random.IntRange( 2, 4 + Dungeon.scalingDepth() );
+		Dungeon.level.drop( new Gold( amount ), mob.pos ).sprite.drop();
+		CellEmitter.center( mob.pos ).burst( Speck.factory( Speck.COIN ), 6 );
+	}
+
 	//얼리기는 맞는 순간 피해에 깨지므로, 공격이 끝난 직후에 얼림
 	public static class FreezeNext extends Buff {
 		@Override
@@ -693,6 +713,33 @@ public class ForestWand extends Weapon {
 				}
 				damage = spiritHit( Spirit.WIND, attacker, defender, damage, mul*1.5f );
 				if (attacker != null && attacker.isAlive()) Buff.prolong( attacker, Haste.class, 3f );
+				break;
+
+			//황금: 금빛 파편이 박히고, 금빛에 물든 적은 쓰러질 때 금화를 떨어뜨림
+			case GOLD:
+				burst( defender, Speck.factory( Speck.YELLOW_LIGHT ), 8 );
+				CellEmitter.center( defender.pos ).burst( Speck.factory( Speck.COIN ), 4 );
+				Sample.INSTANCE.play( Assets.Sounds.GOLD, 0.6f, 1.2f );
+				fx( defender, s, "gold" );
+				elemHit( s, defender, mul*0.5f );
+				if (defender.isAlive() && defender instanceof Mob && defender.alignment == Char.Alignment.ENEMY){
+					Buff.prolong( defender, Gilded.class, 3f );
+				}
+				break;
+
+			//어둠: 낭떠러지의 어둠이 눈을 가리고, 가끔 적이 공포에 질려 달아남
+			case DARK:
+				burst( defender, ShadowParticle.UP, 12 );
+				fx( defender, s, "dark" );
+				elemHit( s, defender, mul*0.6f );
+				if (defender.isAlive()){
+					Buff.prolong( defender, Blindness.class, 2f );
+					if (Random.Int( 3 ) == 0 && !defender.properties().contains( Char.Property.BOSS )
+							&& !defender.properties().contains( Char.Property.MINIBOSS )){
+						Buff.affect( defender, Terror.class, 3f ).object = attacker != null ? attacker.id() : 0;
+						fx( defender, s, "dark_terror" );
+					}
+				}
 				break;
 
 			//혼돈: 서로 다른 두 정령의 힘이 한꺼번에 터지고, 가끔 정신을 흐리게 함
@@ -923,7 +970,12 @@ public class ForestWand extends Weapon {
 		Blob fire = level.blobs.get( Fire.class );
 		if (fire != null && fire.volume > 0 && fire.cur[cell] > 0) return Spirit.FIRE;
 
+		//바닥에 떨어진 금화
+		if (goldAt( cell ) != null) return Spirit.GOLD;
+
 		int t = level.map[cell];
+		//낭떠러지의 어둠
+		if (t == Terrain.CHASM) return Spirit.DARK;
 		if (t == Terrain.WALL_DECO && level instanceof PrisonLevel) return Spirit.FIRE;   //감옥 벽의 횃불
 		if (level.water[cell] || t == Terrain.WATER) return Spirit.WATER;
 		if (t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS) return Random.Int(2) == 0 ? Spirit.WIND : Spirit.NATURE;
@@ -935,12 +987,26 @@ public class ForestWand extends Weapon {
 		return null;
 	}
 
+	private static Gold goldAt( int cell ){
+		Heap h = Dungeon.level.heaps.get( cell );
+		if (h == null || h.type != Heap.Type.HEAP) return null;
+		for (Item i : h.items) if (i instanceof Gold) return (Gold) i;
+		return null;
+	}
+
 	//촉매를 쓰고 난 뒤 지형 변화 (긴 풀은 짓밟히고, 불·잔류 정령은 사라짐)
 	private static void consumeCatalyst( int cell, Spirit s ){
 		Level level = Dungeon.level;
 		for (Class<? extends SpiritRemnant> c : SpiritRemnant.TYPES){
 			Blob b = level.blobs.get( c );
 			if (b != null && b.cur[cell] > 0) { b.clear( cell ); return; }
+		}
+		if (s == Spirit.GOLD){
+			//금화는 정령이 되어 사라짐
+			Gold g = goldAt( cell );
+			if (g != null) level.heaps.get( cell ).remove( g );
+			CellEmitter.get( cell ).burst( Speck.factory( Speck.COIN ), 8 );
+			return;
 		}
 		if (s == Spirit.FIRE){
 			Blob fire = level.blobs.get( Fire.class );
@@ -965,6 +1031,8 @@ public class ForestWand extends Weapon {
 			case FROST:  CellEmitter.get( from ).burst( SnowParticle.FACTORY, 12 ); break;
 			case SHOCK:  CellEmitter.center( from ).burst( SparkParticle.FACTORY, 10 ); break;
 			case CHAOS:  CellEmitter.center( from ).burst( RainbowParticle.BURST, 12 ); break;
+			case GOLD:   CellEmitter.center( from ).burst( Speck.factory( Speck.YELLOW_LIGHT ), 10 ); break;
+			case DARK:   CellEmitter.get( from ).burst( ShadowParticle.UP, 14 ); break;
 			default: break;
 		}
 	}
@@ -981,6 +1049,8 @@ public class ForestWand extends Weapon {
 			case GNOME: return MagicMissile.EARTH;
 			case SYLPH: return MagicMissile.FORCE;
 			case CHAOS: return MagicMissile.RAINBOW;
+			case GOLD: return MagicMissile.LIGHT_MISSILE;
+			case DARK: return MagicMissile.SHADOW;
 			default: return MagicMissile.FOLIAGE;
 		}
 	}

@@ -287,7 +287,8 @@ public class WndForestWand extends Window {
 		Enchanting.show( hero, item );
 		ForestWand.imbueFx( hero.pos, s );
 		Sample.INSTANCE.play( Assets.Sounds.MELD );
-		GLog.p( Messages.get( WndForestWand.class, "bestowed", s.title(), item.name() ) );
+		boolean pair = spiritsOn( item ) >= 2;
+		GLog.p( Messages.get( WndForestWand.class, pair ? "bestowed_pair" : "bestowed", s.title(), item.trueName() ) );
 		hero.sprite.operate( hero.pos );
 		hero.spendAndNext( 1f );
 	}

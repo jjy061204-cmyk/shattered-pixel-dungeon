@@ -6,6 +6,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
@@ -151,6 +154,17 @@ public class SpiritGlyph extends Armor.Glyph {
 					attacker.damage( Math.max( 1, Math.round( damage/2f*pow ) ), new ForestWand.ElemSource( s ) );
 					ForestWand.elemHit( s, attacker, (0.3f)*pow );
 				}
+				return damage;
+			case GOLD:      //황금: 금빛 장막이 피해를 1/4 막고, 붙어 있는 적은 금빛에 눈이 부심
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( Speck.factory( Speck.YELLOW_LIGHT ), 8 );
+				ForestWand.fx( defender, s, "g_gold" );
+				if (adjacent) Buff.prolong( attacker, Blindness.class, 2f*pow );
+				return damage - damage/4;
+			case DARK:      //어둠: 붙어 있는 적의 눈을 가리고, 그림자에 몸을 숨김
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( ShadowParticle.UP, 10 );
+				ForestWand.fx( defender, s, "g_dark" );
+				if (adjacent) Buff.prolong( attacker, Blindness.class, 2f*pow );
+				Buff.affect( defender, Invisibility.class, 2f );
 				return damage;
 			//상급 정령: 바탕 원소의 보호 능력을 훨씬 강하게
 			case UNDINE:

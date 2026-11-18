@@ -1024,6 +1024,9 @@ public abstract class Mob extends Char {
 	@Override
 	public void die( Object cause ) {
 
+		//모드: 황금의 정령에 물든 적은 금화를 떨어뜨림
+		com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.onMobDeath( this );
+
 		if (cause == Chasm.class){
 			//50% chance to round up, 50% to round down
 			if (EXP % 2 == 1) EXP += Random.Int(2);
