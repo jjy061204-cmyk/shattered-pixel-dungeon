@@ -111,6 +111,7 @@ public class FloatingText extends RenderedTextBlock {
 	public static int GOLD_DMG   = 29;
 	public static int DARK_DMG   = 30;
 	public static int CHAOS_DMG  = 31;
+	public static int RUNE_DMG   = 32;
 
 	//currency icons
 	public static int GOLD      = 23;

@@ -58,6 +58,9 @@ public abstract class ElementalDamage {
 	public static class Dark extends ElementalDamage {
 		@Override public int icon(){ return FloatingText.DARK_DMG; }
 	}
+	public static class Rune extends ElementalDamage {
+		@Override public int icon(){ return FloatingText.RUNE_DMG; }
+	}
 	public static class Chaos extends ElementalDamage {
 		@Override public int icon(){ return FloatingText.CHAOS_DMG; }
 	}
@@ -75,6 +78,7 @@ public abstract class ElementalDamage {
 			case ROCK:                              return new Rock();
 			case GOLD:                              return new Gold();
 			case DARK:                              return new Dark();
+			case RUNE:                              return new Rune();
 			case CHAOS: default:                    return new Chaos();
 		}
 	}

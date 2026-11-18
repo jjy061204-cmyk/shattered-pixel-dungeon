@@ -6,6 +6,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
@@ -166,6 +167,11 @@ public class SpiritGlyph extends Armor.Glyph {
 				if (adjacent) Buff.prolong( attacker, Blindness.class, 2f*pow );
 				Buff.affect( defender, Invisibility.class, 2f );
 				return damage;
+			case RUNE:      //룬 마법: 룬 결계가 피해를 1/5 막고, 붙어 있는 적에게 룬을 새김 (셋이면 폭발)
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( MagicMissile.WardParticle.FACTORY, 8 );
+				ForestWand.fx( defender, s, "g_rune" );
+				if (adjacent) ForestWand.runeMark( s, defender, attacker, 0.5f*pow );
+				return damage - damage/5;
 			//상급 정령: 바탕 원소의 보호 능력을 훨씬 강하게
 			case UNDINE:
 				ForestWand.fx( defender, s, "g_undine" );

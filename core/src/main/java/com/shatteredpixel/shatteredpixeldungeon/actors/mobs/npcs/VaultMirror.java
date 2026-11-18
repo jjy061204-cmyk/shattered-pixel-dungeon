@@ -70,7 +70,18 @@ public class VaultMirror extends NPC {
 		//we create a new generator here as some heroes call RNG here and some don't
 		Random.pushGenerator(Random.Long());
 			switch (cls) {
-				case WARRIOR: case VAMPIRE: case ELEMENTALIST:
+				case ELEMENTALIST: {
+					//모드: 정령사는 정령이 가득 깃든 숲의 완드
+					com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand w = new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand();
+					com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit[] strong = {
+							com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit.FLAME,
+							com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit.FROST,
+							com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit.SHOCK };
+					for (int i = 0; i < w.slots.length; i++) w.slots[i] = Random.element( strong );
+					reward = w.identify(false);
+					break;
+				}
+				case WARRIOR: case VAMPIRE:
 					reward = new BrokenSeal().upgrade().identify(false);
 					((BrokenSeal)reward).setGlyph(Armor.Glyph.random());
 					break;
@@ -108,7 +119,10 @@ public class VaultMirror extends NPC {
 
 						String sceneText = Messages.get(VaultMirror.class, "approach") + "\n\n";
 						switch (((Hero) c).heroClass){
-							case WARRIOR: case VAMPIRE: case ELEMENTALIST:
+							case ELEMENTALIST:
+								sceneText += Messages.get(VaultMirror.class, "scene_elementalist");
+								break;
+							case WARRIOR: case VAMPIRE:
 								sceneText += Messages.get(VaultMirror.class, "scene_warrior");
 								break;
 							case MAGE:

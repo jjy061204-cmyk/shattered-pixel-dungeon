@@ -9,6 +9,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ModernLevel;
 import com.shatteredpixel.shatteredpixeldungeon.actors.elemental.ElementalDamage;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
@@ -123,6 +126,7 @@ public class ForestWand extends Weapon {
 		FROST  ( true,  0x99E6FF ),
 		SHOCK  ( true,  0xFFF566 ),
 		CHAOS  ( true,  0xD077FF ),
+		RUNE   ( true,  0x3FE0C8 ),   //고대의 성소에 새겨진 룬 마법
 		//정령 계약자가 정령계에서 불러오는 상급 정령 (각각 하나뿐)
 		UNDINE     ( true, 0x3FA8FF, true ),
 		SALAMANDER ( true, 0xFF5A1E, true ),
@@ -162,6 +166,7 @@ public class ForestWand extends Weapon {
 				case SHOCK:  return SparkParticle.STATIC;
 				case GOLD:   return Speck.factory( Speck.YELLOW_LIGHT );
 				case DARK:   return ShadowParticle.UP;
+				case RUNE:   return MagicMissile.WardParticle.FACTORY;
 				default:     return RainbowParticle.BURST;
 			}
 		}
@@ -223,6 +228,11 @@ public class ForestWand extends Weapon {
 			GameScene.selectCell( shooter );
 
 		} else if (action.equals( AC_IMBUE )) {
+			//현대 세계에는 깃들 정령이 없음
+			if (Dungeon.level instanceof ModernLevel){
+				GLog.w( Messages.get( ForestWand.class, "no_spirits_modern" ) );
+				return;
+			}
 			if (freeSlot() < 0){
 				GLog.w( Messages.get( ForestWand.class, "full" ) );
 				return;
@@ -471,6 +481,43 @@ public class ForestWand extends Weapon {
 		int d = Math.max( 1, Math.round( dmg ) );
 		target.damage( d, src );
 		return d;
+	}
+
+	//룬 각인: 10턴 동안 남고, 셋이 쌓이면 터짐
+	public static class RuneMark extends FlavourBuff {
+		{ type = buffType.NEGATIVE; announced = false; }
+		public int runes = 0;
+		@Override public int icon() { return BuffIndicator.MARK; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( 0.25f, 0.9f, 0.8f ); }
+		@Override public String iconTextDisplay() { return Integer.toString( runes ); }
+		@Override public String desc() { return Messages.get( this, "desc", runes, dispTurns() ); }
+		@Override public void storeInBundle( Bundle b ) { super.storeInBundle( b ); b.put( "runes", runes ); }
+		@Override public void restoreFromBundle( Bundle b ) { super.restoreFromBundle( b ); runes = b.getInt( "runes" ); }
+	}
+
+	public static void runeMark( Spirit s, Char attacker, Char target, float mul ){
+		RuneMark m = Buff.prolong( target, RuneMark.class, 10f );
+		if (m == null) return;
+		m.runes++;
+		if (m.runes < 3){
+			fx( target, Spirit.RUNE, "rune_" + m.runes );
+			Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.4f, 1.4f + 0.2f*m.runes );
+			return;
+		}
+		//룬 폭발
+		m.detach();
+		fx( target, Spirit.RUNE, "rune_burst" );
+		Sample.INSTANCE.play( Assets.Sounds.BLAST, 0.8f, 1.3f );
+		for (int n : PathFinder.NEIGHBOURS9){
+			int c = target.pos + n;
+			if (!Dungeon.level.solid[c]) CellEmitter.center( c ).burst( MagicMissile.WardParticle.FACTORY, 6 );
+		}
+		if (target.sprite != null && target.sprite.visible) PixelScene.shake( 1, 0.15f );
+		elemHit( Spirit.RUNE, target, mul*1.5f );
+		for (int n : PathFinder.NEIGHBOURS8){
+			Char other = Actor.findChar( target.pos + n );
+			if (foe( attacker, other )) elemHit( Spirit.RUNE, other, mul*0.5f );
+		}
 	}
 
 	//황금의 정령에 물든 적: 이 동안 쓰러지면 금화를 떨어뜨림 (Mob.die에서 확인)
@@ -722,6 +769,13 @@ public class ForestWand extends Weapon {
 				}
 				break;
 
+			//룬 마법: 룬을 새기고, 룬이 셋 쌓이면 폭발해 대상과 둘레의 적에게 큰 피해
+			case RUNE:
+				burst( defender, MagicMissile.WardParticle.FACTORY, 8 );
+				elemHit( s, defender, mul*0.5f );
+				if (defender.isAlive()) runeMark( s, attacker, defender, mul );
+				break;
+
 			//혼돈: 서로 다른 두 정령의 힘이 한꺼번에 터지고, 가끔 정신을 흐리게 함
 			case CHAOS: default: {
 				Spirit[] pool = { Spirit.WATER, Spirit.WIND, Spirit.NATURE, Spirit.FIRE, Spirit.EARTH,
@@ -954,6 +1008,12 @@ public class ForestWand extends Weapon {
 		if (goldAt( cell ) != null) return Spirit.GOLD;
 
 		int t = level.map[cell];
+		//고대의 성소: 룬이 새겨진 벽·모자이크 바닥·제단석·고대의 유물에서 룬 마법 정령
+		if ((level instanceof SanctuaryLevel || level instanceof SanctuaryBossLevel)
+				&& (t == Terrain.WALL_DECO || t == Terrain.EMPTY_SP || t == Terrain.PEDESTAL
+					|| t == Terrain.REGION_DECO || t == Terrain.REGION_DECO_ALT)){
+			return Spirit.RUNE;
+		}
 		//낭떠러지의 어둠
 		if (t == Terrain.CHASM) return Spirit.DARK;
 		if (t == Terrain.WALL_DECO && level instanceof PrisonLevel) return Spirit.FIRE;   //감옥 벽의 횃불
@@ -1013,6 +1073,7 @@ public class ForestWand extends Weapon {
 			case CHAOS:  CellEmitter.center( from ).burst( RainbowParticle.BURST, 12 ); break;
 			case GOLD:   CellEmitter.center( from ).burst( Speck.factory( Speck.YELLOW_LIGHT ), 10 ); break;
 			case DARK:   CellEmitter.get( from ).burst( ShadowParticle.UP, 14 ); break;
+			case RUNE:   CellEmitter.center( from ).burst( MagicMissile.WardParticle.FACTORY, 14 ); break;
 			default: break;
 		}
 	}
@@ -1031,6 +1092,7 @@ public class ForestWand extends Weapon {
 			case CHAOS: return MagicMissile.RAINBOW;
 			case GOLD: return MagicMissile.LIGHT_MISSILE;
 			case DARK: return MagicMissile.SHADOW;
+			case RUNE: return MagicMissile.WARD;
 			default: return MagicMissile.FOLIAGE;
 		}
 	}
