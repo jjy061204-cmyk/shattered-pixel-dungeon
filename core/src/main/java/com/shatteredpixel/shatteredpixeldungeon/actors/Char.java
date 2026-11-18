@@ -406,6 +406,14 @@ public abstract class Char extends Actor {
 					float pierce = ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RiftDagger) h.belongings.attackingWeapon()).armorPierce();
 					dr = Math.round(dr * (1f - pierce));
 				}
+				//모드: 차원 균열 단검 모양으로 빚은 에테르 점토도 같음
+				if (h.belongings.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay
+						&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) h.belongings.attackingWeapon()).currentForm()
+							instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RiftDagger){
+					float pierce = ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RiftDagger)
+							((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) h.belongings.attackingWeapon()).currentForm()).armorPierce();
+					dr = Math.round(dr * (1f - pierce));
+				}
 			}
 
 			//we use a float here briefly so that we don't have to constantly round while

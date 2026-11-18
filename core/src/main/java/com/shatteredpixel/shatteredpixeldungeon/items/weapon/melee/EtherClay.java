@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
@@ -158,6 +159,72 @@ public class EtherClay extends MeleeWeapon {
 		//가벼운 형상: 1/2/3 낮춤
 		if (Dungeon.hero != null) req -= Dungeon.hero.pointsInTalent( Talent.LIGHT_FORM );
 		return req;
+	}
+
+	//지금 빚은 모양 (강화 수치는 점토와 같게 맞춰 둠)
+	public MeleeWeapon currentForm(){
+		return formClass != null ? form() : null;
+	}
+
+	//기습 공격 피해: 단검 75%, 도검 67%, 암살자의 칼날 50%부터 최대치까지
+	private float surpriseShift(){
+		MeleeWeapon f = currentForm();
+		if (f instanceof AssassinsBlade) return 0.50f;
+		if (f instanceof Dirk) return 0.67f;
+		if (f instanceof Dagger) return 0.75f;
+		return 0f;
+	}
+
+	@Override
+	public int damageRoll( Char owner ) {
+		float shift = surpriseShift();
+		if (shift > 0 && owner instanceof Hero){
+			Hero hero = (Hero) owner;
+			Char enemy = hero.attackTarget();
+			if (enemy instanceof Mob && ((Mob) enemy).surprisedBy( hero )){
+				int diff = max() - min();
+				int damage = augment.damageFactor( Hero.heroDamageIntRange( min() + Math.round( diff*shift ), max() ) );
+				int exStr = hero.STR() - STRReq();
+				if (exStr > 0) damage += Hero.heroDamageIntRange( 0, exStr );
+				return damage;
+			}
+		}
+		return super.damageRoll( owner );
+	}
+
+	@Override
+	public int proc( Char attacker, Char defender, int damage ) {
+		MeleeWeapon f = currentForm();
+		if (f instanceof KnightLongsword){
+			damage = ((KnightLongsword) f).comboHit( attacker, defender, damage, false );
+		} else if (f instanceof RiftDagger && defender.sprite != null && defender.sprite.visible){
+			com.shatteredpixel.shatteredpixeldungeon.effects.RiftSlash.at( defender.sprite, 0.8f );
+			defender.sprite.emitter().burst( com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle.BURST, 4 );
+		}
+		return super.proc( attacker, defender, damage );
+	}
+
+	//지금 모양의 특징 (정확도·속도·사거리·기습·막기 등)
+	private String formTraits(){
+		MeleeWeapon f = currentForm();
+		if (f == null) return "";
+		ArrayList<String> t = new ArrayList<>();
+		if (ACC > 1.001f) t.add( Messages.get( EtherClay.class, "tr_acc_up", Math.round( (ACC - 1f)*100 ) ) );
+		if (ACC < 0.999f) t.add( Messages.get( EtherClay.class, "tr_acc_down", Math.round( (1f - ACC)*100 ) ) );
+		if (DLY < 0.999f) t.add( Messages.get( EtherClay.class, "tr_fast", Messages.decimalFormat( "#.##", 1f/DLY ) ) );
+		if (DLY > 1.001f) t.add( Messages.get( EtherClay.class, "tr_slow", Messages.decimalFormat( "#.##", DLY ) ) );
+		if (RCH > 1) t.add( Messages.get( EtherClay.class, "tr_reach", RCH ) );
+		float sh = surpriseShift();
+		if (sh > 0) t.add( Messages.get( EtherClay.class, "tr_surprise", Math.round( sh*100 ) ) );
+		int block = defenseFactor( Dungeon.hero );
+		if (block > 0) t.add( Messages.get( EtherClay.class, "tr_block", block ) );
+		if (f instanceof Crossbow) t.add( Messages.get( EtherClay.class, "tr_darts" ) );
+		if (f instanceof RiftDagger) t.add( Messages.get( EtherClay.class, "tr_pierce", Math.round( ((RiftDagger) f).armorPierce()*100 ) ) );
+		if (f instanceof KnightLongsword) t.add( Messages.get( EtherClay.class, "tr_combo" ) );
+		if (t.isEmpty()) return "";
+		StringBuilder sb = new StringBuilder( Messages.get( EtherClay.class, "tr_title" ) );
+		for (String l : t) sb.append( "\n- " ).append( l );
+		return sb.toString();
 	}
 
 	@Override
@@ -404,6 +471,8 @@ public class EtherClay extends MeleeWeapon {
 		info += "\n\n" + Messages.get( this, "growth", maxTier( Dungeon.hero ) );
 		if (formClass == null) info += " " + Messages.get( this, "unshaped" );
 		else info += " " + Messages.get( this, "current_form", Messages.titleCase( form().trueName() ), tier );
+		String tr = formTraits();
+		if (!tr.isEmpty()) info += "\n\n" + tr;
 		return info;
 	}
 

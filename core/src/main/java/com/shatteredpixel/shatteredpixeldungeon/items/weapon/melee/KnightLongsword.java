@@ -60,6 +60,12 @@ public class KnightLongsword extends Longsword {
 
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
+		damage = comboHit( attacker, defender, damage, true );
+		return super.proc( attacker, defender, damage );
+	}
+
+	//모드: 에테르 점토가 이 모양일 때도 연속 공격을 쓰도록 따로 뺌 (swing: 검 휘두르는 그림)
+	public int comboHit( Char attacker, Char defender, int damage, boolean swing ) {
 		//같은 적을 직전 공격 뒤 2턴 안에 다시 맞히면 연속 단계가 오름
 		if (defender.id() == comboTarget && Actor.now() - comboTime <= 2.01f){
 			combo = Math.min( MAX_COMBO, combo + 1 );
@@ -78,11 +84,11 @@ public class KnightLongsword extends Longsword {
 		}
 
 		//실험 기능: 검을 휘두르는 모습
-		if (attacker.sprite != null && defender.sprite != null){
+		if (swing && attacker.sprite != null && defender.sprite != null){
 			SwordSwing.play( attacker.sprite, defender.sprite, image, 2.5f, 12.5f, -45f, swingStep );
 		}
 
-		return super.proc( attacker, defender, damage );
+		return damage;
 	}
 
 	@Override

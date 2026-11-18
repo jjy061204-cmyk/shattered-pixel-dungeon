@@ -124,6 +124,10 @@ public class Dart extends MissileWeapon {
 		} else if (Dungeon.hero.belongings.secondWep() instanceof Crossbow) {
 			//player can instant swap anyway, so this is just QoL
 			bow = (Crossbow) Dungeon.hero.belongings.secondWep();
+		} else if (Dungeon.hero.belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay
+				&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) Dungeon.hero.belongings.weapon()).currentForm() instanceof Crossbow){
+			//모드: 석궁 모양으로 빚은 에테르 점토
+			bow = (Crossbow) ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) Dungeon.hero.belongings.weapon()).currentForm();
 		} else {
 			bow = null;
 		}
