@@ -125,7 +125,7 @@ public class HeroSprite extends CharSprite {
 					{18, 12, 13, 14, 15, 16, 17, 18, 19},
 					//움찔 → 무릎이 꺾임(점토가 흩어짐) → 기울며 쓰러짐 → 바닥에 누움
 					{12, 20, 21, 22, 23, 24, 25, 26, 27},
-					//몸 전체가 앞으로 1칸 기울고, 점토가 크게 타오르며 빛의 칼날로 내려벰(빛의 호)
+					//몸 전체가 앞으로 1칸 기울고 점토가 크게 타오름 (빛의 칼날은 대상 칸의 반투명 이펙트)
 					{20, 28, 29, 30, 31, 32, 33, 34, 35},
 					//점토가 손 앞에서 밝게 일렁임
 					{12, 36, 37, 38, 39, 40, 41, 37, 38},
@@ -351,11 +351,11 @@ public class HeroSprite extends CharSprite {
 	@Override
 	public synchronized void attack( int cell, Callback callback ) {
 		super.attack( cell, callback );
-		//마법 기사는 도트에 빛의 호가 그려져 있어 따로 이펙트를 얹지 않음
-		if (look != null && look.hdSheet() != null && look != HeroClass.MAGIC_KNIGHT && parent != null && ch != null && cell != ch.pos){
+		if (look != null && look.hdSheet() != null && parent != null && ch != null && cell != ch.pos){
 			parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX( this, cell,
 					look == HeroClass.VAMPIRE ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.SLASH
 							: look == HeroClass.ELEMENTALIST ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.LEAF
+							: look == HeroClass.MAGIC_KNIGHT ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.ETHER
 							: com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.ALCHEMY ) );
 		}
 	}
