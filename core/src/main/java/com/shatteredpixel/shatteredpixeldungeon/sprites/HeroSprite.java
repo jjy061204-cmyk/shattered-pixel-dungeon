@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
+import java.util.ArrayList;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeroDisguise;
@@ -63,6 +65,7 @@ public class HeroSprite extends CharSprite {
 
 	//모드: 세밀한 도트 영웅의 고유 대기 동작 (가만히 있으면 가끔 재생)
 	private Animation[] specials;
+	private int[] idleSpecials;
 	private Animation stop;
 	private float idleTimer = 0, nextSpecial = 2.5f;
 
@@ -137,8 +140,13 @@ public class HeroSprite extends CharSprite {
 					{10, 71, 72, 73, 74},
 					//일렁이던 점토를 손 앞에 끌어모아 동그랗게 빚었다가 다시 풀어 놓음
 					{7, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60},
-					//기사의 경례: 점토를 곧은 빛의 칼날로 빚어 세웠다가 내림
-					{7, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70}};
+					//기사의 경례: 점토를 곧은 빛의 칼날로 빚어 세웠다가 내림 (기사의 경례 특성을 쓸 때만)
+					{7, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70},
+					//혼자 귀여운 포즈 연습: 뒤돌아 아무도 없는지 확인 → 점토로 하트를 빚어 통통 뛰며 갸웃(눈웃음)
+					// → 하트가 둘로 나뉘어 머리 위 고양이 귀가 됨, 반대로 갸웃 + 볼에 작은 하트, 귀 까딱
+					// → 문득 정신이 들어 멈칫, 볼부터 얼굴 전체가 빨개지고 귀가 처지며 식은땀·김이 뭉게뭉게, 부들부들
+					// → 귀가 펑 흩어지고 홱 돌아섬 → 다시 앞을 보며 아무 일 없었던 척
+					{9, 78, 79, 80, 80, 79, 81, 81, 82, 83, 84, 85, 86, 87, 88, 87, 88, 89, 90, 91, 92, 93, 92, 93, 94, 94, 95, 96, 97, 96, 97, 98, 99, 100, 100, 101, 101, 102, 102, 103, 103}};
 			default: return null;
 		}
 	}
@@ -220,6 +228,14 @@ public class HeroSprite extends CharSprite {
 			stop = hdAnim( film, hd[7], false );
 			specials = new Animation[hd.length - 8];
 			for (int i = 8; i < hd.length; i++) specials[i - 8] = hdAnim( film, hd[i], false );
+			//가만히 있을 때 저절로 나오는 고유 동작 (행동 전용 동작은 뺌: 마법 기사의 경례)
+			ArrayList<Integer> pool = new ArrayList<>();
+			for (int i = 0; i < specials.length; i++){
+				if (look == HeroClass.MAGIC_KNIGHT && i == 1) continue;
+				pool.add( i );
+			}
+			idleSpecials = new int[pool.size()];
+			for (int i = 0; i < idleSpecials.length; i++) idleSpecials[i] = pool.get( i );
 		} else {
 			idle = new Animation( 1, true );
 			idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -334,7 +350,7 @@ public class HeroSprite extends CharSprite {
 			if (idleTimer >= nextSpecial){
 				idleTimer = 0;
 				nextSpecial = com.watabou.utils.Random.Float( 2.5f, 5f );
-				play( specials[com.watabou.utils.Random.Int( specials.length )] );
+				play( specials[idleSpecials[com.watabou.utils.Random.Int( idleSpecials.length )]] );
 			}
 		} else if (!isSpecial( curAnim )){
 			idleTimer = 0;

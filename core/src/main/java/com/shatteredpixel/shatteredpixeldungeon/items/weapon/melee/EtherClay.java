@@ -88,6 +88,24 @@ public class EtherClay extends MeleeWeapon {
 		return list;
 	}
 
+	//빚은 무기 모양마다 점토 빛깔을 입힌 그림 (ItemSpriteSheet.ETHER_FORMS 순서)
+	public static final int[] FORM_IMAGES = {
+			ItemSpriteSheet.WORN_SHORTSWORD, ItemSpriteSheet.DAGGER, ItemSpriteSheet.GLOVES, ItemSpriteSheet.RAPIER, ItemSpriteSheet.CUDGEL, ItemSpriteSheet.SHORTSWORD, ItemSpriteSheet.HAND_AXE, ItemSpriteSheet.SPEAR, ItemSpriteSheet.QUARTERSTAFF, ItemSpriteSheet.DIRK, ItemSpriteSheet.SICKLE, ItemSpriteSheet.SWORD, ItemSpriteSheet.MACE, ItemSpriteSheet.SCIMITAR, ItemSpriteSheet.ROUND_SHIELD, ItemSpriteSheet.SAI, ItemSpriteSheet.WHIP, ItemSpriteSheet.LONGSWORD, ItemSpriteSheet.BATTLE_AXE, ItemSpriteSheet.FLAIL, ItemSpriteSheet.RUNIC_BLADE, ItemSpriteSheet.ASSASSINS_BLADE, ItemSpriteSheet.CROSSBOW, ItemSpriteSheet.KATANA, ItemSpriteSheet.GREATSWORD, ItemSpriteSheet.WAR_HAMMER, ItemSpriteSheet.GLAIVE, ItemSpriteSheet.GREATAXE, ItemSpriteSheet.GREATSHIELD, ItemSpriteSheet.GAUNTLETS, ItemSpriteSheet.WAR_SCYTHE, ItemSpriteSheet.RIFT_DAGGER, ItemSpriteSheet.KNIGHT_LONGSWORD
+	};
+
+	@Override
+	public int image() {
+		if (formClass != null){
+			MeleeWeapon f = form();
+			if (f != null){
+				for (int i = 0; i < FORM_IMAGES.length; i++){
+					if (FORM_IMAGES[i] == f.image) return ItemSpriteSheet.ETHER_FORM_FIRST + i;
+				}
+			}
+		}
+		return image;
+	}
+
 	//빚은 모양의 성능을 그대로 따름 (강화 수치는 점토의 것)
 	private MeleeWeapon form(){
 		if (form == null && formClass != null){
@@ -193,36 +211,87 @@ public class EtherClay extends MeleeWeapon {
 			@Override
 			public void onSelect( Item item ) {
 				if (!(item instanceof MeleeWeapon) || !itemSelectable( item )) return;
-				MeleeWeapon w = (MeleeWeapon) item;
-				if (w.enchantment == null){
-					w.cursedKnown = true;
-					GLog.w( Messages.get( EtherClay.class, "absorb_nothing", Messages.titleCase( w.trueName() ) ) );
-					return;
-				}
-				boolean purify = hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2;
-				boolean curse = w.enchantment.curse();
-				w.detach( hero.belongings.backpack );
-				if (curse && purify){
-					GLog.i( Messages.get( EtherClay.class, "absorb_purified" ) );
-				} else {
-					clay.enchant( w.enchantment );
-					if (curse || (w.cursed && !purify)){
-						clay.cursed = true;
-						clay.cursedKnown = true;
-						GLog.n( Messages.get( EtherClay.class, "absorb_cursed" ) );
-					} else {
-						GLog.p( Messages.get( EtherClay.class, "absorb_done", w.enchantment.name() ) );
-					}
-				}
-				if (hero.sprite != null){
-					hero.sprite.operate( hero.pos );
-					hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 8 );
-				}
-				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				clay.updateQuickslot();
-				hero.spendAndNext( 1f );
+				confirmAbsorb( hero, (MeleeWeapon) item );
 			}
 		} );
+	}
+
+	//흡수로 오르는 강화 수치: 마법사의 지팡이에 마법 막대를 융합할 때와 같은 식, 단 흡수로는 +3까지만
+	public static final int ABSORB_CAP = 3;
+	public int absorbLevel( MeleeWeapon w ){
+		int mine = trueLevel();
+		int target = Math.max( mine, w.trueLevel() );
+		if (w.trueLevel() >= mine && mine > 0) target++;
+		if (target > mine) target = Math.min( target, Math.max( mine, ABSORB_CAP ) );
+		return target;
+	}
+
+	private void confirmAbsorb( final Hero hero, final MeleeWeapon w ){
+		final int newLvl = absorbLevel( w );
+		final boolean ench = w.enchantment != null;
+		//얻을 게 하나도 없으면 녹이지 않음
+		if (!ench && newLvl <= trueLevel()){
+			w.cursedKnown = true;
+			GLog.w( Messages.get( EtherClay.class, "absorb_nothing", Messages.titleCase( w.trueName() ) ) );
+			return;
+		}
+		String body = Messages.get( EtherClay.class, "absorb_desc" );
+		if (w.levelKnown){
+			body += "\n\n" + Messages.get( EtherClay.class, "absorb_level", newLvl );
+		} else {
+			body += "\n\n" + Messages.get( EtherClay.class, "absorb_unknown" );
+		}
+		if (trueLevel() >= ABSORB_CAP) body += "\n\n" + Messages.get( EtherClay.class, "absorb_cap" );
+		GameScene.show( new WndOptions( new ItemSprite( w ),
+				Messages.titleCase( w.name() ), body,
+				Messages.get( EtherClay.class, "absorb_yes" ), Messages.get( EtherClay.class, "absorb_no" ) ){
+			@Override
+			protected void onSelect( int index ) {
+				if (index == 0) doAbsorb( hero, w );
+			}
+		} );
+	}
+
+	private void doAbsorb( Hero hero, MeleeWeapon w ){
+		boolean purify = hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2;
+		int oldLvl = trueLevel();
+		int newLvl = absorbLevel( w );
+		w.detach( hero.belongings.backpack );
+
+		if (newLvl > oldLvl){
+			level( newLvl );
+			GLog.p( Messages.get( EtherClay.class, "absorb_upgraded", newLvl ) );
+		}
+
+		if (w.enchantment != null){
+			boolean curse = w.enchantment.curse();
+			if (curse && purify){
+				GLog.i( Messages.get( EtherClay.class, "absorb_purified" ) );
+			} else {
+				enchant( w.enchantment );
+				if (curse){
+					cursed = true;
+					cursedKnown = true;
+					GLog.n( Messages.get( EtherClay.class, "absorb_cursed" ) );
+				} else {
+					GLog.p( Messages.get( EtherClay.class, "absorb_done", w.enchantment.name() ) );
+				}
+			}
+		}
+		if (w.cursed && !purify && !cursed){
+			cursed = true;
+			cursedKnown = true;
+			GLog.n( Messages.get( EtherClay.class, "absorb_cursed" ) );
+		}
+		levelKnown = true;
+
+		if (hero.sprite != null){
+			hero.sprite.operate( hero.pos );
+			hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 8 );
+		}
+		Sample.INSTANCE.play( Assets.Sounds.MELD );
+		updateQuickslot();
+		hero.spendAndNext( 1f );
 	}
 
 	//기사의 경례: 적이 보이지 않을 때만. 다음 첫 공격이 강해짐

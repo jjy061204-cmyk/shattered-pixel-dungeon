@@ -31,7 +31,7 @@ public class ItemSpriteSheet {
 
 	private static final int TX_WIDTH = 256;
 	//모드: 아래쪽에 모드 전용 줄(33줄~)을 붙여서 높이를 늘림
-	private static final int TX_HEIGHT = 640;
+	private static final int TX_HEIGHT = 672;   //39~41줄: 에테르 점토 무기 모양
 
 	private static final int WIDTH = TX_WIDTH / SIZE;
 
@@ -961,6 +961,45 @@ public class ItemSpriteSheet {
 		assignItemRect(TTEOKBOKKI, 14, 10);
 		assignItemRect(SUNDAE, 16, 8);
 		assignItemRect(ODENG, 15, 12);
+	}
+
+	//모드: 에테르 점토가 빚은 무기 모양 (원래 무기 그림에 점토 빛깔을 입힘). EtherClay.FORM_IMAGES 순서와 같음
+	private static final int ETHER_FORMS = xy(1, 39);   //48 slots
+	public static final int ETHER_FORM_FIRST = ETHER_FORMS;
+	static{
+		assignItemRect(ETHER_FORMS+0, 13, 13);   //WornShortsword
+		assignItemRect(ETHER_FORMS+1, 12, 13);   //Dagger
+		assignItemRect(ETHER_FORMS+2, 12, 16);   //Gloves
+		assignItemRect(ETHER_FORMS+3, 13, 14);   //Rapier
+		assignItemRect(ETHER_FORMS+4, 15, 15);   //Cudgel
+		assignItemRect(ETHER_FORMS+5, 13, 13);   //Shortsword
+		assignItemRect(ETHER_FORMS+6, 12, 14);   //HandAxe
+		assignItemRect(ETHER_FORMS+7, 16, 16);   //Spear
+		assignItemRect(ETHER_FORMS+8, 16, 16);   //Quarterstaff
+		assignItemRect(ETHER_FORMS+9, 13, 14);   //Dirk
+		assignItemRect(ETHER_FORMS+10, 15, 15);   //Sickle
+		assignItemRect(ETHER_FORMS+11, 14, 14);   //Sword
+		assignItemRect(ETHER_FORMS+12, 15, 15);   //Mace
+		assignItemRect(ETHER_FORMS+13, 13, 16);   //Scimitar
+		assignItemRect(ETHER_FORMS+14, 16, 16);   //RoundShield
+		assignItemRect(ETHER_FORMS+15, 16, 16);   //Sai
+		assignItemRect(ETHER_FORMS+16, 14, 14);   //Whip
+		assignItemRect(ETHER_FORMS+17, 15, 15);   //Longsword
+		assignItemRect(ETHER_FORMS+18, 16, 16);   //BattleAxe
+		assignItemRect(ETHER_FORMS+19, 14, 14);   //Flail
+		assignItemRect(ETHER_FORMS+20, 14, 14);   //RunicBlade
+		assignItemRect(ETHER_FORMS+21, 14, 15);   //AssassinsBlade
+		assignItemRect(ETHER_FORMS+22, 15, 15);   //Crossbow
+		assignItemRect(ETHER_FORMS+23, 15, 16);   //Katana
+		assignItemRect(ETHER_FORMS+24, 16, 16);   //Greatsword
+		assignItemRect(ETHER_FORMS+25, 16, 16);   //WarHammer
+		assignItemRect(ETHER_FORMS+26, 16, 16);   //Glaive
+		assignItemRect(ETHER_FORMS+27, 12, 16);   //Greataxe
+		assignItemRect(ETHER_FORMS+28, 12, 16);   //Greatshield
+		assignItemRect(ETHER_FORMS+29, 13, 15);   //Gauntlet
+		assignItemRect(ETHER_FORMS+30, 14, 15);   //WarScythe
+		assignItemRect(ETHER_FORMS+31, 16, 16);   //RiftDagger
+		assignItemRect(ETHER_FORMS+32, 16, 16);   //KnightLongsword
 	}
 
 	//현대 물품 2 (가게 새 상품)
