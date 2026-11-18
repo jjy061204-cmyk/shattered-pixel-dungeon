@@ -128,7 +128,7 @@ public class SpiritGlyph extends Armor.Glyph {
 				ForestWand.fx( defender, s, "g_rock" );
 				int blocked = damage - damage/2;
 				if (adjacent && blocked >= 2){
-					attacker.damage( Math.round( blocked/2f*pow ), new ForestWand.ElemSource( s ) );
+					attacker.damage( Math.round( blocked/2f*pow ), com.shatteredpixel.shatteredpixeldungeon.actors.elemental.ElementalDamage.of( s ) );
 					if (attacker.sprite != null && attacker.sprite.visible) PixelScene.shake( 1, 0.1f );
 				}
 				return damage/2;
@@ -151,7 +151,7 @@ public class SpiritGlyph extends Armor.Glyph {
 					attacker.sprite.centerEmitter().burst( SparkParticle.FACTORY, 6 );
 					Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 					ForestWand.fx( defender, s, "g_shock" );
-					attacker.damage( Math.max( 1, Math.round( damage/2f*pow ) ), new ForestWand.ElemSource( s ) );
+					attacker.damage( Math.max( 1, Math.round( damage/2f*pow ) ), com.shatteredpixel.shatteredpixeldungeon.actors.elemental.ElementalDamage.of( s ) );
 					ForestWand.elemHit( s, attacker, (0.3f)*pow );
 				}
 				return damage;

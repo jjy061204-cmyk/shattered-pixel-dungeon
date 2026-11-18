@@ -103,6 +103,15 @@ public class FloatingText extends RenderedTextBlock {
 	public static int EXPERIENCE= 20;
 	public static int STRENGTH  = 21;
 
+	//모드: 정령의 속성 피해 (마법 피해와 다른 갈래)
+	public static int WIND_DMG   = 25;
+	public static int NATURE_DMG = 26;
+	public static int EARTH_DMG  = 27;
+	public static int ROCK_DMG   = 28;
+	public static int GOLD_DMG   = 29;
+	public static int DARK_DMG   = 30;
+	public static int CHAOS_DMG  = 31;
+
 	//currency icons
 	public static int GOLD      = 23;
 	public static int ENERGY    = 24;

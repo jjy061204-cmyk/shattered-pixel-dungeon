@@ -9,6 +9,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.elemental.ElementalDamage;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -455,41 +456,20 @@ public class ForestWand extends Weapon {
 		return Random.NormalIntRange( 5 + d, 10 + d*2 );
 	}
 
-	//속성 피해의 출처: 피해 숫자 옆에 물·불·냉기·번개 아이콘이 뜸
-	public static class ElemSource {
-		public final Spirit spirit;
-		public ElemSource( Spirit s ){ spirit = s; }
-		public int icon(){
-			switch (spirit){
-				case WATER: return FloatingText.WATER;
-				case FIRE: case FLAME: return FloatingText.BURNING;
-				case FROST: return FloatingText.FROST;
-				case SHOCK: return FloatingText.SHOCKING;
-				default: return FloatingText.MAGIC_DMG;
-			}
-		}
-	}
-
-	private static Class resistClass( Spirit s ){
-		switch (s){
-			case FIRE: case FLAME: return Burning.class;
-			case FROST: return Frost.class;
-			case SHOCK: return Electricity.class;
-			default: return null;
-		}
-	}
-
 	//속성 피해를 입히고 실제 들어간 양을 돌려줌 (면역·저항 반영, 물은 불의 적에게, 번개는 물에 선 적에게 1.5배)
 	public static int elemHit( Spirit s, Char target, float mul ){
 		if (target == null || !target.isAlive() || mul <= 0) return 0;
-		Class rc = resistClass( s );
+		ElementalDamage src = ElementalDamage.of( s );
+		Class rc = src.legacyResist();
+		if (target.isImmune( src.getClass() )) return 0;
 		if (rc != null && target.isImmune( rc )) return 0;
 		float dmg = elemBase() * mul;
 		if (rc != null) dmg *= target.resist( rc );
+		dmg *= target.resist( src.getClass() );
 		if (s == Spirit.WATER && Char.hasProp( target, Char.Property.FIERY )) dmg *= 1.5f;
 		if (s == Spirit.SHOCK && Dungeon.level.water[target.pos] && !target.flying) dmg *= 1.5f;
 		int d = Math.max( 1, Math.round( dmg ) );
-		target.damage( d, new ElemSource( s ) );
+		target.damage( d, src );
 		return d;
 	}
 

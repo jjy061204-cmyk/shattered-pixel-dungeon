@@ -1063,7 +1063,7 @@ public abstract class Char extends Actor {
 			if (src instanceof Corruption)                              icon = FloatingText.CORRUPTION;
 			if (src instanceof AscensionChallenge)                      icon = FloatingText.AMULET;
 			//모드: 정령의 속성 피해
-			if (src instanceof com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.ElemSource) icon = ((com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.ElemSource) src).icon();
+			if (src instanceof com.shatteredpixel.shatteredpixeldungeon.actors.elemental.ElementalDamage) icon = ((com.shatteredpixel.shatteredpixeldungeon.actors.elemental.ElementalDamage) src).icon();
 
 			if ((icon == FloatingText.PHYS_DMG || icon == FloatingText.PHYS_DMG_NO_BLOCK) && hitMissIcon != -1){
 				if (icon == FloatingText.PHYS_DMG_NO_BLOCK) hitMissIcon += 18; //extra row
