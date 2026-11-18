@@ -1007,6 +1007,7 @@ public enum Talent {
 		@Override public int icon() { return BuffIndicator.MOMENTUM; }
 		@Override public void tintIcon( Image icon ) { icon.hardlight( 0.7f, 0.6f, 1f ); }
 		@Override public float iconFadePercent() { return Math.max(0, 1f - visualcooldown() / 6f); }
+		@Override public String desc() { return Messages.get( this, "desc", dispTurns() ); }
 	}
 	//기사의 경례: 다음 근접 공격이 강해짐 (+2면 반드시 명중)
 	public static class KnightsSaluteBuff extends Buff {
