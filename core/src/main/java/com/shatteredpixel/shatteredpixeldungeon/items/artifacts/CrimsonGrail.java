@@ -816,6 +816,13 @@ public class CrimsonGrail extends Artifact {
 		return !Char.hasProp( ch, Char.Property.UNDEAD ) && !Char.hasProp( ch, Char.Property.INORGANIC );
 	}
 
+	//금고 거울의 성배처럼 생명력을 가득 채움
+	public void fillLife(){
+		charge = lifeCap();
+		partialCharge = 0;
+		updateQuickslot();
+	}
+
 	public static CrimsonGrail of( Hero hero ){
 		if (hero == null || hero.heroClass != HeroClass.VAMPIRE) return null;
 		CrimsonGrail g = hero.belongings.getItem( CrimsonGrail.class );

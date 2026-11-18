@@ -71,7 +71,7 @@ public class VaultMirror extends NPC {
 		Random.pushGenerator(Random.Long());
 			switch (cls) {
 				case ELEMENTALIST: {
-					//모드: 정령사는 정령이 가득 깃든 숲의 완드
+					//모드: 정령사는 정령이 가득 깃든 숲의 완드. 고유 장비라 금고 밖으로 가지고 나갈 수 없음
 					com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand w = new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand();
 					com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit[] strong = {
 							com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit.FLAME,
@@ -81,7 +81,12 @@ public class VaultMirror extends NPC {
 					reward = w.identify(false);
 					break;
 				}
-				case WARRIOR: case VAMPIRE:
+				case VAMPIRE:
+					//모드: 뱀파이어는 +8 핏빛 성배 (생명력 가득). 고유 아이템이라 금고 밖으로 가지고 나갈 수 없음
+					reward = new com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail().upgrade(8).identify(false);
+					((com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail) reward).fillLife();
+					break;
+				case WARRIOR:
 					reward = new BrokenSeal().upgrade().identify(false);
 					((BrokenSeal)reward).setGlyph(Armor.Glyph.random());
 					break;
@@ -122,7 +127,10 @@ public class VaultMirror extends NPC {
 							case ELEMENTALIST:
 								sceneText += Messages.get(VaultMirror.class, "scene_elementalist");
 								break;
-							case WARRIOR: case VAMPIRE:
+							case VAMPIRE:
+								sceneText += Messages.get(VaultMirror.class, "scene_vampire");
+								break;
+							case WARRIOR:
 								sceneText += Messages.get(VaultMirror.class, "scene_warrior");
 								break;
 							case MAGE:
