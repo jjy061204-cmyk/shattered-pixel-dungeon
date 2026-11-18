@@ -213,7 +213,7 @@ public class ScrollOfMetamorphosis extends ExoticScroll {
 			for (HeroClass cls : HeroClass.values()){
 
 				if (cls == HeroClass.VAMPIRE && Dungeon.hero.heroClass != HeroClass.VAMPIRE) continue;
-				if (cls == HeroClass.ELEMENTALIST) continue; //전사의 특성을 빌리고 있어 겹침
+				if (cls == HeroClass.MAGIC_KNIGHT) continue; //전사의 특성을 빌리고 있어 겹침
 
 				ArrayList<LinkedHashMap<Talent, Integer>> clsTalents = new ArrayList<>();
 				Talent.initClassTalents(cls, clsTalents);

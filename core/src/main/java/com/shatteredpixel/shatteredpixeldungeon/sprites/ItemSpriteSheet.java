@@ -999,6 +999,7 @@ public class ItemSpriteSheet {
 	public static final int ORNAMENTAL_SWORD  = MOD_WEAPON+7;   //뱀파이어의 장식용 검
 	public static final int FOREST_WAND       = MOD_WEAPON+8;   //정령사의 숲의 완드
 	public static final int FOREST_BOLT       = MOD_WEAPON+9;   //숲의 완드가 쏘는 정령 탄
+	public static final int ETHER_CLAY        = MOD_WEAPON+10;  //마법 기사의 에테르 점토
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);
 		assignItemRect(KNIGHT_LONGSWORD, 16, 16);
@@ -1006,6 +1007,7 @@ public class ItemSpriteSheet {
 		assignItemRect(SEALED_EXCALIBUR, 16, 16);
 		assignItemRect(ORNAMENTAL_SWORD, 16, 16);
 		assignItemRect(FOREST_WAND, 16, 16);
+		assignItemRect(ETHER_CLAY, 16, 16);
 		assignItemRect(FOREST_BOLT, 9, 9);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);

@@ -110,6 +110,11 @@ public class VaultMirror extends NPC {
 					reward = new HolyTome().upgrade(8).identify(false);
 					((HolyTome) reward).directCharge(8);
 					break;
+				case MAGIC_KNIGHT:
+					//모드: 마법 기사는 마법이 깃든 +3 에테르 점토. 고유 장비라 금고 밖으로 가지고 나갈 수 없음
+					reward = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay().upgrade(3).identify(false);
+					((MeleeWeapon)reward).enchant();
+					break;
 			}
 		Random.popGenerator();
 	}
@@ -126,6 +131,9 @@ public class VaultMirror extends NPC {
 						switch (((Hero) c).heroClass){
 							case ELEMENTALIST:
 								sceneText += Messages.get(VaultMirror.class, "scene_elementalist");
+								break;
+							case MAGIC_KNIGHT:
+								sceneText += Messages.get(VaultMirror.class, "scene_magic_knight");
 								break;
 							case VAMPIRE:
 								sceneText += Messages.get(VaultMirror.class, "scene_vampire");

@@ -955,7 +955,7 @@ public class Badges {
 			case CLERIC:
 				badge = Badge.MASTERY_CLERIC;
 				break;
-			case COLLECTOR: case VAMPIRE: case ELEMENTALIST:
+			case COLLECTOR: case VAMPIRE: case ELEMENTALIST: case MAGIC_KNIGHT:
 				return; //모드 직업은 배지 없음
 		}
 		

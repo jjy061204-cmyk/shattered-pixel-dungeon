@@ -118,6 +118,27 @@ public class HeroSprite extends CharSprite {
 					{7, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 62},
 					//무릎을 굽혀 고개 숙여 인사, 리본·드릴 머리가 따라 흔들림
 					{7, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72}};
+			case MAGIC_KNIGHT: return new int[][]{
+					//숨쉬기: 몸이 내려갔다 올라올 때 머리가 한 박자 늦게, 옆머리·망토 자락이 산들거리고 에테르 점토가 둥실 떠다님. 가끔 눈 깜빡임과 반짝임
+					{12, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 75, 76, 77, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11},
+					//진행 방향으로 몸을 숙이고 통통 튀며 발을 번갈아 내딛음, 망토·옆머리·점토가 뒤로 끌려옴
+					{18, 12, 13, 14, 15, 16, 17, 18, 19},
+					//움찔 → 무릎이 꺾임(점토가 흩어짐) → 기울며 쓰러짐 → 바닥에 누움
+					{12, 20, 21, 22, 23, 24, 25, 26, 27},
+					//점토를 앞으로 모아 → 빛의 칼날로 빚어 세움 → 내려벰(빛의 호) → 잔광 → 흩어짐
+					{20, 28, 29, 30, 31, 32, 33, 34, 35},
+					//살짝 숙여 점토를 손 앞에 모아 만지작거림
+					{12, 36, 37, 38, 39, 40, 41, 37, 38},
+					//떠올라 망토·옆머리가 나부낌
+					{6, 42, 43, 44, 45},
+					//두루마리를 펼쳐 고개를 숙이고 읽음
+					{10, 46, 47, 48, 49, 48, 49, 48, 50, 47, 46},
+					//멈추면 망토·옆머리·점토가 앞으로 쏠렸다 되돌아옴
+					{10, 71, 72, 73, 74},
+					//점토를 손 앞에 모아 동그랗게 빚었다가 반짝이며 다시 풀어 놓음
+					{7, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60},
+					//기사의 경례: 점토를 곧은 빛의 칼날로 빚어 세웠다가 내림
+					{7, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70}};
 			default: return null;
 		}
 	}
@@ -330,7 +351,8 @@ public class HeroSprite extends CharSprite {
 	@Override
 	public synchronized void attack( int cell, Callback callback ) {
 		super.attack( cell, callback );
-		if (look != null && look.hdSheet() != null && parent != null && ch != null && cell != ch.pos){
+		//마법 기사는 도트에 빛의 호가 그려져 있어 따로 이펙트를 얹지 않음
+		if (look != null && look.hdSheet() != null && look != HeroClass.MAGIC_KNIGHT && parent != null && ch != null && cell != ch.pos){
 			parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX( this, cell,
 					look == HeroClass.VAMPIRE ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.SLASH
 							: look == HeroClass.ELEMENTALIST ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.LEAF

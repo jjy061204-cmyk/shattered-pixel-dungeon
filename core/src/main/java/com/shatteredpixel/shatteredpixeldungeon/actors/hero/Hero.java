@@ -2164,6 +2164,9 @@ public class Hero extends Char {
 				attackSkill++;
 				defenseSkill++;
 
+				//모드: 마법 기사의 에테르 점토가 5레벨마다 한 티어씩 자람
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay.onHeroLevelUp( this );
+
 			} else {
 				Buff.prolong(this, Bless.class, Bless.DURATION);
 				this.exp = 0;

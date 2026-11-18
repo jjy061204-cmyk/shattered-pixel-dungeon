@@ -489,6 +489,8 @@ public enum Icons {
 				return new ItemSprite(ItemSpriteSheet.CRIMSON_GRAIL);
 			case ELEMENTALIST:
 				return new ItemSprite(ItemSpriteSheet.FOREST_WAND);
+			case MAGIC_KNIGHT:
+				return new ItemSprite(ItemSpriteSheet.ETHER_CLAY);
 			default:
 				return null;
 		}
