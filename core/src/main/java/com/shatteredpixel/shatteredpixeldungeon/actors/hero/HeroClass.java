@@ -312,6 +312,8 @@ public enum HeroClass {
 		com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay clay = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay();
 		(hero.belongings.weapon = clay).identify();
 		hero.belongings.weapon.activate( hero );
+		//처음부터 퀵슬롯 첫 칸에 넣어 둠 (누르면 바로 빚기)
+		Dungeon.quickslot.setSlot( 0, clay );
 
 		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength().identify();
 		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade().identify();

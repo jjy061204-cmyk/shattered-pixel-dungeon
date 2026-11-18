@@ -262,6 +262,12 @@ public class EtherClay extends MeleeWeapon {
 		}
 	}
 
+	//퀵슬롯에 넣어 한 번 눌러 바로 빚을 수 있게: 기본 행동 = 빚기
+	@Override
+	public String defaultAction() {
+		return AC_SHAPE;
+	}
+
 	//무기 흡수: 가방의 근접 무기를 녹여 그 무기의 마법 부여를 점토로 옮김
 	private void absorb( final Hero hero ){
 		final EtherClay clay = this;
