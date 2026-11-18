@@ -1366,6 +1366,11 @@ public abstract class Level implements Bundlable {
 			if (c instanceof Hero){
 				viewDist *= 1f + 0.25f*((Hero) c).pointsInTalent(Talent.FARSIGHT);
 				viewDist *= EyeOfNewt.visionRangeMultiplier();
+				//모드: 빛나는 점토 - 시야 +1/+2, 어둠 속에서도 최소 4/6칸
+				int glow = ((Hero) c).pointsInTalent(Talent.GLOWING_CLAY);
+				if (glow > 0 && ((Hero) c).belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay){
+					viewDist = Math.max(viewDist + glow, 2 + 2*glow);
+				}
 			}
 			
 			ShadowCaster.castShadow( cx, cy, width(), fieldOfView, blocking, Math.round(viewDist) );

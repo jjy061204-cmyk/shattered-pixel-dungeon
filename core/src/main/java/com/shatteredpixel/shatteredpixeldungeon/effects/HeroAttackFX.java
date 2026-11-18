@@ -18,7 +18,7 @@ import com.watabou.utils.PointF;
 
 //공격 대상 칸에 겹쳐 그리는 6장짜리 이펙트 (effects/hero_fx.png, 48x48 칸)
 // 0줄: 뱀파이어의 은빛 장검 참격, 1줄: 유물수집가의 보랏빛 연금 폭발, 2줄: 정령사의 초록 정령빛과 잎사귀
-// 3줄: 마법 기사의 반투명한 에테르 초승달 참격 (분홍·보라·파랑·하늘빛)
+// 3줄: 마법 기사의 반투명한 에테르 초승달 참격 (분홍→보라→파랑→하늘빛으로 이어지고 바깥 날은 하얗게 빛남, 광채·잔상·섬광·별빛 가루)
 public class HeroAttackFX extends Image {
 
 	public static final int SLASH = 0, ALCHEMY = 1, LEAF = 2, ETHER = 3;

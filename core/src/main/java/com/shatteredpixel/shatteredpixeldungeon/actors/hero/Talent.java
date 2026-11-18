@@ -236,6 +236,13 @@ public enum Talent {
 	//정령 계약자 T3
 	GREATER_VITALITY(302, 3), SPIRIT_GATE(303, 3), SPIRIT_LINK(304, 3),
 
+	//모드: 마법 기사 T1
+	ETHER_MEAL(305), WEAPON_SENSE(306), DEFT_HANDS(307), ETHER_VEIL(308),
+	//마법 기사 T2
+	WEAPON_ABSORB(309), SPELL_CONDENSE(310), FORM_ADAPTATION(311), GLOWING_CLAY(312), KNIGHTS_SALUTE(313),
+	//마법 기사 T3
+	ETHER_TEMPERING(314, 3), LIGHT_FORM(315, 3),
+
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
 	//Ratmogrify T4
@@ -536,6 +543,13 @@ public enum Talent {
 	}
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
+		if (talent == WEAPON_SENSE && !ShardOfOblivion.passiveIDDisabled()){
+			if (hero.belongings.weapon() != null && weaponSense(hero, hero.belongings.weapon())) hero.belongings.weapon().identify();
+			if (hero.belongings.armor() != null && weaponSense(hero, hero.belongings.armor())) hero.belongings.armor().identify();
+		}
+		if (talent == ETHER_TEMPERING){
+			com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay.onTemperingUpgraded(hero);
+		}
 		//for metamorphosis
 		if (talent == IRON_WILL && hero.heroClass != HeroClass.WARRIOR){
 			Buff.affect(hero, BrokenSeal.WarriorShield.class);
@@ -627,6 +641,10 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		if (hero.hasTalent(ETHER_MEAL)){
+			//마력 식사: 다음 근접 공격 2/3번에 마력이 실림
+			EtherCharge.gain(hero, 1 + hero.pointsInTalent(ETHER_MEAL));
+		}
 		if (hero.hasTalent(SPIRITED_MEAL)){
 			//정령의 식사: 다음 정령 탄 3/5발의 정령 능력이 1.5배
 			Buff.affect(hero, SpiritedMeal.class).reset(1 + 2*hero.pointsInTalent(SPIRITED_MEAL));
@@ -835,6 +853,10 @@ public enum Talent {
 	}
 
 	public static void onScrollUsed( Hero hero, int pos, float factor, Class<?extends Item> cls ){
+		if (hero.hasTalent(SPELL_CONDENSE)){
+			//주문 응집: 다음 근접 공격 2/3번에 마력이 실림
+			EtherCharge.gain(hero, Math.round(factor * (1 + hero.pointsInTalent(SPELL_CONDENSE))));
+		}
 		if (hero.hasTalent(INSCRIBED_SPIRITS)
 				&& com.watabou.utils.Random.Float() < factor * hero.pointsInTalent(INSCRIBED_SPIRITS) / 3f){
 			//정령 문자: 1/3, 2/3 확률로 발밑에 강한 정령의 기운이 남음 (깃들이기 촉매)
@@ -919,6 +941,17 @@ public enum Talent {
 	}
 
 	public static void onHeroDamaged( Hero hero ){
+		if (hero.hasTalent(ETHER_VEIL) && hero.isAlive() && hero.HP < hero.HT/2
+				&& hero.buff(EtherVeilCooldown.class) == null){
+			//에테르 막: 최대 체력의 10/15% 방어막, 50턴 대기
+			int shield = Math.max(1, Math.round(hero.HT * (0.05f + 0.05f*hero.pointsInTalent(ETHER_VEIL))));
+			Buff.affect(hero, Barrier.class).setShield(shield);
+			Buff.affect(hero, EtherVeilCooldown.class, 50f);
+			if (hero.sprite != null){
+				new Flare( 6, 24 ).color(0xB8A4FF, true).show( hero.sprite, 1.2f );
+				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);
+			}
+		}
 		if (hero.hasTalent(SPIRIT_WARD) && hero.isAlive() && hero.HP < hero.HT/2
 				&& hero.buff(SpiritWardCooldown.class) == null){
 			//정령의 보호막: 완드 가운데 칸의 정령이 영웅을 감쌈. 최대 체력의 10/15%, 50턴 대기
@@ -947,6 +980,44 @@ public enum Talent {
 	}
 
 	public static class EmergencyChargeCooldown extends FlavourBuff{}
+	//모드: 마법 기사
+	public static class EtherVeilCooldown extends FlavourBuff{}
+	//마력 식사·주문 응집: 다음 근접 공격 몇 번에 마력이 실림
+	public static class EtherCharge extends Buff {
+		{ type = buffType.POSITIVE; }
+		private int left = 0;
+		public static void gain( Hero hero, int n ){
+			if (n <= 0) return;
+			EtherCharge c = Buff.affect(hero, EtherCharge.class);
+			c.left = Math.min(6, c.left + n);
+			if (hero.sprite != null) hero.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 6);
+		}
+		public void use(){ if (--left <= 0) detach(); }
+		@Override public int icon() { return BuffIndicator.WEAPON; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( 0.75f, 0.6f, 1f ); }
+		@Override public String iconTextDisplay() { return Integer.toString( left ); }
+		@Override public String desc() { return Messages.get( this, "desc", left ); }
+		@Override public void storeInBundle( com.watabou.utils.Bundle b ) { super.storeInBundle( b ); b.put( "left", left ); }
+		@Override public void restoreFromBundle( com.watabou.utils.Bundle b ) { super.restoreFromBundle( b ); left = b.getInt( "left" ); }
+	}
+	//형태 적응: 모양을 바꾼 뒤 잠시 정확도·회피 1.25배
+	public static class FormAdaptation extends FlavourBuff {
+		{ type = buffType.POSITIVE; }
+		public static final float BONUS = 1.25f;
+		@Override public int icon() { return BuffIndicator.MOMENTUM; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( 0.7f, 0.6f, 1f ); }
+		@Override public float iconFadePercent() { return Math.max(0, 1f - visualcooldown() / 6f); }
+	}
+	//기사의 경례: 다음 근접 공격이 강해짐 (+2면 반드시 명중)
+	public static class KnightsSaluteBuff extends Buff {
+		{ type = buffType.POSITIVE; }
+		@Override public int icon() { return BuffIndicator.WEAPON; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( 1f, 0.9f, 0.5f ); }
+		@Override public String desc() {
+			return Messages.get( this, Dungeon.hero != null && Dungeon.hero.pointsInTalent(KNIGHTS_SALUTE) >= 2 ? "desc2" : "desc" );
+		}
+	}
+
 	//모드: 정령사
 	public static class SpiritWardCooldown extends FlavourBuff{}
 	public static class SpiritedMeal extends Buff {
@@ -1088,7 +1159,7 @@ public enum Talent {
 	}
 
 	public static void onItemEquipped( Hero hero, Item item ){
-		boolean identify = false;
+		boolean identify = weaponSense(hero, item);
 		if (hero.pointsInTalent(VETERANS_INTUITION) == 2 && item instanceof Armor){
 			identify = true;
 		}
@@ -1117,7 +1188,23 @@ public enum Talent {
 		}
 	}
 
+	//무기 감식: 근접 무기(+1), 갑옷(+2)을 들거나 줍는 즉시 감정
+	private static boolean weaponSense( Hero hero, Item item ){
+		int pts = hero.pointsInTalent(WEAPON_SENSE);
+		if (pts <= 0) return false;
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) return true;
+		return pts >= 2 && item instanceof Armor;
+	}
+
 	public static void onItemCollected( Hero hero, Item item ){
+		if (weaponSense(hero, item) && !item.isIdentified()){
+			if (ShardOfOblivion.passiveIDDisabled()){
+				if (item instanceof Weapon) ((Weapon) item).setIDReady();
+				else if (item instanceof Armor) ((Armor) item).setIDReady();
+			} else {
+				item.identify();
+			}
+		}
 		if (hero.hasTalent(COLLECTORS_INTUITION) && item instanceof Artifact){
 			item.cursedKnown = true;
 			if (hero.pointsInTalent(COLLECTORS_INTUITION) == 2) item.identify();
@@ -1128,6 +1215,26 @@ public enum Talent {
 	}
 
 	public static int onAttackProc( Hero hero, Char enemy, int dmg ){
+
+		//---- 모드: 마법 기사 ----
+		if (!(hero.belongings.attackingWeapon() instanceof MissileWeapon)){
+			KnightsSaluteBuff salute = hero.buff(KnightsSaluteBuff.class);
+			if (salute != null){
+				//기사의 경례: 피해 1.3/1.5배
+				dmg = Math.round(dmg * (hero.pointsInTalent(KNIGHTS_SALUTE) >= 2 ? 1.5f : 1.3f));
+				salute.detach();
+				if (enemy.sprite != null) new Flare( 5, 20 ).color(0xFFF0C0, true).show( enemy.sprite, 0.8f );
+			}
+			EtherCharge charge = hero.buff(EtherCharge.class);
+			if (charge != null){
+				//마력이 실린 공격: 점토 티어에 따라 2~5 ~ 6~13 추가 피해
+				int t = com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay.maxTier(hero);
+				dmg += Random.NormalIntRange(1 + t, 3 + 2*t);
+				charge.use();
+				if (enemy.sprite != null) enemy.sprite.emitter().burst( Speck.factory(Speck.LIGHT), 4 );
+			}
+		}
+		//---------------------------
 
 		//---- 모드: 유물수집가 ----
 		if (hero.hasTalent(RELIC_RESONANCE) && hero.buff(RelicResonanceTracker.class) != null){
@@ -1308,6 +1415,9 @@ public enum Talent {
 			case ELEMENTALIST:
 				Collections.addAll(tierTalents, SPIRITED_MEAL, SPIRIT_INTUITION, CATALYST_SENSE, SPIRIT_WARD);
 				break;
+			case MAGIC_KNIGHT:
+				Collections.addAll(tierTalents, ETHER_MEAL, WEAPON_SENSE, DEFT_HANDS, ETHER_VEIL);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1346,6 +1456,9 @@ public enum Talent {
 			case ELEMENTALIST:
 				Collections.addAll(tierTalents, SPIRIT_FEAST, ELEMENTAL_RESONANCE, INSCRIBED_SPIRITS, SPIRIT_RESONANCE, SPIRIT_RELEASE);
 				break;
+			case MAGIC_KNIGHT:
+				Collections.addAll(tierTalents, WEAPON_ABSORB, SPELL_CONDENSE, FORM_ADAPTATION, GLOWING_CLAY, KNIGHTS_SALUTE);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1383,6 +1496,9 @@ public enum Talent {
 				break;
 			case ELEMENTALIST:
 				Collections.addAll(tierTalents, ELEMENTAL_MASTERY, SPIRIT_BOND);
+				break;
+			case MAGIC_KNIGHT:
+				Collections.addAll(tierTalents, ETHER_TEMPERING, LIGHT_FORM);
 				break;
 		}
 		for (Talent talent : tierTalents){

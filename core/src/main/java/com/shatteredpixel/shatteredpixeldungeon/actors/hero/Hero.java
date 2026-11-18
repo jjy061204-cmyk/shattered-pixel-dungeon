@@ -579,6 +579,15 @@ public class Hero extends Char {
 		if (buff(Scimitar.SwordDance.class) != null){
 			accuracy *= 1.50f;
 		}
+
+		//모드: 마법 기사
+		if (buff(Talent.FormAdaptation.class) != null){
+			accuracy *= Talent.FormAdaptation.BONUS;
+		}
+		if (buff(Talent.KnightsSaluteBuff.class) != null && pointsInTalent(Talent.KNIGHTS_SALUTE) >= 2
+				&& !(wep instanceof MissileWeapon)){
+			return INFINITE_ACCURACY;
+		}
 		
 		if (!RingOfForce.fightingUnarmed(this)) {
 			return Math.max(1, Math.round(attackSkill * accuracy * wep.accuracyFactor( this, target )));
@@ -618,6 +627,11 @@ public class Hero extends Char {
 
 		if (buff(Quarterstaff.DefensiveStance.class) != null){
 			evasion *= 3;
+		}
+
+		//모드: 마법 기사의 형태 적응
+		if (buff(Talent.FormAdaptation.class) != null){
+			evasion *= Talent.FormAdaptation.BONUS;
 		}
 		
 		if (paralysed > 0) {

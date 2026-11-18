@@ -12,7 +12,11 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -32,6 +36,8 @@ import java.util.ArrayList;
 public class EtherClay extends MeleeWeapon {
 
 	public static final String AC_SHAPE = "SHAPE";
+	public static final String AC_ABSORB = "ABSORB";
+	public static final String AC_SALUTE = "SALUTE";
 
 	public static final int MAX_TIER = 5;
 
@@ -50,10 +56,16 @@ public class EtherClay extends MeleeWeapon {
 	private Class<? extends MeleeWeapon> formClass = null;
 	private MeleeWeapon form = null;
 
-	//영웅 레벨로 다룰 수 있는 최고 티어: 5레벨마다 1티어씩
+	//영웅 레벨로 다룰 수 있는 최고 티어: 5레벨마다 1티어씩 (에테르 단련: 4.5/4/3.5레벨마다)
 	public static int maxTier( Hero hero ){
 		int lvl = hero != null ? hero.lvl : 1;
-		return Math.min( MAX_TIER, 1 + lvl/5 );
+		int pts = hero != null ? hero.pointsInTalent( Talent.ETHER_TEMPERING ) : 0;
+		return maxTier( lvl, pts );
+	}
+
+	public static int maxTier( int lvl, int tempering ){
+		float step = 5f - 0.5f*tempering;
+		return Math.min( MAX_TIER, 1 + (int)(lvl / step) );
 	}
 
 	//빚을 수 있는 모양: 그 티어에서 던전에 실제로 나오는 근접 무기
@@ -125,6 +137,8 @@ public class EtherClay extends MeleeWeapon {
 		MeleeWeapon f = form();
 		int req = f != null ? f.STRReq( lvl ) : STRReq( tier, lvl );
 		if (masteryPotionBonus) req -= 2;
+		//가벼운 형상: 1/2/3 낮춤
+		if (Dungeon.hero != null) req -= Dungeon.hero.pointsInTalent( Talent.LIGHT_FORM );
 		return req;
 	}
 
@@ -138,12 +152,16 @@ public class EtherClay extends MeleeWeapon {
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_SHAPE );
+		if (hero.hasTalent( Talent.WEAPON_ABSORB )) actions.add( AC_ABSORB );
+		if (hero.hasTalent( Talent.KNIGHTS_SALUTE )) actions.add( AC_SALUTE );
 		return actions;
 	}
 
 	@Override
 	public String actionName( String action, Hero hero ) {
 		if (action.equals( AC_SHAPE )) return Messages.get( this, "ac_shape" );
+		if (action.equals( AC_ABSORB )) return Messages.get( this, "ac_absorb" );
+		if (action.equals( AC_SALUTE )) return Messages.get( this, "ac_salute" );
 		return super.actionName( action, hero );
 	}
 
@@ -152,6 +170,82 @@ public class EtherClay extends MeleeWeapon {
 		super.execute( hero, action );
 		if (action.equals( AC_SHAPE )){
 			chooseTier( hero );
+		} else if (action.equals( AC_ABSORB )){
+			absorb( hero );
+		} else if (action.equals( AC_SALUTE )){
+			salute( hero );
+		}
+	}
+
+	//무기 흡수: 가방의 근접 무기를 녹여 그 무기의 마법 부여를 점토로 옮김
+	private void absorb( final Hero hero ){
+		final EtherClay clay = this;
+		GameScene.selectItem( new WndBag.ItemSelector() {
+			@Override
+			public String textPrompt() {
+				return Messages.get( EtherClay.class, "absorb_prompt" );
+			}
+			@Override
+			public boolean itemSelectable( Item item ) {
+				return item instanceof MeleeWeapon && !(item instanceof EtherClay)
+						&& !item.unique && !item.isEquipped( hero );
+			}
+			@Override
+			public void onSelect( Item item ) {
+				if (!(item instanceof MeleeWeapon) || !itemSelectable( item )) return;
+				MeleeWeapon w = (MeleeWeapon) item;
+				if (w.enchantment == null){
+					w.cursedKnown = true;
+					GLog.w( Messages.get( EtherClay.class, "absorb_nothing", Messages.titleCase( w.trueName() ) ) );
+					return;
+				}
+				boolean purify = hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2;
+				boolean curse = w.enchantment.curse();
+				w.detach( hero.belongings.backpack );
+				if (curse && purify){
+					GLog.i( Messages.get( EtherClay.class, "absorb_purified" ) );
+				} else {
+					clay.enchant( w.enchantment );
+					if (curse || (w.cursed && !purify)){
+						clay.cursed = true;
+						clay.cursedKnown = true;
+						GLog.n( Messages.get( EtherClay.class, "absorb_cursed" ) );
+					} else {
+						GLog.p( Messages.get( EtherClay.class, "absorb_done", w.enchantment.name() ) );
+					}
+				}
+				if (hero.sprite != null){
+					hero.sprite.operate( hero.pos );
+					hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 8 );
+				}
+				Sample.INSTANCE.play( Assets.Sounds.MELD );
+				clay.updateQuickslot();
+				hero.spendAndNext( 1f );
+			}
+		} );
+	}
+
+	//기사의 경례: 적이 보이지 않을 때만. 다음 첫 공격이 강해짐
+	private void salute( Hero hero ){
+		if (hero.visibleEnemies() > 0){
+			GLog.w( Messages.get( EtherClay.class, "salute_enemies" ) );
+			return;
+		}
+		Buff.affect( hero, Talent.KnightsSaluteBuff.class );
+		if (hero.sprite instanceof HeroSprite){
+			((HeroSprite) hero.sprite).playSpecial( 1 );
+		}
+		hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
+		GLog.p( Messages.get( EtherClay.class, "saluted" ) );
+		hero.spendAndNext( 1f );
+	}
+
+	//능숙한 손놀림: 1 / 0.5 / 0턴
+	public static float shapeTime( Hero hero ){
+		switch (hero.pointsInTalent( Talent.DEFT_HANDS )){
+			case 0: default: return 1f;
+			case 1: return 0.5f;
+			case 2: return 0f;
 		}
 	}
 
@@ -195,14 +289,30 @@ public class EtherClay extends MeleeWeapon {
 					hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 6 );
 				}
 				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				hero.spendAndNext( 1f );
+				//형태 적응: 4/6턴 동안 정확도·회피 상승
+				if (hero.hasTalent( Talent.FORM_ADAPTATION )){
+					Buff.prolong( hero, Talent.FormAdaptation.class, 2 + 2*hero.pointsInTalent( Talent.FORM_ADAPTATION ) );
+				}
+				hero.spendAndNext( shapeTime( hero ) );
 			}
 		} );
 	}
 
 	//영웅이 레벨업할 때: 새 티어에 닿으면 알림
 	public static void onHeroLevelUp( Hero hero ){
-		if (hero.lvl % 5 != 0 || hero.lvl/5 + 1 > MAX_TIER) return;
+		int pts = hero.pointsInTalent( Talent.ETHER_TEMPERING );
+		if (maxTier( hero.lvl, pts ) <= maxTier( hero.lvl - 1, pts )) return;
+		announceTier( hero );
+	}
+
+	//에테르 단련을 찍어 다룰 수 있는 티어가 오르면 알림
+	public static void onTemperingUpgraded( Hero hero ){
+		int pts = hero.pointsInTalent( Talent.ETHER_TEMPERING );
+		if (maxTier( hero.lvl, pts ) <= maxTier( hero.lvl, pts - 1 )) return;
+		announceTier( hero );
+	}
+
+	private static void announceTier( Hero hero ){
 		EtherClay clay = hero.belongings.getItem( EtherClay.class );
 		if (clay == null) return;
 		GLog.p( Messages.get( EtherClay.class, "tier_up", maxTier( hero ) ) );

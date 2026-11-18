@@ -151,6 +151,16 @@ public class HeroSprite extends CharSprite {
 		return a;
 	}
 
+	//모드: 고유 동작을 직접 재생 (마법 기사의 경례 등). 없으면 시전 동작으로 대신함
+	public void playSpecial( int index ){
+		if (specials != null && index >= 0 && index < specials.length){
+			idleTimer = 0;
+			play( specials[index] );
+		} else if (ch != null){
+			operate( ch.pos );
+		}
+	}
+
 	private boolean isSpecial( Animation a ){
 		if (specials == null || a == null) return false;
 		for (Animation s : specials) if (s == a) return true;
