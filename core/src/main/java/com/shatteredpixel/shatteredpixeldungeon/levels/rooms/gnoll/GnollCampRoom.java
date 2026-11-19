@@ -86,8 +86,8 @@ public class GnollCampRoom extends StandardRoom {
 			if (nearGap( level, p ) || nearGap( level, second )) continue;
 			Painter.set( level, p, Terrain.HIGH_GRASS );
 			Painter.set( level, second, Terrain.HIGH_GRASS );
-			tents.add( level.pointToCell( p ) );
-			tents.add( level.pointToCell( second ) );
+			this.tents.add( level.pointToCell( p ) );
+			this.tents.add( level.pointToCell( second ) );
 			tents--;
 		}
 
