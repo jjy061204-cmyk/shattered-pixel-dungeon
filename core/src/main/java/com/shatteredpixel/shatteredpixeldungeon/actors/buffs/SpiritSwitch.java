@@ -47,6 +47,12 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		return BuffIndicator.NONE;   //버프 칸에는 안 보임
 	}
 
+	//게임을 시작하거나 층을 옮겨 화면이 새로 그려질 때 곧바로 버튼을 띄움 (첫 턴을 기다리지 않음)
+	@Override
+	public void fx( boolean on ) {
+		if (on) refreshButton();
+	}
+
 	@Override
 	public boolean act() {
 		refreshButton();
