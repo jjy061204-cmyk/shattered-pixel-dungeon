@@ -60,7 +60,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
-import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SpiritItemParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
@@ -432,19 +431,15 @@ public class ForestWand extends Weapon {
 			return s != null ? ItemSpriteSheet.spiritBolt( s.ordinal() ) : ItemSpriteSheet.FOREST_BOLT;
 		}
 
-		//궤도: 정령 고유 입자와 정령 빛깔의 잔광을 번갈아 남김
+		//궤도: 정령 고유 입자 (탄 그림의 한가운데에서 뿌림)
 		@Override
 		public Emitter emitter() {
 			Emitter e = new Emitter();
 			e.fillTarget = false;
 			Spirit s = active();
-			if (s == null){
-				e.pos( 5, 5 );
-				e.pour( LeafParticle.GENERAL, 0.025f );
-			} else {
-				e.pos( 6, 6 );
-				e.pour( SpiritItemParticle.trail( s ), s.strong ? 0.008f : 0.012f );
-			}
+			if (s == null) e.pos( 5, 5 );
+			else           e.pos( 6, 6 );
+			e.pour( s != null ? s.particle() : LeafParticle.GENERAL, s != null && s.strong ? 0.015f : 0.025f );
 			return e;
 		}
 
@@ -464,18 +459,6 @@ public class ForestWand extends Weapon {
 				case CHAOS: return 720;
 				case RUNE:  return 360;
 				default:    return 0;
-			}
-		}
-
-		//날아가는 빠르기 배율 (번개는 번쩍, 바위는 묵직하게)
-		public float speedFactor(){
-			Spirit s = active();
-			if (s == null) return 1.2f;
-			switch (s){
-				case SHOCK: return 2.2f;
-				case WIND: case SYLPH: return 1.7f;
-				case EARTH: case ROCK: case GNOME: return 1.0f;
-				default: return 1.35f;
 			}
 		}
 

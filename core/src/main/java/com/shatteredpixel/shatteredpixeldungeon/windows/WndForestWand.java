@@ -10,9 +10,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
-import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -35,9 +33,6 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpiritSwitch;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
-import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
-import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
-import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -59,9 +54,15 @@ public class WndForestWand extends Window {
 	private static final int CARD_S = 28;     //양옆(저장) 칸
 	private static final int CARD_GAP = 7;
 
-	private static final int IMBUE_TINT  = 0x8FE068;   //깃들이기(촉매 → 완드): 풀빛
-	private static final int BESTOW_TINT = 0xFFD060;   //부여(완드 → 장비): 금빛
 	private static final int ACTIVE_GOLD = 0xFFE9A0;   //발현 칸
+
+	//버튼 빛깔표: 테두리 · 바탕 · 위 빛줄 · 아래 그림자 · 글씨
+	private static final int UI_BASE = 0x1A1815;
+	private static final int[] PAL_GOLD    = palette( 0xF4C850, true );    //부여(완드 → 장비): 금빛
+	private static final int[] PAL_GREEN   = palette( 0x98DC70, true );    //깃들이기(촉매 → 완드): 풀빛
+	private static final int[] PAL_NEUTRAL = palette( 0x948E80, false );
+	private static final int[] PAL_DANGER  = palette( 0xE08470, false );   //풀어 주기
+	private static final int[] PAL_OFF     = { 0x4C4942, 0x262420, 0x2E2C28, 0x1E1C19, 0x7E7A72 };
 	private static final int TEXT_DIM    = 0xB4B4B4;
 
 	private final ForestWand wand;
@@ -96,13 +97,13 @@ public class WndForestWand extends Window {
 		title.hardlight( TITLE_COLOR );
 		title.setPos( 19, (16 - title.height()) / 2f );
 		add( title );
-		IconButton help = new IconButton( Icons.get( Icons.INFO ) ){
+		UiButton help = new UiButton( "?", 8, PAL_NEUTRAL ){
 			@Override
 			protected void onClick() {
 				showHelp();
 			}
 		};
-		help.setRect( WIDTH - 16, 0, 16, 16 );
+		help.setRect( WIDTH - 14, 1, 14, 14 );
 		add( help );
 		float y = 16 + 7;
 
@@ -175,26 +176,27 @@ public class WndForestWand extends Window {
 			for (int k = 0; k < keys.size(); k++){
 				final String key = keys.get( k );
 				String label = Messages.get( this, "act_" + key );
-				StyledButton b;
-				if (key.equals( "bestow" )){
-					b = new TintButton( BESTOW_TINT, label ){
-						@Override
-						protected void onClick() {
-							doSlotAction( sel, key );
-						}
-					};
-				} else {
-					b = new StyledButton( Chrome.Type.GREY_BUTTON_TR, label, 7 ){
-						@Override
-						protected void onClick() {
-							doSlotAction( sel, key );
-						}
-					};
-					if (key.equals( "release" )) b.textColor( 0xFF9A8A );
-					if (key.equals( "materialize" )) b.textColor( s.color );
-					//이미 가운데 칸이면 '발현'은 꺼 둠 (자리는 그대로 두어 버튼이 움직이지 않게)
-					if (key.equals( "to_center" ) && sel == ForestWand.CENTER) b.enable( false );
+				int[] pal;
+				switch (key){
+					case "bestow":      pal = PAL_GOLD; break;
+					case "materialize": pal = palette( s.color, true ); break;
+					case "release":     pal = PAL_DANGER; break;
+					default:            pal = PAL_NEUTRAL; break;
 				}
+				UiButton b = new UiButton( label, key.equals( "bestow" ) ? 8 : 7, pal ){
+					@Override
+					protected void onClick() {
+						doSlotAction( sel, key );
+					}
+				};
+				//부여 버튼에는 옮길 정령의 아이콘
+				if (key.equals( "bestow" )){
+					Image si = new Image( Assets.Sprites.ITEM_ICONS );
+					si.frame( ItemSpriteSheet.Icons.film.get( s.icon() ) );
+					b.icon( si );
+				}
+				//이미 가운데 칸이면 '발현'은 꺼 둠 (자리는 그대로 두어 버튼이 움직이지 않게)
+				if (key.equals( "to_center" ) && sel == ForestWand.CENTER) b.enable( false );
 				b.setRect( (k % perRow) * (bw + GAP), y + (k / perRow) * (BTN_H + GAP), bw, BTN_H );
 				add( b );
 			}
@@ -209,7 +211,7 @@ public class WndForestWand extends Window {
 
 		boolean full = wand.freeSlot() < 0;
 		float hw = (WIDTH - GAP) / 2f;
-		TintButton imbueBtn = new TintButton( IMBUE_TINT, Messages.get( this, full ? "btn_imbue_full" : "btn_imbue" ) ){
+		UiButton imbueBtn = new UiButton( Messages.get( this, full ? "btn_imbue_full" : "btn_imbue" ), 8, PAL_GREEN ){
 			@Override
 			protected void onClick() {
 				imbue();
@@ -219,7 +221,7 @@ public class WndForestWand extends Window {
 		imbueBtn.setRect( 0, y, hw, BTN_H );
 		add( imbueBtn );
 
-		StyledButton recallBtn = new StyledButton( Chrome.Type.GREY_BUTTON_TR, Messages.get( this, "btn_recall" ), 8 ){
+		UiButton recallBtn = new UiButton( Messages.get( this, "btn_recall" ), 8, PAL_NEUTRAL ){
 			@Override
 			protected void onClick() {
 				recall();
@@ -232,7 +234,7 @@ public class WndForestWand extends Window {
 
 		//정령 계약자: 실체화한 상급 정령을 완드로 거둠
 		if (!ForestWand.materializedSpirits().isEmpty()){
-			StyledButton unmat = new StyledButton( Chrome.Type.GREY_BUTTON_TR, Messages.get( this, "unmaterialize" ), 7 ){
+			UiButton unmat = new UiButton( Messages.get( this, "unmaterialize" ), 7, PAL_NEUTRAL ){
 				@Override
 				protected void onClick() {
 					hide();
@@ -331,6 +333,7 @@ public class WndForestWand extends Window {
 		protected void onPointerDown() {
 			super.onPointerDown();
 			bg.color( brighten( bgColor & 0xFFFFFF ) );
+			Sample.INSTANCE.play( Assets.Sounds.CLICK );
 		}
 
 		@Override
@@ -347,30 +350,106 @@ public class WndForestWand extends Window {
 		}
 	}
 
-	//풀빛·금빛 버튼 (꺼지면 회색)
-	private static class TintButton extends StyledButton {
-		private final float tr, tg, tb;
-		TintButton( int tint, String label ){
-			super( Chrome.Type.GREY_BUTTON, label, 8 );
-			tr = ((tint >> 16) & 0xFF) / 255f; tg = ((tint >> 8) & 0xFF) / 255f; tb = (tint & 0xFF) / 255f;
-			bg.hardlight( tr, tg, tb );
+	//납작한 버튼: 모서리를 깎은 1칸 테두리 + 위쪽 빛줄·아래쪽 그림자 + (있으면) 작은 아이콘
+	private static class UiButton extends Button {
+
+		private final ColorBlock top, bottom, left, right, fill, hi, lo;
+		private final RenderedTextBlock label;
+		private Image icon;
+		private final int[] pal;
+		private boolean enabled = true;
+
+		UiButton( String text, int size, int[] pal ){
+			super();
+			this.pal = pal;
+			fill = block();
+			hi = block();
+			lo = block();
+			top = block();
+			bottom = block();
+			left = block();
+			right = block();
+			label = PixelScene.renderTextBlock( text, size );
+			add( label );
+			paint( pal );
 		}
-		@Override
-		public void enable( boolean value ) {
-			super.enable( value );
-			if (value) bg.hardlight( tr, tg, tb );
-			else       bg.hardlight( 0.45f, 0.45f, 0.45f );
+
+		private ColorBlock block(){
+			ColorBlock b = new ColorBlock( 1, 1, 0xFFFFFFFF );
+			add( b );
+			return b;
 		}
+
+		private void paint( int[] p ){
+			top.color( p[0] ); bottom.color( p[0] ); left.color( p[0] ); right.color( p[0] );
+			fill.color( p[1] );
+			hi.color( p[2] );
+			lo.color( p[3] );
+			label.hardlight( p[4] );
+		}
+
+		void icon( Image img ){
+			icon = img;
+			add( icon );
+		}
+
+		void enable( boolean value ){
+			enabled = value;
+			active = value;
+			paint( value ? pal : PAL_OFF );
+			if (icon != null) icon.alpha( value ? 1f : 0.35f );
+		}
+
 		@Override
 		protected void onPointerDown() {
-			super.onPointerDown();
-			if (active) bg.hardlight( Math.min( 1f, tr * 1.25f ), Math.min( 1f, tg * 1.25f ), Math.min( 1f, tb * 1.25f ) );
+			fill.color( mix( pal[1], 0xFFFFFF, 0.12f ) );
+			hi.color( mix( pal[2], 0xFFFFFF, 0.18f ) );
+			Sample.INSTANCE.play( Assets.Sounds.CLICK );
 		}
+
 		@Override
 		protected void onPointerUp() {
-			super.onPointerUp();
-			if (active) bg.hardlight( tr, tg, tb );
+			if (enabled) paint( pal );
 		}
+
+		@Override
+		protected void layout() {
+			super.layout();
+			top.size( width - 2, 1 );     top.x = x + 1;          top.y = y;
+			bottom.size( width - 2, 1 );  bottom.x = x + 1;       bottom.y = y + height - 1;
+			left.size( 1, height - 2 );   left.x = x;             left.y = y + 1;
+			right.size( 1, height - 2 );  right.x = x + width - 1; right.y = y + 1;
+			fill.size( width - 2, height - 2 ); fill.x = x + 1;   fill.y = y + 1;
+			hi.size( width - 2, 1 );      hi.x = x + 1;           hi.y = y + 1;
+			lo.size( width - 2, 1 );      lo.x = x + 1;           lo.y = y + height - 2;
+
+			float cw = label.width() + (icon != null ? icon.width() + 2 : 0);
+			float cx = x + (width - cw) / 2f;
+			if (icon != null){
+				icon.x = cx;
+				icon.y = y + (height - icon.height()) / 2f;
+				PixelScene.align( icon );
+				cx += icon.width() + 2;
+			}
+			label.setPos( cx, y + (height - label.height()) / 2f );
+			PixelScene.align( label );
+		}
+	}
+
+	private static int mix( int a, int b, float t ){
+		int ra = (a >> 16) & 0xFF, ga = (a >> 8) & 0xFF, ba = a & 0xFF;
+		int rb = (b >> 16) & 0xFF, gb = (b >> 8) & 0xFF, bb = b & 0xFF;
+		return ((int)(ra + (rb - ra)*t) << 16) | ((int)(ga + (gb - ga)*t) << 8) | (int)(ba + (bb - ba)*t);
+	}
+
+	//강조색 하나로 버튼 빛깔표를 만듦 (filled: 바탕까지 물든 주 버튼 / 아니면 테두리만 물든 보조 버튼)
+	private static int[] palette( int accent, boolean filled ){
+		return new int[]{
+				mix( accent, 0x000000, 0.12f ),
+				mix( accent, UI_BASE, filled ? 0.56f : 0.86f ),
+				mix( accent, UI_BASE, filled ? 0.42f : 0.74f ),
+				mix( accent, 0x000000, filled ? 0.78f : 0.86f ),
+				mix( accent, 0xFFFFFF, filled ? 0.42f : 0.62f ) };
 	}
 
 	//도움말: 고른 정령의 자세한 능력 + 각 버튼이 하는 일

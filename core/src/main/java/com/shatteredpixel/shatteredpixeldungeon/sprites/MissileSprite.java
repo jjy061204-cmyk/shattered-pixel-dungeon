@@ -171,9 +171,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 				|| Dungeon.hero.belongings.secondWep() instanceof Crossbow)){
 			speed *= 3f;
 			
-		} else if (item instanceof ForestWand.SpiritBolt){
-			speed *= ((ForestWand.SpiritBolt) item).speedFactor();
-
 		} else if (item instanceof SpiritBow.SpiritArrow
 				|| item instanceof ScorpioSprite.ScorpioShot
 				|| item instanceof TenguSprite.TenguShuriken){
