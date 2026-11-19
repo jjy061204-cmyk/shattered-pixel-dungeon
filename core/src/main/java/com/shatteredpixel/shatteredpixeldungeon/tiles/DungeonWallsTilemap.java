@@ -110,6 +110,9 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 			return DungeonTileSheet.ALCHEMY_POT_OVERHANG;
 		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.BARRICADE){
 			return DungeonTileSheet.BARRICADE_OVERHANG;
+		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.HIGH_GRASS
+				&& com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isTent(pos + mapWidth)){
+			return DungeonTileSheet.getVisualWithAlts(DungeonTileSheet.MINE_BOULDER_OVERHANG, pos + mapWidth);
 		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.HIGH_GRASS){
 			return DungeonTileSheet.getVisualWithAlts(DungeonTileSheet.HIGH_GRASS_OVERHANG, pos + mapWidth);
 		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.FURROWED_GRASS){

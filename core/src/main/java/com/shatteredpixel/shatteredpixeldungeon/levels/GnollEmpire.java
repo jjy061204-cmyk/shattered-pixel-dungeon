@@ -64,6 +64,13 @@ public class GnollEmpire {
 				|| ch instanceof GnollGuard || ch instanceof GnollSapper || ch instanceof GnollGeomancer;
 	}
 
+	//천막 칸인지 (긴 풀 지형이지만 천막으로 그리고 부름)
+	public static boolean isTent( int pos ){
+		Level l = Dungeon.level;
+		return l instanceof GnollEmpireLevel && pos >= 0 && pos < l.length()
+				&& l.map[pos] == Terrain.HIGH_GRASS && ((GnollEmpireLevel) l).tents.contains( pos );
+	}
+
 	//pos에서 가장 가까운, 아직 멀쩡한 경보 북 (range칸 안)
 	public static WarDrum nearestDrum( int pos, int range ){
 		if (Dungeon.level == null) return null;
@@ -147,9 +154,6 @@ public class GnollEmpire {
 	public static String tileName( int tile ){
 		switch (tile){
 			case Terrain.BARRICADE:      return Messages.get( GnollEmpire.class, "palisade_name" );
-			case Terrain.HIGH_GRASS:     return Messages.get( GnollEmpire.class, "tent_name" );
-			case Terrain.FURROWED_GRASS: return Messages.get( GnollEmpire.class, "tent_name" );
-			case Terrain.GRASS:          return Messages.get( GnollEmpire.class, "straw_name" );
 			case Terrain.STATUE:         return Messages.get( GnollEmpire.class, "totem_name" );
 			case Terrain.STATUE_SP:      return Messages.get( GnollEmpire.class, "fire_name" );
 			case Terrain.REGION_DECO:
@@ -163,8 +167,6 @@ public class GnollEmpire {
 	public static String tileDesc( int tile ){
 		switch (tile){
 			case Terrain.BARRICADE:      return Messages.get( GnollEmpire.class, "palisade_desc" );
-			case Terrain.HIGH_GRASS:     return Messages.get( GnollEmpire.class, "tent_desc" );
-			case Terrain.FURROWED_GRASS: return Messages.get( GnollEmpire.class, "tent_desc" );
 			case Terrain.STATUE:         return Messages.get( GnollEmpire.class, "totem_desc" );
 			case Terrain.STATUE_SP:      return Messages.get( GnollEmpire.class, "fire_desc" );
 			case Terrain.REGION_DECO:

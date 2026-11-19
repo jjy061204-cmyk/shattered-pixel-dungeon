@@ -66,6 +66,11 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 			return DungeonTileSheet.stitchChasmTile( pos > mapWidth ? map[pos - mapWidth] : -1);
 		}
 
+		//모드: 놀 제국 천막 (긴 풀 칸이지만 따로 그림)
+		if (tile == Terrain.HIGH_GRASS && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isTent(pos)){
+			return DungeonTileSheet.getVisualWithAlts(flat ? DungeonTileSheet.FLAT_MINE_BOULDER : DungeonTileSheet.RAISED_MINE_BOULDER, pos);
+		}
+
 		if (!flat) {
 			if ((DungeonTileSheet.doorTile(tile))) {
 				return DungeonTileSheet.getRaisedDoorTile(tile, map[pos - mapWidth]);

@@ -113,6 +113,8 @@ public class WndInfoCell extends Window {
 
 		if (customTile != null && customTile.name(x, y) != null){
 			return customTile.name(x, y);
+		} else if (com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isTent(cell)){
+			return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.class, "tent_name");
 		} else {
 			return Dungeon.level.tileName(Dungeon.level.map[cell]);
 		}
@@ -162,6 +164,8 @@ public class WndInfoCell extends Window {
 				desc += Dungeon.level.tileDesc(Dungeon.level.map[cell]);
 			}
 
+		} else if (com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isTent(cell)){
+			desc += com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.class, "tent_desc");
 		} else {
 
 			desc += Dungeon.level.tileDesc(Dungeon.level.map[cell]);

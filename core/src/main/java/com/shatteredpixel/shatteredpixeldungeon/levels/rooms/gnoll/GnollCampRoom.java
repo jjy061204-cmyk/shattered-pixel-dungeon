@@ -26,6 +26,7 @@ public class GnollCampRoom extends StandardRoom {
 
 	public int drum = -1;
 	public int cage = -1;
+	public java.util.ArrayList<Integer> tents = new java.util.ArrayList<>();
 	private int fire = -1;
 
 	@Override
@@ -45,6 +46,7 @@ public class GnollCampRoom extends StandardRoom {
 
 	@Override
 	public void paint( Level level ) {
+		tents.clear();
 		Painter.fill( level, this, Terrain.WALL );
 		//방 안쪽 첫 줄은 방책, 그 안은 캠프
 		Painter.fill( level, this, 1, Terrain.BARRICADE );
@@ -84,6 +86,8 @@ public class GnollCampRoom extends StandardRoom {
 			if (nearGap( level, p ) || nearGap( level, second )) continue;
 			Painter.set( level, p, Terrain.HIGH_GRASS );
 			Painter.set( level, second, Terrain.HIGH_GRASS );
+			tents.add( level.pointToCell( p ) );
+			tents.add( level.pointToCell( second ) );
 			tents--;
 		}
 

@@ -79,6 +79,15 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 			return -1;
 		}
 
+		//모드: 놀 제국은 방책·토템·모닥불·고철 더미·천막을 자체 타일에 그려 두었으므로 동굴 장식을 겹치지 않음 (풀은 그대로)
+		if (com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isEmpireLevel(Dungeon.level)){
+			if (tile == Terrain.BARRICADE || tile == Terrain.STATUE || tile == Terrain.STATUE_SP
+					|| tile == Terrain.REGION_DECO || tile == Terrain.REGION_DECO_ALT
+					|| (tile == Terrain.HIGH_GRASS && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isTent(pos))){
+				return -1;
+			}
+		}
+
 		int stage = (Dungeon.depth-1)/5;
 		if (Dungeon.depth == 21 && Dungeon.level instanceof LastShopLevel) stage--;
 		stage = Math.min(stage, 4);

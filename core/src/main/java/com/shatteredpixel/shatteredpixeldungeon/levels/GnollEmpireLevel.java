@@ -57,6 +57,8 @@ public class GnollEmpireLevel extends CavesLevel {
 
 	//망루 칸 (서 있는 쪽은 시야 +2)
 	public ArrayList<Integer> towers = new ArrayList<>();
+	//천막 칸 (긴 풀 지형, 캠프 방에만 있음)
+	public ArrayList<Integer> tents = new ArrayList<>();
 	//아직 닫혀 있는 요새 성문
 	public ArrayList<Integer> gates = new ArrayList<>();
 	//문지기가 전리품 창고 열쇠를 가지고 있는지, 이미 떨어뜨렸는지
@@ -164,6 +166,7 @@ public class GnollEmpireLevel extends CavesLevel {
 			} else if (r instanceof GnollCampRoom){
 				if (addProp( new WarDrum(), ((GnollCampRoom) r).drum )) drums++;
 				addProp( GnollCage.random(), ((GnollCampRoom) r).cage );
+				tents.addAll( ((GnollCampRoom) r).tents );
 			} else if (r instanceof ScrapWorkshopRoom){
 				for (int c : ((ScrapWorkshopRoom) r).barricades){
 					addProp( new ScrapBarricade(), c );
@@ -392,6 +395,7 @@ public class GnollEmpireLevel extends CavesLevel {
 
 	// ── 저장 ──
 
+	private static final String TENTS = "tents";
 	private static final String TOWERS = "towers";
 	private static final String GATES = "gates";
 	private static final String KEY_HELD = "key_held";
@@ -405,6 +409,9 @@ public class GnollEmpireLevel extends CavesLevel {
 		int[] t = new int[towers.size()];
 		for (int i = 0; i < t.length; i++) t[i] = towers.get( i );
 		bundle.put( TOWERS, t );
+		int[] tn = new int[tents.size()];
+		for (int i = 0; i < tn.length; i++) tn[i] = tents.get( i );
+		bundle.put( TENTS, tn );
 		int[] g = new int[gates.size()];
 		for (int i = 0; i < g.length; i++) g[i] = gates.get( i );
 		bundle.put( GATES, g );
@@ -419,6 +426,8 @@ public class GnollEmpireLevel extends CavesLevel {
 		//성문 목록을 먼저 읽어 두어야 지형 판정(buildFlagMaps)에 반영됨
 		towers.clear();
 		gates.clear();
+		tents.clear();
+		if (bundle.contains( TENTS )) for (int t : bundle.getIntArray( TENTS )) tents.add( t );
 		if (bundle.contains( TOWERS )) for (int t : bundle.getIntArray( TOWERS )) towers.add( t );
 		if (bundle.contains( GATES )) for (int g : bundle.getIntArray( GATES )) gates.add( g );
 		keyHeld = bundle.getBoolean( KEY_HELD );
