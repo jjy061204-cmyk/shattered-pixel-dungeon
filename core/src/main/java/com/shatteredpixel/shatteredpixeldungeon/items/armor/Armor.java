@@ -655,6 +655,9 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public Emitter emitter() {
+		if (glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph){
+			return ((com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) glyph).itemEmitter();
+		}
 		if (seal == null) return super.emitter();
 		Emitter emitter = new Emitter();
 		emitter.pos(ItemSpriteSheet.film.width(image)/2f + 2f, ItemSpriteSheet.film.height(image)/3f);

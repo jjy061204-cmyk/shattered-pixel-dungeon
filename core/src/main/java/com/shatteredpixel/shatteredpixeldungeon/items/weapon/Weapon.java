@@ -514,6 +514,14 @@ abstract public class Weapon extends KindOfWeapon {
 	private static ItemSprite.Glowing HOLY = new ItemSprite.Glowing( 0xFFFF00 );
 
 	@Override
+	public com.watabou.noosa.particles.Emitter emitter() {
+		if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant){
+			return ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) enchantment).itemEmitter();
+		}
+		return super.emitter();
+	}
+
+	@Override
 	public ItemSprite.Glowing glowing() {
 		if (isEquipped(Dungeon.hero) && !hasCurseEnchant() && Dungeon.hero.buff(HolyWeapon.HolyWepBuff.class) != null
 				&& (Dungeon.hero.subClass != HeroSubClass.PALADIN || enchantment == null)){

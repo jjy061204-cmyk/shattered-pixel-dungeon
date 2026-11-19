@@ -154,7 +154,16 @@ public class ForestWand extends Weapon {
 		}
 
 		public ItemSprite.Glowing glowing(){
-			return new ItemSprite.Glowing( color, strong ? 0.8f : 1.3f );
+			return glowing( null );
+		}
+
+		//모드: 장비에 깃든 정령의 빛. 늘 은은하게 물들어 있고, 정령이 둘이면 두 색이 번갈아 빛남
+		public ItemSprite.Glowing glowing( Spirit other ){
+			ItemSprite.Glowing g = new ItemSprite.Glowing( color, strong ? 0.7f : 1.0f );
+			g.min = strong ? 0.22f : 0.15f;
+			g.max = strong ? 0.75f : 0.65f;
+			if (other != null && other != this) g.color2 = other.color;
+			return g;
 		}
 
 		//작은 정령 아이콘 (퀵슬롯·정령 관리 창·정령 바꾸기 버튼)

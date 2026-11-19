@@ -83,7 +83,16 @@ public class SpiritEnchant extends Weapon.Enchantment {
 
 	@Override
 	public ItemSprite.Glowing glowing() {
-		return spirit.glowing();
+		return spirit.glowing( spirit2 );
+	}
+
+	//모드: 인벤토리·바닥에서 장비 그림 위로 피어오르는 정령 입자
+	public com.watabou.noosa.particles.Emitter itemEmitter(){
+		com.watabou.noosa.particles.Emitter e = new com.watabou.noosa.particles.Emitter();
+		boolean strong = spirit.strong || (spirit2 != null && spirit2.strong);
+		e.pour( com.shatteredpixel.shatteredpixeldungeon.effects.particles.SpiritItemParticle.factory( spirit, spirit2 ),
+				(strong ? 0.11f : 0.16f) * (spirit2 != null ? 0.8f : 1f) );
+		return e;
 	}
 
 	@Override

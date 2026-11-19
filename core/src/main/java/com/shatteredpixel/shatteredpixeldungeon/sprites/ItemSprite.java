@@ -62,6 +62,7 @@ public class ItemSprite extends MovieClip {
 	protected Emitter emitter;
 	private float phase;
 	private boolean glowUp;
+	private boolean glowAlt;
 	
 	private float dropInterval;
 
@@ -385,15 +386,22 @@ public class ItemSprite extends MovieClip {
 				
 				glowUp = true;
 				phase = 0;
+				if (glowing.color2 != -1) glowAlt = !glowAlt;
 				
 			}
 			
-			float value = phase / glowing.period * 0.6f;
+			float value = glowing.min + phase / glowing.period * (glowing.max - glowing.min);
 			
 			rm = gm = bm = 1 - value;
-			ra = glowing.red * value;
-			ga = glowing.green * value;
-			ba = glowing.blue * value;
+			if (glowing.color2 != -1 && glowAlt){
+				ra = ((glowing.color2 >> 16) & 0xFF) / 255f * value;
+				ga = ((glowing.color2 >> 8) & 0xFF) / 255f * value;
+				ba = (glowing.color2 & 0xFF) / 255f * value;
+			} else {
+				ra = glowing.red * value;
+				ga = glowing.green * value;
+				ba = glowing.blue * value;
+			}
 		}
 	}
 
@@ -412,6 +420,11 @@ public class ItemSprite extends MovieClip {
 		public float green;
 		public float blue;
 		public float period;
+
+		//모드: 두 색을 번갈아 빛내기(정령 둘), 은은한 바탕빛(min)·최대 세기(max)
+		public int color2 = -1;
+		public float min = 0f;
+		public float max = 0.6f;
 		
 		public Glowing( int color ) {
 			this( color, 1f );

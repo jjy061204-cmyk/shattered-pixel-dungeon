@@ -403,7 +403,6 @@ public class WndForestWand extends Window {
 		Enchanting.show( hero, item );
 		ForestWand.imbueFx( hero.pos, s );
 		Sample.INSTANCE.play( Assets.Sounds.MELD );
-		SpiritSwitch.refreshAuraOf( hero );
 		boolean pair = spiritsOn( item ) >= 2;
 		GLog.p( Messages.get( WndForestWand.class, pair ? "bestowed_pair" : "bestowed", s.title(), item.trueName() ) );
 		hero.sprite.operate( hero.pos );

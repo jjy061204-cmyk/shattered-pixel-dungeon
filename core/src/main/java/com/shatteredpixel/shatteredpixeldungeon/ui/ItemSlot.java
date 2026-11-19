@@ -58,6 +58,8 @@ public class ItemSlot extends Button {
 	protected BitmapText status;
 	protected BitmapText extra;
 	protected Image      itemIcon;
+	//모드: 정령이 깃든 장비 왼쪽 아래에 정령 아이콘
+	protected java.util.ArrayList<Image> spiritIcons = new java.util.ArrayList<>();
 	protected BitmapText level;
 	
 	private static final String TXT_STRENGTH	= ":%d";
@@ -164,6 +166,13 @@ public class ItemSlot extends Button {
 			PixelScene.align(itemIcon);
 		}
 		
+		for (int i = 0; i < spiritIcons.size(); i++){
+			Image ic = spiritIcons.get( i );
+			ic.x = x + margin.left + i * (ic.width() - 1);
+			ic.y = y + height - ic.height() - margin.bottom;
+			PixelScene.align( ic );
+		}
+
 		if (level != null) {
 			level.x = x + (width - level.width()) - margin.right;
 			level.y = y + (height - level.baseLine() - 1) - margin.bottom;
@@ -178,6 +187,7 @@ public class ItemSlot extends Button {
 		if (extra != null)      extra.alpha(value);
 		if (status != null)     status.alpha(value);
 		if (itemIcon != null)   itemIcon.alpha(value);
+		for (Image ic : spiritIcons) ic.alpha(value);
 		if (level != null)      level.alpha(value);
 	}
 
@@ -223,6 +233,8 @@ public class ItemSlot extends Button {
 			remove(itemIcon);
 			itemIcon = null;
 		}
+		for (Image ic : spiritIcons) remove( ic );
+		spiritIcons.clear();
 
 		if (item == null){
 			status.visible = extra.visible = level.visible = false;
@@ -276,6 +288,15 @@ public class ItemSlot extends Button {
 
 		}
 
+		for (com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit sp : spiritsOf( item )){
+			if (sp == null) continue;
+			Image ic = new Image( Assets.Sprites.ITEM_ICONS );
+			ic.frame( ItemSpriteSheet.Icons.film.get( sp.icon() ) );
+			if (!active) ic.alpha( DISABLED );
+			add( ic );
+			spiritIcons.add( ic );
+		}
+
 		int trueLvl = item.visiblyUpgraded();
 		int buffedLvl = item.buffedVisiblyUpgraded();
 
@@ -304,6 +325,20 @@ public class ItemSlot extends Button {
 		layout();
 	}
 	
+	private static com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit[] spiritsOf( Item item ){
+		if (item instanceof Weapon && ((Weapon) item).enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant){
+			com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant e =
+					(com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) ((Weapon) item).enchantment;
+			return new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit[]{ e.spirit, e.spirit2 };
+		}
+		if (item instanceof Armor && ((Armor) item).glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph){
+			com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph g =
+					(com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) ((Armor) item).glyph;
+			return new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit[]{ g.spirit, g.spirit2 };
+		}
+		return new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit[0];
+	}
+
 	public void enable( boolean value ) {
 		
 		active = value;
@@ -321,6 +356,7 @@ public class ItemSlot extends Button {
 		extra.alpha( alpha );
 		level.alpha( alpha );
 		if (itemIcon != null) itemIcon.alpha( alpha );
+		for (Image ic : spiritIcons) ic.alpha( alpha );
 	}
 
 	public void showExtraInfo( boolean show ){
