@@ -88,7 +88,7 @@ public class GnollWarlord extends Mob {
 	private int chargeAim = -1;
 
 	//전투 시계 (보스 전용 버프가 매 턴 올림)
-	private int reinforceTimer = 4;
+	private int reinforceTimer = 6;
 	private int ringTimer = 0;
 	public int ringLevel = 0;
 
@@ -117,7 +117,7 @@ public class GnollWarlord extends Mob {
 
 	@Override
 	public float speed() {
-		return super.speed() * (finalStand ? 1.5f : 1f);
+		return super.speed() * (finalStand ? 1.25f : 1f);
 	}
 
 	//왕좌에 앉아 있거나, 깃발 옆에서 결집 중이면 자리를 지킴
@@ -504,7 +504,7 @@ public class GnollWarlord extends Mob {
 		Sample.INSTANCE.play( Assets.Sounds.CHALLENGE, 1f, 0.8f );
 		if (sprite instanceof GnollWarlordSprite) ((GnollWarlordSprite) sprite).roar();
 		javelinCooldown = 2;
-		reinforce( 2, 4 );
+		reinforce( 1, 2 );
 		spend( 1f );
 	}
 
@@ -566,8 +566,8 @@ public class GnollWarlord extends Mob {
 
 		if (--reinforceTimer <= 0){
 			boolean early = onThrone || rallying;
-			reinforceTimer = early ? 8 : 12;
-			reinforce( 2, early ? 4 : 2 );
+			reinforceTimer = early ? 9 : 14;
+			reinforce( 1, early ? 2 : 1 );
 		}
 	}
 

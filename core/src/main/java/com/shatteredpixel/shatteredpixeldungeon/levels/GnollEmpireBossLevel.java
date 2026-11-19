@@ -57,37 +57,43 @@ public class GnollEmpireBossLevel extends Level {
 		color2 = 0xd98c3a;
 	}
 
-	private static final int W = 25;
+	private static final int W = 33;
 
 	//'#' 바위, '=' 방책, '.' 바닥, ',' 짓밟힌 흙, '_' 왕좌 단, 'T' 왕좌(대족장 자리), 'B' 깃발,
 	//'G' 증원 성문(골방), 'g' 방책의 성문 틈, 'f' 모닥불, 'S' 승리하면 열리는 통로(바위), 'P' 승리하면 열리는 방책,
 	//'<' 입구, '>' 출구
 	private static final String[] MAP = {
-			"#########################",
-			"##########.....##########",
-			"##########..>..##########",
-			"##########.....##########",
-			"############S############",
-			"##==========P==========##",
-			"##=.B......_T_......B.=##",
-			"##=........___........=##",
-			"##=...,...........,...=##",
-			"#Gg....f....,....f....gG#",
-			"##=..,...............,=##",
-			"##=.......,...,.......=##",
-			"#Gg....f.........f....gG#",
-			"##=.B......,.,......B.=##",
-			"##=========...=========##",
-			"############.############",
-			"############.############",
-			"##########.....##########",
-			"##########..<..##########",
-			"##########.....##########",
-			"#########################"
+			"#################################",
+			"############f.......f############",
+			"############....>....############",
+			"############..,...,..############",
+			"############%.......%############",
+			"###############SSS###############",
+			"##=============PPP=============##",
+			"##=...........__T__...........=##",
+			"##=....,......_____......,....=##",
+			"##=..B.....................B..=##",
+			"#Gg.........,.......,.........gG#",
+			"##=......f......,......f......=##",
+			"##=...........................=##",
+			"##=...,......%.....%......,...=##",
+			"##=.,.......................,.=##",
+			"##=......f.............f......=##",
+			"#Gg.............,.............gG#",
+			"##=..B........,...,........B..=##",
+			"##=........,.........,........=##",
+			"##=...........................=##",
+			"##=============...=============##",
+			"################.################",
+			"################.################",
+			"##############.....##############",
+			"##############..<..##############",
+			"##############.....##############",
+			"#################################"
 	};
 
 	//투기장 안쪽 (방책 안)
-	private static final int ARENA_L = 3, ARENA_R = 21, ARENA_T = 6, ARENA_B = 13;
+	private static final int ARENA_L = 3, ARENA_R = 29, ARENA_T = 7, ARENA_B = 19;
 
 	private int throne = -1;
 	private int sealCell = -1;
@@ -153,6 +159,7 @@ public class GnollEmpireBossLevel extends Level {
 					case 'G': t = Terrain.EMPTY_DECO; gateAlcoves.add( cell ); break;
 					case 'g': t = Terrain.EMPTY; break;
 					case 'f': t = Terrain.STATUE_SP; break;
+					case '%': t = Terrain.REGION_DECO; break;
 					case 'S': t = Terrain.WALL; victoryPath.add( cell ); break;
 					case 'P': t = Terrain.BARRICADE; victoryPath.add( cell ); break;
 					case '<': t = Terrain.ENTRANCE; entrance = cell; break;
@@ -164,7 +171,7 @@ public class GnollEmpireBossLevel extends Level {
 		}
 
 		//입구 바로 위 통로 칸: 싸움이 시작되면 바위로 막힘
-		sealCell = 12 + 15 * W;
+		sealCell = 16 + 21 * W;
 
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
 		transitions.add( new LevelTransition( this, exit, LevelTransition.Type.REGULAR_EXIT ) );
@@ -343,19 +350,63 @@ public class GnollEmpireBossLevel extends Level {
 
 		Blob flames = blobs.get( WarlordFlames.class );
 		if (flames != null) flames.fullyClear();
+		Blob fire = blobs.get( Fire.class );
+		if (fire != null) fire.fullyClear();
 
 		unseal();
+		PixelScene.shake( 3, 1.2f );
+		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
+		GLog.h( Messages.get( this, "victory" ) );
 
-		//왕좌 뒤 통로가 열림
+		//왕좌 뒤 큰 문이 한 줄씩 무너지며 아래층 계단 방이 드러남
+		Actor.add( new GateCollapse() );
+	}
+
+	//방책 성문 → 바위벽 순서로 한 턴에 한 줄씩 무너뜨림
+	private void collapseRow( int row ){
 		for (int c : victoryPath){
-			set( c, Terrain.EMPTY );
+			if (c / width() != row) continue;
+			set( c, Terrain.EMPTY_DECO );
 			GameScene.updateMap( c );
-			CellEmitter.get( c ).burst( Speck.factory( Speck.ROCK ), 10 );
+			CellEmitter.get( c ).start( Speck.factory( Speck.ROCK ), 0.06f, 8 );
+			CellEmitter.get( c ).burst( Speck.factory( Speck.DUST ), 6 );
 		}
 		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
-		PixelScene.shake( 2, 0.8f );
+		PixelScene.shake( 2, 0.6f );
 		Dungeon.observe();
-		GLog.p( Messages.get( this, "path_open" ) );
+	}
+
+	public static class GateCollapse extends Actor {
+		{
+			actPriority = BUFF_PRIO;
+		}
+		private int step = 0;
+
+		@Override
+		protected boolean act() {
+			if (!(Dungeon.level instanceof GnollEmpireBossLevel)){
+				Actor.remove( this );
+				return true;
+			}
+			GnollEmpireBossLevel l = (GnollEmpireBossLevel) Dungeon.level;
+			int lowest = -1, highest = -1;
+			for (int c : l.victoryPath){
+				int r = c / l.width();
+				if (lowest == -1 || r > lowest) lowest = r;
+				if (highest == -1 || r < highest) highest = r;
+			}
+			int row = lowest - step;
+			if (step == 0) GLog.w( Messages.get( GnollEmpireBossLevel.class, "gate_cracks" ) );
+			if (row >= highest){
+				l.collapseRow( row );
+				step++;
+				spend( 1f );
+				return true;
+			}
+			GLog.p( Messages.get( GnollEmpireBossLevel.class, "path_open" ) );
+			Actor.remove( this );
+			return true;
+		}
 	}
 
 	@Override
@@ -439,6 +490,12 @@ public class GnollEmpireBossLevel extends Level {
 		for (int c : bundle.getIntArray( PATH )) victoryPath.add( c );
 		fightStarted = bundle.getBoolean( FIGHT );
 		bossDefeated = bundle.getBoolean( DEFEATED );
+		if (bossDefeated){
+			for (int c : victoryPath){
+				if (map[c] != Terrain.EMPTY_DECO) map[c] = Terrain.EMPTY_DECO;
+			}
+			buildFlagMaps();
+		}
 	}
 
 	//최후의 함성 때 투기장 가장자리부터 좁혀 오는 불길: 그 위에 선 이(대족장 제외)는 불이 붙음

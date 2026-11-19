@@ -163,6 +163,20 @@ public class WndForestWand extends Window {
 			y += ((keys.size() + cols - 1) / cols) * (BTN_H + GAP) + 3;
 		}
 
+		//깃들이기: 인벤토리를 열지 않고 여기서 바로
+		RedButton imbue = new RedButton( Messages.get( this, "imbue" ), 7 ){
+			@Override
+			protected void onClick() {
+				hide();
+				if (Dungeon.hero != null && Dungeon.hero.ready){
+					WndForestWand.this.wand.execute( Dungeon.hero, ForestWand.AC_IMBUE );
+				}
+			}
+		};
+		imbue.setRect( 0, y, WIDTH, BTN_H );
+		add( imbue );
+		y = imbue.bottom() + GAP;
+
 		RedButton recall = new RedButton( Messages.get( this, "recall" ), 7 ){
 			@Override
 			protected void onClick() {
@@ -387,8 +401,7 @@ public class WndForestWand extends Window {
 		if (hero.hasTalent( Talent.SPIRIT_INTUITION )) item.identify();
 		Item.updateQuickslot();
 		Enchanting.show( hero, item );
-		ForestWand.imbueFx( hero.pos, s );
-		Sample.INSTANCE.play( Assets.Sounds.MELD );
+		ForestWand.bestowFx( hero, s );
 		boolean pair = spiritsOn( item ) >= 2;
 		GLog.p( Messages.get( WndForestWand.class, pair ? "bestowed_pair" : "bestowed", s.title(), item.trueName() ) );
 		hero.sprite.operate( hero.pos );

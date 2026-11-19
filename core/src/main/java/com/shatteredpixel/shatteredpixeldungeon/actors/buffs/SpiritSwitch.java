@@ -58,7 +58,7 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 	public void refreshButton(){
 		ForestWand w = wand();
 		ForestWand.Spirit next = shownSpirit( w );
-		if (target != Dungeon.hero || next == null){
+		if (target != Dungeon.hero || w == null){
 			ActionIndicator.clearAction( this );
 			shown = null;
 			return;
@@ -66,7 +66,7 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		if (ActionIndicator.action == null){
 			shown = next;
 			ActionIndicator.setAction( this );
-		} else if (ActionIndicator.action == this && next != shown){
+		} else if (ActionIndicator.action == this && (next != shown || next == null)){
 			shown = next;
 			ActionIndicator.refresh();
 		}
@@ -91,8 +91,12 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 	public Visual primaryVisual() {
 		ForestWand.Spirit next = shownSpirit( wand() );
 		Image img = new Image( Assets.Sprites.ITEM_ICONS );
-		if (next != null) img.frame( ItemSpriteSheet.Icons.film.get( next.icon() ) );
-		return img;
+		if (next != null){
+			img.frame( ItemSpriteSheet.Icons.film.get( next.icon() ) );
+			return img;
+		}
+		//정령이 없으면 완드 그림 (누르면 정령 관리 창)
+		return new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite( ItemSpriteSheet.FOREST_WAND );
 	}
 
 	@Override

@@ -51,6 +51,9 @@ public class GnollScout extends Mob {
 
 	public void makeMinion(){
 		minion = true;
+		//증원병은 느리고 약함 (좁은 곳에서 몰려들지 않게)
+		baseSpeed = 1f;
+		HP = HT = 22;
 		maxLvl = -2;
 		EXP = 0;
 		properties.add( Property.BOSS_MINION );
@@ -172,6 +175,6 @@ public class GnollScout extends Mob {
 		super.restoreFromBundle( bundle );
 		alarmRaised = bundle.getBoolean( ALARM );
 		beatTurns = bundle.getInt( BEAT );
-		if (bundle.getBoolean( MINION )) makeMinion();
+		if (bundle.getBoolean( MINION )){ int hp = HP; makeMinion(); HP = hp; }
 	}
 }
