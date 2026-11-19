@@ -367,6 +367,10 @@ public class Hero extends Char {
 		STR = bundle.getInt( STRENGTH );
 
 		belongings.restoreFromBundle( bundle );
+		//모드: 숲의 완드가 있으면 정령 바꾸기 버튼
+		if (belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.class ) != null){
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpiritSwitch.attach( this );
+		}
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {

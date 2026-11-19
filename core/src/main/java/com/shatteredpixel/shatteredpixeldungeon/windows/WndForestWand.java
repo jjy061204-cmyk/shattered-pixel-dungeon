@@ -27,10 +27,15 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpiritSwitch;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 
@@ -41,55 +46,136 @@ public class WndForestWand extends Window {
 	private static final int WIDTH = 120;
 	private static final int BTN_H = 18;
 	private static final int GAP = 2;
+	private static final int CARD = 36;     //정령 칸 크기
+	private static final int CARD_GAP = 6;
 
 	private final ForestWand wand;
+	private final int sel;     //고른 칸
 
 	public WndForestWand( ForestWand wand ){
+		this( wand, defaultSel( wand ) );
+	}
+
+	//처음엔 발현 중인(가운데) 정령, 없으면 깃든 첫 정령을 고름
+	private static int defaultSel( ForestWand wand ){
+		if (wand.slots[ForestWand.CENTER] != null) return ForestWand.CENTER;
+		for (int i = 0; i < ForestWand.SLOTS; i++) if (wand.slots[i] != null) return i;
+		return ForestWand.CENTER;
+	}
+
+	public WndForestWand( ForestWand wand, int selected ){
 		super();
 		this.wand = wand;
+		this.sel = selected;
 
 		RenderedTextBlock title = PixelScene.renderTextBlock( Messages.get( this, "title" ), 9 );
 		title.hardlight( TITLE_COLOR );
 		title.setPos( (WIDTH - title.width())/2f, 2 );
 		add( title );
 
-		RenderedTextBlock info = PixelScene.renderTextBlock( Messages.get( this, "info" ), 6 );
-		info.maxWidth( WIDTH );
-		info.setPos( 0, title.bottom() + 4 );
-		add( info );
-
-		float y = info.bottom() + 5;
+		// ── 정령 3칸: 왼쪽(저장) · 가운데(발현) · 오른쪽(저장) ──
+		float y = title.bottom() + 6;
+		float x = (WIDTH - (CARD*3 + CARD_GAP*2)) / 2f;
 		for (int i = 0; i < ForestWand.SLOTS; i++){
 			final int slot = i;
-			ForestWand.Spirit s = wand.slots[i];
-			String label = Messages.get( ForestWand.class, "slot_" + i ) + ": "
-					+ (s == null ? Messages.get( ForestWand.class, "slot_empty" ) : s.title());
-			RedButton b = new RedButton( label, 8 ){
+			final ForestWand.Spirit sp = wand.slots[i];
+			float cx = x + i*(CARD + CARD_GAP);
+			boolean center = i == ForestWand.CENTER;
+
+			//테두리(고른 칸은 밝게) + 바탕(정령 빛깔을 어둡게)
+			int frame = slot == sel ? 0xFFFFE9A0 : (center ? 0xFF8A7A50 : 0xFF4A4A4A);
+			ColorBlock border = new ColorBlock( CARD, CARD, frame );
+			border.x = cx; border.y = y;
+			add( border );
+			int bgc = sp == null ? 0xFF1E1E1E : (0xFF000000 | dim( sp.color ));
+			ColorBlock bg = new ColorBlock( CARD - 2, CARD - 2, bgc );
+			bg.x = cx + 1; bg.y = y + 1;
+			add( bg );
+
+			Image icon = new Image( Assets.Sprites.ITEM_ICONS );
+			if (sp != null){
+				icon.frame( ItemSpriteSheet.Icons.film.get( sp.icon() ) );
+				icon.scale.set( 3f );
+			} else {
+				icon.frame( ItemSpriteSheet.Icons.film.get( ItemSpriteSheet.Icons.spirit( 0 ) ) );
+				icon.scale.set( 3f );
+				icon.alpha( 0f );
+			}
+			IconButton btn = new IconButton( icon ){
 				@Override
 				protected void onClick() {
-					slotMenu( slot );
+					if (sp != null && slot != sel) reopen( slot );
 				}
 			};
-			if (s != null) b.textColor( s.color );
-			b.enable( s != null );
-			b.setRect( i == ForestWand.CENTER ? 0 : 6, y, i == ForestWand.CENTER ? WIDTH : WIDTH - 12, BTN_H );
-			add( b );
-			y += BTN_H + GAP;
+			btn.setRect( cx, y, CARD, CARD );
+			add( btn );
+
+			if (sp == null){
+				RenderedTextBlock empty = PixelScene.renderTextBlock( Messages.get( ForestWand.class, "slot_empty" ), 6 );
+				empty.hardlight( 0x777777 );
+				empty.setPos( cx + (CARD - empty.width())/2f, y + (CARD - empty.height())/2f );
+				add( empty );
+			}
+
+			RenderedTextBlock lbl = PixelScene.renderTextBlock( Messages.get( this, center ? "card_active" : "card_stored" ), 6 );
+			lbl.hardlight( center ? 0xFFE9A0 : 0xAAAAAA );
+			lbl.setPos( cx + (CARD - lbl.width())/2f, y + CARD + 2 );
+			add( lbl );
+		}
+		y += CARD + 12;
+
+		// ── 고른 정령의 설명과 할 수 있는 일 ──
+		final ForestWand.Spirit s = wand.slots[sel];
+		if (s == null){
+			RenderedTextBlock none = PixelScene.renderTextBlock( Messages.get( this, "none" ), 6 );
+			none.maxWidth( WIDTH );
+			none.setPos( 0, y );
+			add( none );
+			y = none.bottom() + 6;
+		} else {
+			RenderedTextBlock name = PixelScene.renderTextBlock( s.title(), 9 );
+			name.hardlight( s.color );
+			name.setPos( (WIDTH - name.width())/2f, y );
+			add( name );
+			RenderedTextBlock desc = PixelScene.renderTextBlock( Messages.get( ForestWand.class, "shot_" + s.name().toLowerCase() ), 6 );
+			desc.maxWidth( WIDTH );
+			desc.setPos( 0, name.bottom() + 3 );
+			add( desc );
+			y = desc.bottom() + 5;
+
+			final ArrayList<String> keys = actionKeys( sel, s );
+			int cols = 2;
+			float bw = (WIDTH - GAP) / 2f;
+			for (int k = 0; k < keys.size(); k++){
+				final String key = keys.get( k );
+				RedButton b = new RedButton( Messages.get( this, key ), 7 ){
+					@Override
+					protected void onClick() {
+						doSlotAction( sel, key );
+					}
+				};
+				int c = k % cols, r = k / cols;
+				//마지막 줄에 하나만 남으면 가로로 꽉 채움
+				boolean full = (k == keys.size() - 1) && (k % cols == 0);
+				b.setRect( full ? 0 : c*(bw + GAP), y + r*(BTN_H + GAP), full ? WIDTH : bw, BTN_H );
+				add( b );
+			}
+			y += ((keys.size() + cols - 1) / cols) * (BTN_H + GAP) + 3;
 		}
 
-		RedButton recall = new RedButton( Messages.get( this, "recall" ), 8 ){
+		RedButton recall = new RedButton( Messages.get( this, "recall" ), 7 ){
 			@Override
 			protected void onClick() {
 				recall();
 			}
 		};
-		recall.setRect( 0, y + 3, WIDTH, BTN_H );
+		recall.setRect( 0, y, WIDTH, BTN_H );
 		add( recall );
 		float bottom = recall.bottom();
 
 		//정령 계약자: 실체화한 상급 정령을 완드로 거둠
 		if (!ForestWand.materializedSpirits().isEmpty()){
-			RedButton unmat = new RedButton( Messages.get( this, "unmaterialize" ), 8 ){
+			RedButton unmat = new RedButton( Messages.get( this, "unmaterialize" ), 7 ){
 				@Override
 				protected void onClick() {
 					hide();
@@ -104,9 +190,21 @@ public class WndForestWand extends Window {
 		resize( WIDTH, (int)bottom + 1 );
 	}
 
+	//정령 빛깔을 어둡게 (칸 바탕)
+	private static int dim( int c ){
+		int r = (c >> 16) & 0xFF, g = (c >> 8) & 0xFF, b = c & 0xFF;
+		r = r * 30 / 100 + 10; g = g * 30 / 100 + 10; b = b * 30 / 100 + 14;
+		return (r << 16) | (g << 8) | b;
+	}
+
 	private void reopen(){
+		reopen( sel );
+	}
+
+	private void reopen( int slot ){
 		hide();
-		GameScene.show( new WndForestWand( wand ) );
+		if (wand.slots[slot] == null) slot = defaultSel( wand );
+		GameScene.show( new WndForestWand( wand, slot ) );
 	}
 
 	private static boolean enchanter(){
@@ -122,48 +220,52 @@ public class WndForestWand extends Window {
 		return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.SPIRIT_CONTRACTOR;
 	}
 
-	private void slotMenu( final int slot ){
-		final ForestWand.Spirit s = wand.slots[slot];
-		if (s == null) return;
-		final boolean center = slot == ForestWand.CENTER;
-
-		final ArrayList<String> keys = new ArrayList<>();
-		if (!center) keys.add( "to_center" );
+	private ArrayList<String> actionKeys( int slot, ForestWand.Spirit s ){
+		ArrayList<String> keys = new ArrayList<>();
+		if (slot != ForestWand.CENTER) keys.add( "to_center" );
 		if (s.greater && contractor()) keys.add( "materialize" );
 		keys.add( "bestow" );
 		keys.add( "release" );
-		String[] opts = new String[keys.size()];
-		for (int i = 0; i < opts.length; i++) opts[i] = Messages.get( this, keys.get( i ) );
+		return keys;
+	}
 
-		GameScene.show( new WndOptions( s.title(), Messages.get( ForestWand.class, "shot_" + s.name().toLowerCase() ), opts ){
-			@Override
-			protected void onSelect( int index ) {
-				String k = keys.get( index );
-				if (k.equals( "to_center" )){
-					wand.moveToCenter( slot );
-					GLog.i( Messages.get( WndForestWand.class, "centered", s.title() ) );
-					reopen();
-				} else if (k.equals( "materialize" )){
-					WndForestWand.this.hide();
-					wand.materialize( Dungeon.hero, slot );
-				} else if (k.equals( "bestow" )){
-					WndForestWand.this.hide();
-					bestow( slot );
-				} else {
-					wand.slots[slot] = null;
-					Item.updateQuickslot();
-					Hero hero = Dungeon.hero;
-					hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
-					GLog.i( Messages.get( WndForestWand.class, "released", s.title() ) );
-					if (hero.hasTalent( Talent.SPIRIT_RELEASE )){
-						WndForestWand.this.hide();
-						releaseBurst( hero, s );
-					} else {
-						reopen();
-					}
-				}
+	private void doSlotAction( final int slot, String k ){
+		final ForestWand.Spirit s = wand.slots[slot];
+		if (s == null) return;
+		if (k.equals( "to_center" )){
+			wand.moveToCenter( slot );
+			Item.updateQuickslot();
+			refreshSwitch();
+			GLog.i( Messages.get( WndForestWand.class, "centered", s.title() ) );
+			reopen( ForestWand.CENTER );
+		} else if (k.equals( "materialize" )){
+			hide();
+			wand.materialize( Dungeon.hero, slot );
+			refreshSwitch();
+		} else if (k.equals( "bestow" )){
+			hide();
+			bestow( slot );
+		} else {
+			wand.slots[slot] = null;
+			Item.updateQuickslot();
+			refreshSwitch();
+			Hero hero = Dungeon.hero;
+			hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
+			GLog.i( Messages.get( WndForestWand.class, "released", s.title() ) );
+			if (hero.hasTalent( Talent.SPIRIT_RELEASE )){
+				hide();
+				releaseBurst( hero, s );
+			} else {
+				reopen( defaultSel( wand ) );
 			}
-		} );
+		}
+	}
+
+	//정령 바꾸기 버튼을 새로 그림
+	private static void refreshSwitch(){
+		if (Dungeon.hero == null) return;
+		SpiritSwitch sw = Dungeon.hero.buff( SpiritSwitch.class );
+		if (sw != null) sw.refreshButton();
 	}
 
 	//정령 해방: 풀려난 정령이 터지며 둘레 1/2칸의 적에게 50/100% 힘으로 능력을 발휘

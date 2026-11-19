@@ -302,6 +302,7 @@ public enum HeroClass {
 		com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand wand = new com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand();
 		wand.identify().collect();
 		Dungeon.quickslot.setSlot(0, wand);
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpiritSwitch.attach( hero );
 
 		new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame().identify();
 		new com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging().identify();

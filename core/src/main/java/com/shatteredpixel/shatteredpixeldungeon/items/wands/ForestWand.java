@@ -155,6 +155,11 @@ public class ForestWand extends Weapon {
 			return new ItemSprite.Glowing( color, strong ? 1f : 2f );
 		}
 
+		//작은 정령 아이콘 (퀵슬롯·정령 관리 창·정령 바꾸기 버튼)
+		public int icon(){
+			return ItemSpriteSheet.Icons.spirit( ordinal() );
+		}
+
 		public Emitter.Factory particle(){
 			switch (this){
 				case WATER: case UNDINE:  return FlowParticle.FACTORY;
@@ -258,7 +263,40 @@ public class ForestWand extends Weapon {
 
 	@Override
 	public String status() {
+		//퀵슬롯 오른쪽 위에 발현 중인 정령 아이콘이 뜸
+		icon = active() != null ? active().icon() : -1;
 		return spiritCount() + "/" + SLOTS;
+	}
+
+	//정령 바꾸기: 가운데(발현) → 오른쪽 → 왼쪽 순서로 한 칸씩 돌림 (빈 칸은 건너뜀)
+	public Spirit rotate(){
+		int[] order = { CENTER, 2, 0 };
+		ArrayList<Integer> filled = new ArrayList<>();
+		for (int i : order) if (slots[i] != null) filled.add( i );
+		if (slots[CENTER] == null && !filled.isEmpty()){
+			//가운데가 비어 있으면 저장된 첫 정령을 가운데로
+			int f = filled.get( 0 );
+			slots[CENTER] = slots[f]; slots[f] = null;
+			updateQuickslot();
+			return active();
+		}
+		if (filled.size() < 2) return active();
+		Spirit[] vals = new Spirit[filled.size()];
+		for (int k = 0; k < vals.length; k++) vals[k] = slots[filled.get( k )];
+		//가운데에 다음 정령이 오도록 한 칸씩 당김
+		for (int k = 0; k < vals.length; k++) slots[filled.get( k )] = vals[(k + 1) % vals.length];
+		updateQuickslot();
+		return active();
+	}
+
+	//다음에 가운데로 올 정령 (정령 바꾸기 버튼에 보여 줌)
+	public Spirit nextSpirit(){
+		int[] order = { CENTER, 2, 0 };
+		ArrayList<Integer> filled = new ArrayList<>();
+		for (int i : order) if (slots[i] != null) filled.add( i );
+		if (slots[CENTER] == null) return filled.isEmpty() ? null : slots[filled.get( 0 )];
+		if (filled.size() < 2) return null;
+		return slots[filled.get( 1 )];
 	}
 
 	@Override

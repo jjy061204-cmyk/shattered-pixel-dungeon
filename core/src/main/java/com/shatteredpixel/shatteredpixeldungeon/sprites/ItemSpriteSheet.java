@@ -1266,6 +1266,16 @@ public class ItemSpriteSheet {
 
 		                                                                                //16 free slots
 
+		//모드: 숲의 완드 정령 아이콘 (ForestWand.Spirit 순서, 16개는 5줄, 나머지는 8줄)
+		private static final int SPIRITS        =                            xy(1, 5);  //16 slots
+		private static final int SPIRITS2       =                            xy(1, 8);  //16 slots
+		public static int spirit( int ordinal ){
+			return ordinal < 16 ? SPIRITS + ordinal : SPIRITS2 + (ordinal - 16);
+		}
+		static {
+			for (int i = 0; i < 32; i++) assignIconRect( spirit( i ), 8, 8 );
+		}
+
 	}
 
 }
