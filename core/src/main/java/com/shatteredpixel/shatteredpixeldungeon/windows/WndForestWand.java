@@ -401,7 +401,9 @@ public class WndForestWand extends Window {
 		if (hero.hasTalent( Talent.SPIRIT_INTUITION )) item.identify();
 		Item.updateQuickslot();
 		Enchanting.show( hero, item );
-		ForestWand.bestowFx( hero, s );
+		ForestWand.imbueFx( hero.pos, s );
+		Sample.INSTANCE.play( Assets.Sounds.MELD );
+		SpiritSwitch.refreshAuraOf( hero );
 		boolean pair = spiritsOn( item ) >= 2;
 		GLog.p( Messages.get( WndForestWand.class, pair ? "bestowed_pair" : "bestowed", s.title(), item.trueName() ) );
 		hero.sprite.operate( hero.pos );

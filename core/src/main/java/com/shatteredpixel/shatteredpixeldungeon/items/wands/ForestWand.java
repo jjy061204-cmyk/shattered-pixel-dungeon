@@ -154,7 +154,7 @@ public class ForestWand extends Weapon {
 		}
 
 		public ItemSprite.Glowing glowing(){
-			return new ItemSprite.Glowing( color, strong ? 1f : 2f );
+			return new ItemSprite.Glowing( color, strong ? 0.8f : 1.3f );
 		}
 
 		//작은 정령 아이콘 (퀵슬롯·정령 관리 창·정령 바꾸기 버튼)
@@ -1133,35 +1133,6 @@ public class ForestWand extends Weapon {
 			Level.set( cell, Terrain.GRASS );
 			GameScene.updateMap( cell );
 		}
-	}
-
-	//모드: 장비에 정령을 부여할 때의 큰 연출 (정령마다 빛깔·입자·소리가 다름)
-	public static void bestowFx( Hero hero, Spirit s ){
-		if (hero == null || hero.sprite == null || s == null) return;
-		new com.shatteredpixel.shatteredpixeldungeon.effects.Flare( 7, 34 ).color( s.color, true ).show( hero.sprite, 1.6f );
-		hero.sprite.centerEmitter().burst( s.particle(), 34 );
-		imbueFx( hero.pos, s );
-		for (int n : com.watabou.utils.PathFinder.NEIGHBOURS4){
-			int c = hero.pos + n;
-			if (c >= 0 && c < Dungeon.level.length() && !Dungeon.level.solid[c]) imbueFx( c, s );
-		}
-		hero.sprite.showStatus( s.color, s.title() );
-		com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.shake( 1, 0.25f );
-		String snd;
-		switch (s){
-			case WATER: case UNDINE:                 snd = Assets.Sounds.WATER; break;
-			case FIRE: case FLAME: case SALAMANDER:  snd = Assets.Sounds.BURNING; break;
-			case EARTH: case ROCK: case GNOME:       snd = Assets.Sounds.ROCKS; break;
-			case FROST: case ICE:                    snd = Assets.Sounds.SHATTER; break;
-			case NATURE:                             snd = Assets.Sounds.PLANT; break;
-			case GOLD:                               snd = Assets.Sounds.GOLD; break;
-			case DARK:                               snd = Assets.Sounds.CURSED; break;
-			case SHOCK:                              snd = Assets.Sounds.LIGHTNING; break;
-			case CHAOS: case RUNE:                   snd = Assets.Sounds.CHARGEUP; break;
-			default:                                 snd = Assets.Sounds.MELD; break;
-		}
-		com.watabou.noosa.audio.Sample.INSTANCE.play( snd );
-		com.watabou.noosa.audio.Sample.INSTANCE.play( Assets.Sounds.MELD, 0.7f, 1.2f );
 	}
 
 	public static void imbueFx( int from, Spirit s ){

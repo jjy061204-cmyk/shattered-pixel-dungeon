@@ -11,6 +11,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -21,6 +22,12 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.noosa.particles.Emitter;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant;
 
 //숲의 완드에 정령이 둘 이상 깃들어 있으면, 퀵슬롯 옆 행동 버튼(전사의 연속 공격 버튼 자리)에
 //'다음에 발현될 정령'이 떠서 한 번 눌러 바로 바꿀 수 있음. 턴을 쓰지 않으며, 퀵슬롯·다른 아이템과 겹치지 않음
@@ -49,6 +56,7 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 
 	@Override
 	public boolean act() {
+		refreshAura( false );
 		refreshButton();
 		spend( TICK );
 		return true;
@@ -138,4 +146,69 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
 				new com.shatteredpixel.shatteredpixeldungeon.windows.WndForestWand( w ) );
 	}
+
+	//===== 정령이 깃든 장비를 착용하는 동안 영웅 주위에 계속 피어오르는 정령 기운 =====
+	//[0],[1] 무기의 정령 (진하게)  [2],[3] 갑옷의 정령 (은은하게)
+	private final Emitter[] aura = new Emitter[4];
+	private final ForestWand.Spirit[] auraKey = new ForestWand.Spirit[4];
+
+	public static void refreshAuraOf( Char ch ){
+		SpiritSwitch b = ch == null ? null : ch.buff( SpiritSwitch.class );
+		if (b != null) b.refreshAura( false );
+	}
+
+	private ForestWand.Spirit[] equipped(){
+		ForestWand.Spirit[] r = new ForestWand.Spirit[4];
+		if (!(target instanceof Hero)) return r;
+		Hero h = (Hero) target;
+		KindOfWeapon kw = h.belongings.weapon();
+		if (kw instanceof Weapon && ((Weapon) kw).enchantment instanceof SpiritEnchant){
+			SpiritEnchant e = (SpiritEnchant) ((Weapon) kw).enchantment;
+			r[0] = e.spirit; r[1] = e.spirit2;
+		}
+		Armor a = h.belongings.armor();
+		if (a != null && a.glyph instanceof SpiritGlyph){
+			SpiritGlyph g = (SpiritGlyph) a.glyph;
+			r[2] = g.spirit; r[3] = g.spirit2;
+		}
+		return r;
+	}
+
+	private void refreshAura( boolean rebuild ){
+		if (target == null || target.sprite == null) return;
+		ForestWand.Spirit[] now = equipped();
+		for (int i = 0; i < 4; i++){
+			boolean stale = aura[i] != null && (!aura[i].alive || aura[i].parent == null);
+			if (!rebuild && !stale && now[i] == auraKey[i] && (now[i] == null) == (aura[i] == null)) continue;
+			if (aura[i] != null) aura[i].on = false;
+			aura[i] = null;
+			auraKey[i] = now[i];
+			if (now[i] == null || target.sprite.parent == null) continue;
+			Emitter e = target.sprite.emitter();
+			if (e == null) continue;
+			boolean weapon = i < 2;
+			boolean dual = now[i ^ 1] != null;
+			float interval = weapon ? (now[i].strong ? 0.07f : 0.1f) : (now[i].strong ? 0.16f : 0.22f);
+			if (dual) interval *= 1.6f;
+			e.pour( now[i].particle(), interval );
+			aura[i] = e;
+		}
+		for (Emitter e : aura){
+			if (e != null) e.visible = target.sprite.visible;
+		}
+	}
+
+	@Override
+	public void fx( boolean on ) {
+		if (on){
+			refreshAura( true );
+		} else {
+			for (int i = 0; i < 4; i++){
+				if (aura[i] != null) aura[i].on = false;
+				aura[i] = null;
+				auraKey[i] = null;
+			}
+		}
+	}
+
 }
