@@ -596,6 +596,12 @@ public abstract class Level implements Bundlable {
 			return false;
 		}
 
+		//모드: 광산·지옥으로 내려가기 전 갈림길에서 테마를 고름
+		if (Routes.needsChoice( transition )){
+			Routes.choose( hero, transition );
+			return false;
+		}
+
 		beforeTransition();
 		InterlevelScene.curTransition = transition;
 		if (transition.type == LevelTransition.Type.REGULAR_EXIT

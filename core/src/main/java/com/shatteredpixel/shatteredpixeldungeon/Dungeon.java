@@ -56,6 +56,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CavesLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.FrozenAbyssLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ShatteredDimensionLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.DragonRuinsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastleLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpireLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Routes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.DeadEndLevel;
@@ -284,6 +291,7 @@ public class Dungeon {
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
 		com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.reset();
+		com.shatteredpixel.shatteredpixeldungeon.levels.Routes.reset();
 
 		hero = new Hero();
 		hero.live();
@@ -327,11 +335,17 @@ public class Dungeon {
 				case 10:
 					level = new PrisonBossLevel();
 					break;
+				//모드: 광산은 갈림길에서 고른 테마
 				case 11:
 				case 12:
 				case 13:
 				case 14:
-					level = new CavesLevel();
+					switch (Routes.caves()){
+						case GNOLL_EMPIRE:   level = new GnollEmpireLevel(); break;
+						case VAMPIRE_CASTLE: level = new VampireCastleLevel(); break;
+						case CRYSTAL_VEIN:   level = new CrystalVeinLevel(); break;
+						case MINES: default: level = new CavesLevel(); break;
+					}
 					break;
 				case 15:
 					level = new CavesBossLevel();
@@ -345,11 +359,17 @@ public class Dungeon {
 				case 20:
 					level = new CityBossLevel();
 					break;
+				//모드: 지옥은 갈림길에서 고른 테마
 				case 21:
 				case 22:
 				case 23:
 				case 24:
-					level = new HallsLevel();
+					switch (Routes.halls()){
+						case DRAGON_RUINS:        level = new DragonRuinsLevel(); break;
+						case SHATTERED_DIMENSION: level = new ShatteredDimensionLevel(); break;
+						case FROZEN_ABYSS:        level = new FrozenAbyssLevel(); break;
+						case DEMON_HALLS: default: level = new HallsLevel(); break;
+					}
 					break;
 				case 25:
 					level = new HallsBossLevel();
@@ -686,6 +706,7 @@ public class Dungeon {
 			Blacksmith	.Quest.storeInBundle( quests );
 			Imp			.Quest.storeInBundle( quests );
 			com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.storeInBundle( quests );
+			com.shatteredpixel.shatteredpixeldungeon.levels.Routes.storeInBundle( quests );
 			bundle.put( QUESTS, quests );
 			
 			SpecialRoom.storeRoomsInBundle( bundle );
@@ -794,12 +815,14 @@ public class Dungeon {
 				Blacksmith.Quest.restoreFromBundle( quests );
 				Imp.Quest.restoreFromBundle( quests );
 				com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.restoreFromBundle( quests );
+				com.shatteredpixel.shatteredpixeldungeon.levels.Routes.restoreFromBundle( quests );
 			} else {
 				Ghost.Quest.reset();
 				Wandmaker.Quest.reset();
 				Blacksmith.Quest.reset();
 				Imp.Quest.reset();
 				com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.reset();
+				com.shatteredpixel.shatteredpixeldungeon.levels.Routes.reset();
 			}
 			
 			SpecialRoom.restoreRoomsFromBundle(bundle);
