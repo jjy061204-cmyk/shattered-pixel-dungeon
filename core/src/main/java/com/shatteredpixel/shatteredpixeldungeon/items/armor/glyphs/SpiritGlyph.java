@@ -144,6 +144,14 @@ public class SpiritGlyph extends Armor.Glyph {
 				}
 				return damage/2;
 			}
+			case ICE:       //얼음: 얼음 껍질이 피해를 1/5 막고, 붙어 있는 적을 차갑게 함
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( SnowParticle.FACTORY, 6 );
+				ForestWand.fx( defender, s, "g_ice" );
+				if (adjacent && attacker.isAlive()){
+					ForestWand.elemHit( s, attacker, 0.25f*pow );
+					if (attacker.isAlive()) Buff.prolong( attacker, Chill.class, 3f );
+				}
+				return damage - damage/5;
 			case FROST:     //서리: 때린 적을 차갑게 하고, 이미 차가운 적은 얼려 버림
 				if (adjacent){
 					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( SnowParticle.FACTORY, 10 );

@@ -70,7 +70,7 @@ public abstract class ElementalDamage {
 		switch (s){
 			case WATER: case UNDINE:                return new Water();
 			case FIRE: case FLAME: case SALAMANDER: return new Fire();
-			case FROST:                             return new Ice();
+			case FROST: case ICE:                   return new Ice();
 			case SHOCK:                             return new Shock();
 			case WIND: case SYLPH:                  return new Wind();
 			case NATURE:                            return new Nature();

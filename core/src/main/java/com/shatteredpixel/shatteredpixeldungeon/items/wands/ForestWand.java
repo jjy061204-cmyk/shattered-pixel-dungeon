@@ -131,7 +131,9 @@ public class ForestWand extends Weapon {
 		UNDINE     ( true, 0x3FA8FF, true ),
 		SALAMANDER ( true, 0xFF5A1E, true ),
 		GNOME      ( true, 0xD9A55A, true ),
-		SYLPH      ( true, 0x9CFFC8, true );
+		SYLPH      ( true, 0x9CFFC8, true ),
+		//서리 물약·서리 함정의 서리 구름 (서리 정령의 약한 형제. 순서를 지키려고 맨 끝에 둠)
+		ICE    ( false, 0xBFEFFF );
 
 		public final boolean strong;
 		public final boolean greater;
@@ -167,7 +169,7 @@ public class ForestWand extends Weapon {
 				case NATURE: return LeafParticle.GENERAL;
 				case FIRE: case FLAME: case SALAMANDER: return FlameParticle.FACTORY;
 				case EARTH: case ROCK: case GNOME: return EarthParticle.SMALL;
-				case FROST:  return SnowParticle.FACTORY;
+				case FROST: case ICE: return SnowParticle.FACTORY;
 				case SHOCK:  return SparkParticle.STATIC;
 				case GOLD:   return Speck.factory( Speck.YELLOW_LIGHT );
 				case DARK:   return ShadowParticle.UP;
@@ -732,6 +734,19 @@ public class ForestWand extends Weapon {
 				break;
 			}
 
+			//얼음: 얼음 조각이 박혀 차갑게 함. 이미 차가운 적은 더 오래 차가워지고, 발밑 물이 얼어 미끄러져 넘어짐(1턴 불구)
+			case ICE: {
+				burst( defender, SnowParticle.FACTORY, 8 );
+				boolean chilled = defender.buff( Chill.class ) != null;
+				fx( defender, s, chilled ? "ice_deep" : "ice" );
+				elemHit( s, defender, mul*0.5f );
+				if (defender.isAlive()){
+					Buff.prolong( defender, Chill.class, chilled ? 5f : 3f );
+					if (Dungeon.level.water[defender.pos] && !defender.flying) Buff.prolong( defender, Cripple.class, 2f );
+				}
+				break;
+			}
+
 			//전기: 번개가 둘레 2칸 안의 적 3명까지 옮겨 붙음. 물에 선 적은 감전되어 1.5배
 			case SHOCK: {
 				boolean wet = Dungeon.level.water[defender.pos] && !defender.flying;
@@ -1057,6 +1072,10 @@ public class ForestWand extends Weapon {
 		Blob fire = level.blobs.get( Fire.class );
 		if (fire != null && fire.volume > 0 && fire.cur[cell] > 0) return Spirit.FIRE;
 
+		//서리 물약·서리 함정의 서리 구름
+		Blob ice = level.blobs.get( com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing.class );
+		if (ice != null && ice.volume > 0 && ice.cur[cell] > 0) return Spirit.ICE;
+
 		//바닥에 떨어진 금화
 		if (goldAt( cell ) != null) return Spirit.GOLD;
 
@@ -1101,7 +1120,10 @@ public class ForestWand extends Weapon {
 			CellEmitter.get( cell ).burst( Speck.factory( Speck.COIN ), 8 );
 			return;
 		}
-		if (s == Spirit.FIRE){
+		if (s == Spirit.ICE){
+			Blob ice = level.blobs.get( com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing.class );
+			if (ice != null && ice.cur[cell] > 0) ice.clear( cell );
+		} else if (s == Spirit.FIRE){
 			Blob fire = level.blobs.get( Fire.class );
 			if (fire != null && fire.cur[cell] > 0) fire.clear( cell );
 		} else if ((s == Spirit.WIND || s == Spirit.NATURE)
@@ -1121,7 +1143,7 @@ public class ForestWand extends Weapon {
 			case NATURE: CellEmitter.get( from ).burst( LeafParticle.GENERAL, 10 ); break;
 			case EARTH: case ROCK: CellEmitter.get( from ).burst( EarthParticle.FACTORY, 10 ); break;
 			case FIRE: case FLAME: CellEmitter.get( from ).burst( FlameParticle.FACTORY, 10 ); break;
-			case FROST:  CellEmitter.get( from ).burst( SnowParticle.FACTORY, 12 ); break;
+			case FROST: case ICE: CellEmitter.get( from ).burst( SnowParticle.FACTORY, 12 ); break;
 			case SHOCK:  CellEmitter.center( from ).burst( SparkParticle.FACTORY, 10 ); break;
 			case CHAOS:  CellEmitter.center( from ).burst( RainbowParticle.BURST, 12 ); break;
 			case GOLD:   CellEmitter.center( from ).burst( Speck.factory( Speck.YELLOW_LIGHT ), 10 ); break;
@@ -1134,7 +1156,7 @@ public class ForestWand extends Weapon {
 	private static int missileFor( Spirit s ){
 		switch (s){
 			case FIRE: case FLAME: return MagicMissile.FIRE;
-			case FROST: case WATER: return MagicMissile.FROST;
+			case FROST: case WATER: case ICE: return MagicMissile.FROST;
 			case WIND: return MagicMissile.FORCE;
 			case EARTH: case ROCK: return MagicMissile.EARTH;
 			case SHOCK: return MagicMissile.SHAMAN_BLUE;
