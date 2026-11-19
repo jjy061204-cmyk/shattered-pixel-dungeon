@@ -8,6 +8,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -43,8 +46,13 @@ import java.util.ArrayList;
 
 public class WndForestWand extends Window {
 
-	private static final int WIDTH = 120;
-	private static final int BTN_H = 18;
+	private static final int WIDTH = 126;
+	private static final int BTN_H = 16;
+	private static final int BIG_H = 20;
+	private static final int IMBUE_COLOR  = 0x9BE36A;   //깃들이기(촉매 → 완드): 풀빛
+	private static final int BESTOW_COLOR = 0xFFC860;   //부여(완드 → 장비): 금빛
+	private static final int IMBUE_BTN  = 0x7FCF5A;
+	private static final int BESTOW_BTN = 0xE8B04A;
 	private static final int GAP = 2;
 	private static final int CARD = 36;     //정령 칸 크기
 	private static final int CARD_GAP = 6;
@@ -72,9 +80,12 @@ public class WndForestWand extends Window {
 		title.hardlight( TITLE_COLOR );
 		title.setPos( (WIDTH - title.width())/2f, 2 );
 		add( title );
+		float y = title.bottom() + 5;
 
-		// ── 정령 3칸: 왼쪽(저장) · 가운데(발현) · 오른쪽(저장) ──
-		float y = title.bottom() + 6;
+		// ━━━━━ ① 깃들이기: 촉매 → 완드 ━━━━━
+		y = header( Messages.get( this, "sec_imbue" ), Messages.get( this, "sec_imbue_hint" ), IMBUE_COLOR, y );
+
+		// 정령 3칸: 왼쪽(저장) · 가운데(발현) · 오른쪽(저장). 빈칸을 누르면 바로 깃들이기
 		float x = (WIDTH - (CARD*3 + CARD_GAP*2)) / 2f;
 		for (int i = 0; i < ForestWand.SLOTS; i++){
 			final int slot = i;
@@ -82,38 +93,38 @@ public class WndForestWand extends Window {
 			float cx = x + i*(CARD + CARD_GAP);
 			boolean center = i == ForestWand.CENTER;
 
-			//테두리(고른 칸은 밝게) + 바탕(정령 빛깔을 어둡게)
-			int frame = slot == sel ? 0xFFFFE9A0 : (center ? 0xFF8A7A50 : 0xFF4A4A4A);
+			//테두리(고른 칸은 밝게, 빈칸은 깃들이기 색) + 바탕(정령 빛깔을 어둡게)
+			int frame = sp == null ? 0xFF3E5A30 : (slot == sel ? 0xFFFFE9A0 : (center ? 0xFF8A7A50 : 0xFF4A4A4A));
 			ColorBlock border = new ColorBlock( CARD, CARD, frame );
 			border.x = cx; border.y = y;
 			add( border );
-			int bgc = sp == null ? 0xFF1E1E1E : (0xFF000000 | dim( sp.color ));
+			int bgc = sp == null ? 0xFF161C14 : (0xFF000000 | dim( sp.color ));
 			ColorBlock bg = new ColorBlock( CARD - 2, CARD - 2, bgc );
 			bg.x = cx + 1; bg.y = y + 1;
 			add( bg );
 
 			Image icon = new Image( Assets.Sprites.ITEM_ICONS );
-			if (sp != null){
-				icon.frame( ItemSpriteSheet.Icons.film.get( sp.icon() ) );
-				icon.scale.set( 3f );
-			} else {
-				icon.frame( ItemSpriteSheet.Icons.film.get( ItemSpriteSheet.Icons.spirit( 0 ) ) );
-				icon.scale.set( 3f );
-				icon.alpha( 0f );
-			}
+			icon.frame( ItemSpriteSheet.Icons.film.get( sp != null ? sp.icon() : ItemSpriteSheet.Icons.spirit( 0 ) ) );
+			icon.scale.set( 3f );
+			if (sp == null) icon.alpha( 0f );
 			IconButton btn = new IconButton( icon ){
 				@Override
 				protected void onClick() {
-					if (sp != null && slot != sel) reopen( slot );
+					if (sp == null) imbue();
+					else if (slot != sel) reopen( slot );
 				}
 			};
 			btn.setRect( cx, y, CARD, CARD );
 			add( btn );
 
 			if (sp == null){
-				RenderedTextBlock empty = PixelScene.renderTextBlock( Messages.get( ForestWand.class, "slot_empty" ), 6 );
-				empty.hardlight( 0x777777 );
-				empty.setPos( cx + (CARD - empty.width())/2f, y + (CARD - empty.height())/2f );
+				RenderedTextBlock plus = PixelScene.renderTextBlock( "+", 12 );
+				plus.hardlight( IMBUE_COLOR );
+				plus.setPos( cx + (CARD - plus.width())/2f, y + (CARD - plus.height())/2f - 3 );
+				add( plus );
+				RenderedTextBlock empty = PixelScene.renderTextBlock( Messages.get( this, "slot_add" ), 6 );
+				empty.hardlight( 0x88AA77 );
+				empty.setPos( cx + (CARD - empty.width())/2f, y + CARD - empty.height() - 3 );
 				add( empty );
 			}
 
@@ -122,62 +133,81 @@ public class WndForestWand extends Window {
 			lbl.setPos( cx + (CARD - lbl.width())/2f, y + CARD + 2 );
 			add( lbl );
 		}
-		y += CARD + 12;
+		y += CARD + 11;
 
-		// ── 고른 정령의 설명과 할 수 있는 일 ──
+		boolean full = wand.freeSlot() < 0;
+		TintButton imbueBtn = new TintButton( full ? 0x777777 : IMBUE_BTN, Messages.get( this, full ? "imbue_full" : "imbue" ) ){
+			@Override
+			protected void onClick() {
+				imbue();
+			}
+		};
+		imbueBtn.icon( new ItemSprite( ItemSpriteSheet.FOREST_WAND ) );
+		if (full) imbueBtn.textColor( 0xBBBBBB );
+		imbueBtn.enable( !full );
+		imbueBtn.setRect( 0, y, WIDTH, BIG_H );
+		add( imbueBtn );
+		y = imbueBtn.bottom() + 8;
+
+		// ━━━━━ ② 부여: 완드 → 장비 ━━━━━
+		y = header( Messages.get( this, "sec_bestow" ), Messages.get( this, "sec_bestow_hint" ), BESTOW_COLOR, y );
+
 		final ForestWand.Spirit s = wand.slots[sel];
 		if (s == null){
 			RenderedTextBlock none = PixelScene.renderTextBlock( Messages.get( this, "none" ), 6 );
+			none.hardlight( 0x999999 );
 			none.maxWidth( WIDTH );
 			none.setPos( 0, y );
 			add( none );
 			y = none.bottom() + 6;
 		} else {
-			RenderedTextBlock name = PixelScene.renderTextBlock( s.title(), 9 );
+			//고른 정령: 아이콘 + 이름 + 능력
+			Image si = new Image( Assets.Sprites.ITEM_ICONS );
+			si.frame( ItemSpriteSheet.Icons.film.get( s.icon() ) );
+			si.scale.set( 2f );
+			si.x = 0; si.y = y;
+			add( si );
+			RenderedTextBlock name = PixelScene.renderTextBlock( s.title(), 8 );
 			name.hardlight( s.color );
-			name.setPos( (WIDTH - name.width())/2f, y );
+			name.setPos( 19, y + (16 - name.height())/2f );
 			add( name );
 			RenderedTextBlock desc = PixelScene.renderTextBlock( Messages.get( ForestWand.class, "shot_" + s.name().toLowerCase() ), 6 );
 			desc.maxWidth( WIDTH );
-			desc.setPos( 0, name.bottom() + 3 );
+			desc.setPos( 0, y + 19 );
 			add( desc );
 			y = desc.bottom() + 5;
 
+			TintButton bestowBtn = new TintButton( BESTOW_BTN, Messages.get( this, "bestow" ) ){
+				@Override
+				protected void onClick() {
+					doSlotAction( sel, "bestow" );
+				}
+			};
+			bestowBtn.icon( new ItemSprite( ItemSpriteSheet.SWORD ) );
+			bestowBtn.setRect( 0, y, WIDTH, BIG_H );
+			add( bestowBtn );
+			y = bestowBtn.bottom() + GAP;
+
+			//작은 일들: 가운데로 · 실체화 · 풀어 주기
 			final ArrayList<String> keys = actionKeys( sel, s );
-			int cols = 2;
-			float bw = (WIDTH - GAP) / 2f;
+			float bw = (WIDTH - GAP*(keys.size() - 1)) / (float) keys.size();
 			for (int k = 0; k < keys.size(); k++){
 				final String key = keys.get( k );
-				RedButton b = new RedButton( Messages.get( this, key ), 7 ){
+				StyledButton b = new StyledButton( Chrome.Type.GREY_BUTTON_TR, Messages.get( this, key ), 7 ){
 					@Override
 					protected void onClick() {
 						doSlotAction( sel, key );
 					}
 				};
-				int c = k % cols, r = k / cols;
-				//마지막 줄에 하나만 남으면 가로로 꽉 채움
-				boolean full = (k == keys.size() - 1) && (k % cols == 0);
-				b.setRect( full ? 0 : c*(bw + GAP), y + r*(BTN_H + GAP), full ? WIDTH : bw, BTN_H );
+				if (key.equals( "release" )) b.textColor( 0xFF9A8A );
+				b.setRect( k*(bw + GAP), y, bw, BTN_H );
 				add( b );
 			}
-			y += ((keys.size() + cols - 1) / cols) * (BTN_H + GAP) + 3;
+			y += BTN_H + 8;
 		}
 
-		//깃들이기: 인벤토리를 열지 않고 여기서 바로
-		RedButton imbue = new RedButton( Messages.get( this, "imbue" ), 7 ){
-			@Override
-			protected void onClick() {
-				hide();
-				if (Dungeon.hero != null && Dungeon.hero.ready){
-					WndForestWand.this.wand.execute( Dungeon.hero, ForestWand.AC_IMBUE );
-				}
-			}
-		};
-		imbue.setRect( 0, y, WIDTH, BTN_H );
-		add( imbue );
-		y = imbue.bottom() + GAP;
-
-		RedButton recall = new RedButton( Messages.get( this, "recall" ), 7 ){
+		// ━━━━━ 장비에서 되돌리기 ━━━━━
+		StyledButton recall = new StyledButton( Chrome.Type.GREY_BUTTON_TR, Messages.get( this, "recall" ), 7 ){
 			@Override
 			protected void onClick() {
 				recall();
@@ -189,7 +219,7 @@ public class WndForestWand extends Window {
 
 		//정령 계약자: 실체화한 상급 정령을 완드로 거둠
 		if (!ForestWand.materializedSpirits().isEmpty()){
-			RedButton unmat = new RedButton( Messages.get( this, "unmaterialize" ), 7 ){
+			StyledButton unmat = new StyledButton( Chrome.Type.GREY_BUTTON_TR, Messages.get( this, "unmaterialize" ), 7 ){
 				@Override
 				protected void onClick() {
 					hide();
@@ -202,6 +232,57 @@ public class WndForestWand extends Window {
 		}
 
 		resize( WIDTH, (int)bottom + 1 );
+	}
+
+	//구역마다 다른 빛깔의 큰 버튼 (깃들이기는 풀빛, 부여는 금빛)
+	private static class TintButton extends StyledButton {
+		private final float tr, tg, tb;
+		TintButton( int tint, String label ){
+			super( Chrome.Type.GREY_BUTTON, label, 8 );
+			tr = ((tint >> 16) & 0xFF) / 255f; tg = ((tint >> 8) & 0xFF) / 255f; tb = (tint & 0xFF) / 255f;
+			bg.hardlight( tr, tg, tb );
+		}
+		@Override
+		protected void onPointerDown() {
+			super.onPointerDown();
+			bg.hardlight( Math.min( 1f, tr * 1.25f ), Math.min( 1f, tg * 1.25f ), Math.min( 1f, tb * 1.25f ) );
+		}
+		@Override
+		protected void onPointerUp() {
+			super.onPointerUp();
+			bg.hardlight( tr, tg, tb );
+		}
+	}
+
+	//구역 제목: 색 글씨 + 가는 줄 + 한 줄 안내
+	private float header( String text, String hint, int color, float y ){
+		RenderedTextBlock h = PixelScene.renderTextBlock( text, 8 );
+		h.hardlight( color );
+		h.setPos( 0, y );
+		add( h );
+		ColorBlock line = new ColorBlock( WIDTH - h.width() - 4, 1, 0xFF000000 | color );
+		line.alpha( 0.5f );
+		line.x = h.right() + 4;
+		line.y = y + h.height()/2f;
+		add( line );
+		RenderedTextBlock t = PixelScene.renderTextBlock( hint, 6 );
+		t.hardlight( 0x9A9A9A );
+		t.maxWidth( WIDTH );
+		t.setPos( 0, h.bottom() + 2 );
+		add( t );
+		return t.bottom() + 5;
+	}
+
+	//깃들이기: 창을 닫고 촉매를 고르게 함
+	private void imbue(){
+		if (wand.freeSlot() < 0){
+			GLog.w( Messages.get( ForestWand.class, "full" ) );
+			return;
+		}
+		hide();
+		if (Dungeon.hero != null && Dungeon.hero.ready){
+			wand.execute( Dungeon.hero, ForestWand.AC_IMBUE );
+		}
 	}
 
 	//정령 빛깔을 어둡게 (칸 바탕)
@@ -238,7 +319,6 @@ public class WndForestWand extends Window {
 		ArrayList<String> keys = new ArrayList<>();
 		if (slot != ForestWand.CENTER) keys.add( "to_center" );
 		if (s.greater && contractor()) keys.add( "materialize" );
-		keys.add( "bestow" );
 		keys.add( "release" );
 		return keys;
 	}
