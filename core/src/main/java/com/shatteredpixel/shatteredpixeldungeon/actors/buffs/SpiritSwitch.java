@@ -57,7 +57,7 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 	//버튼을 보이거나 감추고, 다음 정령이 바뀌었으면 그림을 새로 그림
 	public void refreshButton(){
 		ForestWand w = wand();
-		ForestWand.Spirit next = w == null ? null : w.nextSpirit();
+		ForestWand.Spirit next = shownSpirit( w );
 		if (target != Dungeon.hero || next == null){
 			ActionIndicator.clearAction( this );
 			shown = null;
@@ -72,27 +72,32 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		}
 	}
 
+	//버튼에 보일 정령: 바꿀 정령이 있으면 다음 정령, 하나뿐이면 지금 정령
+	private static ForestWand.Spirit shownSpirit( ForestWand w ){
+		if (w == null || w.spiritCount() <= 0) return null;
+		ForestWand.Spirit next = w.nextSpirit();
+		return next != null ? next : w.active();
+	}
+
 	@Override
 	public String actionName() {
 		ForestWand w = wand();
 		ForestWand.Spirit next = w == null ? null : w.nextSpirit();
-		return Messages.get( this, "action", next == null ? "" : next.title() );
+		if (next == null) return Messages.get( this, "manage" );
+		return Messages.get( this, "action", next.title() );
 	}
 
 	@Override
 	public Visual primaryVisual() {
-		ForestWand w = wand();
-		ForestWand.Spirit next = w == null ? null : w.nextSpirit();
+		ForestWand.Spirit next = shownSpirit( wand() );
 		Image img = new Image( Assets.Sprites.ITEM_ICONS );
 		if (next != null) img.frame( ItemSpriteSheet.Icons.film.get( next.icon() ) );
-		img.scale.set( 2f );
 		return img;
 	}
 
 	@Override
 	public int indicatorColor() {
-		ForestWand w = wand();
-		ForestWand.Spirit next = w == null ? null : w.nextSpirit();
+		ForestWand.Spirit next = shownSpirit( wand() );
 		return next == null ? 0x6A8A40 : next.color;
 	}
 
@@ -100,7 +105,12 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 	public void doAction() {
 		Hero hero = Dungeon.hero;
 		ForestWand w = wand();
-		if (hero == null || w == null || !hero.ready || w.nextSpirit() == null) return;
+		if (hero == null || w == null || !hero.ready) return;
+		//바꿀 정령이 없으면 바로 정령 관리 창
+		if (w.nextSpirit() == null){
+			openManager( w );
+			return;
+		}
 		ForestWand.Spirit s = w.rotate();
 		if (s != null){
 			hero.sprite.emitter().burst( s.particle(), 6 );
@@ -109,5 +119,19 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		}
 		refreshButton();
 		ActionIndicator.refresh();
+	}
+
+	//길게 누르면 인벤토리를 열지 않고 정령 관리 창 (풀어 주기·부여·거두기)
+	@Override
+	public boolean doLongAction() {
+		ForestWand w = wand();
+		if (w == null || Dungeon.hero == null || !Dungeon.hero.ready) return false;
+		openManager( w );
+		return true;
+	}
+
+	private void openManager( ForestWand w ){
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+				new com.shatteredpixel.shatteredpixeldungeon.windows.WndForestWand( w ) );
 	}
 }

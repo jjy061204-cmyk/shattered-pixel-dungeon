@@ -142,6 +142,14 @@ public class ActionIndicator extends Tag {
 	}
 
 	@Override
+	protected boolean onLongClick() {
+		if (action != null && Dungeon.hero.ready && action.doLongAction()){
+			return true;
+		}
+		return super.onLongClick();
+	}
+
+	@Override
 	protected String hoverText() {
 		String text = (action == null ? null : action.actionName());
 		if (text != null){
@@ -199,6 +207,11 @@ public class ActionIndicator extends Tag {
 		int indicatorColor();
 
 		void doAction();
+
+		//모드: 길게 눌렀을 때 (처리했으면 true)
+		default boolean doLongAction(){
+			return false;
+		}
 
 	}
 
