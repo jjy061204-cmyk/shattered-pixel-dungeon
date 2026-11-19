@@ -84,6 +84,9 @@ public class Regeneration extends Buff {
 					delay /= SaltCube.healthRegenMultiplier();
 				}
 
+				//모드: 뱀파이어는 타고난 생명력으로 자연 재생 +50%
+				if (((Hero)target).heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE) delay /= 1.5f;
+
 				//모드: 진조 흡혈귀의 '불사의 육체' - 자연 재생 +25/50/75%
 				delay /= 1f + 0.25f * Dungeon.hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.UNDYING_FLESH);
 

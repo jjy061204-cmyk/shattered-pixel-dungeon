@@ -278,6 +278,8 @@ public class Hero extends Char {
 		int curHT = HT;
 		
 		HT = 20 + 5*(lvl-1) + HTBoost;
+		//모드: 뱀파이어는 레벨이 오를 때마다 최대 체력이 2씩 더 늘어남
+		if (heroClass == HeroClass.VAMPIRE) HT += 2*(lvl-1);
 		float multiplier = RingOfMight.HTMultiplier(this);
 		//모드: 왕의 가호 최대 체력 +20%
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null) multiplier *= com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.HT_MULTI;

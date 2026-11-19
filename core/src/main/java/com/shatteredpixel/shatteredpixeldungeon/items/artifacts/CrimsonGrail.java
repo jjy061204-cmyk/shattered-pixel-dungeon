@@ -24,6 +24,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BloodWings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Levitation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
@@ -254,10 +255,10 @@ public class CrimsonGrail extends Artifact {
 		}
 	}
 
-	//자동 조준이 노릴 칸: 피의 창만 날아가다 막히고, 나머지 기술은 고른 칸에 그대로 닿음
+	//자동 조준이 노릴 칸: 피의 창·박쥐 떼는 날아가다 막히고, 나머지 기술은 고른 칸에 그대로 닿음
 	@Override
 	public int targetingPos( Hero user, int dst ) {
-		if (aimSkill == Skill.LANCE) return new Ballistica( user.pos, dst, Ballistica.PROJECTILE ).collisionPos;
+		if (aimSkill == Skill.LANCE || aimSkill == Skill.SWARM) return new Ballistica( user.pos, dst, Ballistica.PROJECTILE ).collisionPos;
 		return dst;
 	}
 
@@ -356,6 +357,35 @@ public class CrimsonGrail extends Artifact {
 		startAim( skill, suggest );
 	}
 
+	//투사체 기술: 적이 없어도 아무 칸으로나 쏠 수 있음 (가까운 적에게 조준점은 그대로 뜸)
+	private void pickCell( final Hero hero, final Skill skill, final int range, final OnTarget then ){
+		Char suggest = nearEnemy( hero, range );
+		GameScene.selectCell( new CellSelector.Listener() {
+			@Override
+			public void onSelect( Integer cell ) {
+				endAim();
+				if (cell == null || cell == hero.pos) return;
+				then.hit( Actor.findChar( cell ), cell );
+			}
+
+			@Override
+			public String prompt() {
+				return Messages.get( CrimsonGrail.class, "cell_prompt", skill.title() );
+			}
+		} );
+		startAim( skill, suggest );
+	}
+
+	//투사체가 날아가는 길: 사거리와 벽에서 멈춤. stopAtTarget이면 고른 칸에서 멈춤
+	private static int reachOf( Hero hero, Ballistica b, int cell, int range, boolean stopAtTarget ){
+		int reach = Math.min( b.dist, range );
+		if (stopAtTarget){
+			int d = Dungeon.level.distance( hero.pos, cell );
+			reach = Math.min( reach, Math.max( 1, d ) );
+		}
+		return Math.max( 1, Math.min( reach, b.path.size() - 1 ) );
+	}
+
 	//기본 공격 한 번의 피해 (대상의 방어를 뺀 값)에 배율을 곱함
 	private static int strike( Hero hero, Char enemy, float mult ){
 		int roll = hero.damageRoll() - enemy.drRoll();
@@ -386,6 +416,7 @@ public class CrimsonGrail extends Artifact {
 		if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 6 );
 		heal( hero, healing );
 		gainLife( hero, living ? 1f : 0.34f );
+		feed( hero, ch, DRAIN_FOOD );
 		return dmg;
 	}
 
@@ -431,14 +462,15 @@ public class CrimsonGrail extends Artifact {
 
 			case SLASH:
 				//보이는 적을 향해 핏빛 검기를 날려, 5칸 안 직선 위의 적 모두에게 피해와 약한 출혈
-				pickEnemy( hero, skill, 5, new OnTarget() {
+				//고른 칸까지(최대 5칸) 곧게 날아가며 그 길 위의 적 모두를 벰. 적이 없어도 쏠 수 있음
+				pickCell( hero, skill, 5, new OnTarget() {
 					@Override
 					public void hit( Char target, final int cell ) {
 						spend( hero, skill );
 						Invisibility.dispel();
 						hero.busy();
 						final Ballistica line = new Ballistica( hero.pos, cell, Ballistica.STOP_SOLID );
-						final int reach = Math.max( 1, Math.min( line.dist, 5 ) );
+						final int reach = reachOf( hero, line, cell, 5, true );
 						final int endCell = line.path.get( reach );
 						hero.sprite.attack( cell, new Callback() {
 							@Override
@@ -541,24 +573,31 @@ public class CrimsonGrail extends Artifact {
 				break;
 
 			case SWARM:
-				pickEnemy( hero, skill, 5, new OnTarget() {
+				//박쥐 떼가 고른 쪽으로 날아가 처음 닿는 적(5칸 안)을 덮침. 적이 없어도 날려 보낼 수 있음
+				pickCell( hero, skill, 5, new OnTarget() {
 					@Override
-					public void hit( Char ch, int cell ) {
+					public void hit( Char picked, int cell ) {
 						spend( hero, skill );
 						Invisibility.dispel();
 						final int pts = hero.pointsInTalent( Talent.BAT_SWARM );
 						hero.busy();
 						hero.sprite.zap( cell );
 						Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 1.4f );
-						final Char target = ch;
+						Ballistica path = new Ballistica( hero.pos, cell, Ballistica.PROJECTILE );
+						int reach = reachOf( hero, path, cell, 5, false );
+						int endPos = path.path.get( reach );
+						Char hitCh = Actor.findChar( endPos );
+						if (hitCh == hero || (hitCh != null && hitCh.alignment == Char.Alignment.ALLY)) hitCh = null;
+						final Char target = hitCh;
 						PointF a = hero.sprite.center();
-						PointF b = ch.sprite != null ? ch.sprite.center() : a;
+						PointF b = target != null && target.sprite != null ? target.sprite.center()
+								: com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.raisedTileCenterToWorld( endPos );
 						VampireFX.shoot( VampireFX.Projectile.BAT, new PointF( a.x, a.y - 6 ), b, 0f, null );
 						VampireFX.shoot( VampireFX.Projectile.BAT, new PointF( a.x, a.y + 5 ), b, 0.07f, null );
 						VampireFX.shoot( VampireFX.Projectile.BAT, a, b, 0.14f, new Callback() {
 							@Override
 							public void call() {
-								if (target.isAlive()){
+								if (target != null && target.isAlive()){
 									VampireFX.on( target.sprite, VampireFX.BATS, 0.6f, 0.5f );
 									target.damage( Random.NormalIntRange( 1 + pts, 3 + lvl / 4 + pts ), CrimsonGrail.this );
 									//2/3턴 동안 실명
@@ -573,24 +612,26 @@ public class CrimsonGrail extends Artifact {
 				break;
 
 			case LANCE:
-				pickEnemy( hero, skill, 7, new OnTarget() {
+				//고른 쪽으로 창을 던져 처음 닿는 적(7칸 안)을 꿰뚫음. 적이 없어도 던질 수 있음
+				pickCell( hero, skill, 7, new OnTarget() {
 					@Override
 					public void hit( Char target, final int cell ) {
-						final Ballistica shot = new Ballistica( hero.pos, cell, Ballistica.PROJECTILE );
+						final Ballistica path = new Ballistica( hero.pos, cell, Ballistica.PROJECTILE );
+						final int hitPos = path.path.get( reachOf( hero, path, cell, 7, false ) );
 						spend( hero, skill );
 						Invisibility.dispel();
 						hero.busy();
 						hero.sprite.zap( cell );
 						Sample.INSTANCE.play( Assets.Sounds.ZAP );
-						Char first = Actor.findChar( shot.collisionPos );
+						Char first = Actor.findChar( hitPos );
 						PointF end = first != null && first.sprite != null ? first.sprite.center()
-								: com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.raisedTileCenterToWorld( shot.collisionPos );
+								: com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.raisedTileCenterToWorld( hitPos );
 						VampireFX.shoot( VampireFX.Projectile.LANCE, hero.sprite.center(), end, 0.1f, new Callback() {
 							@Override
 							public void call() {
-								VampireFX.at( shot.collisionPos, VampireFX.SPLASH, 0.6f, 0.4f );
-								Char ch = Actor.findChar( shot.collisionPos );
-								if (ch != null && ch != hero){
+								VampireFX.at( hitPos, VampireFX.SPLASH, 0.6f, 0.4f );
+								Char ch = Actor.findChar( hitPos );
+								if (ch != null && ch != hero && ch.alignment != Char.Alignment.ALLY){
 									int pts = hero.pointsInTalent( Talent.BLOOD_LANCE );
 									int dmg = Math.round( Random.NormalIntRange( 3 + lvl / 2, 6 + lvl ) * (0.8f + 0.2f * pts) );
 									boolean living = isLiving( ch );
@@ -683,6 +724,7 @@ public class CrimsonGrail extends Artifact {
 									if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 12 );
 									if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
 									heal( hero, Math.max( 1, Math.round( dmg * (living ? 0.5f : 0.2f) ) ) );
+									feed( hero, ch, FEAST_FOOD );
 									Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG, 1f, 0.8f );
 									frenzy( hero );
 								}
@@ -767,6 +809,14 @@ public class CrimsonGrail extends Artifact {
 		Talent.onArtifactUsed( hero );
 		updateQuickslot();
 		hero.spendAndNext( time );
+	}
+
+	//모드: 흡혈 계열 기술은 피를 마셔 허기도 조금 달램 (살아 있는 적만 제대로)
+	public static final float DRAIN_FOOD = 12f, FEAST_FOOD = 30f;
+	private static void feed( Hero hero, Char from, float amount ){
+		if (!isLiving( from )) amount *= 0.3f;
+		Hunger h = hero.buff( Hunger.class );
+		if (h != null) h.satisfy( amount );
 	}
 
 	private static void heal( Hero hero, int amount ){
