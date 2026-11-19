@@ -32,6 +32,22 @@ public class SpiritItemParticle extends PixelParticle {
 		};
 	}
 
+	//정령 탄의 궤도: 정령 고유 입자와 정령 빛깔의 작은 잔광을 번갈아 뿌림
+	public static Emitter.Factory trail( final Spirit s ){
+		final Emitter.Factory main = s.particle();
+		return new Emitter.Factory() {
+			@Override
+			public void emit( Emitter emitter, int index, float x, float y ) {
+				if ((index & 1) == 0) main.emit( emitter, index, x, y );
+				else ((SpiritItemParticle) emitter.recycle( SpiritItemParticle.class )).reset( s, x, y );
+			}
+			@Override
+			public boolean lightMode() {
+				return main.lightMode();
+			}
+		};
+	}
+
 	//어두운 색 정령은 빛 섞기(가산)를 쓰면 안 보여서 보통 그리기
 	private static boolean dim( Spirit s ){
 		switch (s){

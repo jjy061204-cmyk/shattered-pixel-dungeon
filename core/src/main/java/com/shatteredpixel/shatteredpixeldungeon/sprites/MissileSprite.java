@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSp
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Trident;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.tweeners.PosTweener;
 import com.watabou.noosa.tweeners.Tweener;
@@ -140,6 +141,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 				break;
 			}
 		}
+		//모드: 정령 탄은 깃든 정령마다 도는 빠르기가 다름 (불덩이·물방울·얼음 창은 날아가는 쪽을 향함)
+		if (item instanceof ForestWand.SpiritBolt){
+			angularSpeed = ((ForestWand.SpiritBolt) item).spin();
+		}
 		
 		angle = 135 - (float)(Math.atan2( d.x, d.y ) / 3.1415926 * 180);
 		
@@ -166,6 +171,9 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 				|| Dungeon.hero.belongings.secondWep() instanceof Crossbow)){
 			speed *= 3f;
 			
+		} else if (item instanceof ForestWand.SpiritBolt){
+			speed *= ((ForestWand.SpiritBolt) item).speedFactor();
+
 		} else if (item instanceof SpiritBow.SpiritArrow
 				|| item instanceof ScorpioSprite.ScorpioShot
 				|| item instanceof TenguSprite.TenguShuriken){

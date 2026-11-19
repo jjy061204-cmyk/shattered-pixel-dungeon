@@ -86,7 +86,33 @@ public class HeroSelectScene extends PixelScene {
 	private RenderedTextBlock title;
 	private ArrayList<StyledButton> heroBtns = new ArrayList<>();
 	//모드: 영웅 선택 버튼은 한 줄에 5칸
-	private static final int HERO_COLS = 5;
+	//모드: 첫 줄은 원작 영웅 6명(전사~성직자), 둘째 줄부터 모드 영웅(유물수집가~)을 순서대로
+	private static final int HERO_COLS = 6;
+	private static final int FIRST_ROW = HeroClass.CLERIC.ordinal() + 1;
+
+	private int heroRow( int i ){
+		return i < FIRST_ROW ? 0 : 1 + (i - FIRST_ROW) / HERO_COLS;
+	}
+
+	private int heroCol( int i ){
+		return i < FIRST_ROW ? i : (i - FIRST_ROW) % HERO_COLS;
+	}
+
+	private int heroRowSize( int row ){
+		int n = heroBtns.size();
+		if (row == 0) return Math.min( FIRST_ROW, n );
+		return Math.max( 0, Math.min( HERO_COLS, n - FIRST_ROW - (row - 1) * HERO_COLS ) );
+	}
+
+	private int heroRows(){
+		return heroRow( heroBtns.size() - 1 ) + 1;
+	}
+
+	private int heroCols(){
+		int c = 0;
+		for (int row = 0; row < heroRows(); row++) c = Math.max( c, heroRowSize( row ) );
+		return Math.max( 1, c );
+	}
 	private float heroBarHeight = 24; //세로 화면에서 영웅 버튼 줄들이 차지하는 높이
 	private RenderedTextBlock heroName; //only on landscape
 	private RenderedTextBlock heroDesc; //only on landscape
@@ -259,9 +285,8 @@ public class HeroSelectScene extends PixelScene {
 			title.setPos(insets.left + (leftArea - title.width())/2f, (h-uiHeight)/2f);
 			align(title);
 
-			//모드: 영웅이 늘어나 한 줄에 5칸씩, 여러 줄로 나열 (남는 칸은 가운데 정렬)
-			int cols = Math.min(HERO_COLS, heroBtns.size());
-			int rows = (heroBtns.size() + cols - 1) / cols;
+			//모드: 첫 줄 원작 영웅 6명, 둘째 줄 모드 영웅 (줄마다 가운데 정렬)
+			int cols = heroCols();
 			int btnWidth = (int)Math.max(HeroBtn.MIN_WIDTH, Math.min(HeroBtn.MIN_WIDTH + 15, (leftArea - (cols-1)) / cols));
 			int btnHeight = HeroBtn.HEIGHT;
 			if (uiHeight >= 180){
@@ -270,11 +295,11 @@ public class HeroSelectScene extends PixelScene {
 
 			float curY = title.bottom() + uiSpacing;
 			for (int i = 0; i < heroBtns.size(); i++){
-				int row = i / cols;
-				int inRow = Math.min(cols, heroBtns.size() - row*cols);
+				int row = heroRow(i);
+				int inRow = heroRowSize(row);
 				float rowX = insets.left + (leftArea - btnWidth * inRow - (inRow-1))/2f;
 				StyledButton button = heroBtns.get(i);
-				button.setRect(rowX + (i % cols)*(btnWidth+1), curY + row*(btnHeight+1), btnWidth, btnHeight);
+				button.setRect(rowX + heroCol(i)*(btnWidth+1), curY + row*(btnHeight+1), btnWidth, btnHeight);
 				align(button);
 			}
 
@@ -322,19 +347,19 @@ public class HeroSelectScene extends PixelScene {
 		} else {
 			background.visible = false;
 
-			//모드: 화면 아래에 한 줄 5칸씩 여러 줄로 나열 (마지막 줄은 가운데 정렬)
-			int cols = Math.min(HERO_COLS, heroBtns.size());
-			int rows = (heroBtns.size() + cols - 1) / cols;
+			//모드: 화면 아래 첫 줄에 원작 영웅 6명, 둘째 줄에 모드 영웅 (줄마다 가운데 정렬)
+			int cols = heroCols();
+			int rows = heroRows();
 			int btnWidth = (int)Math.max(HeroBtn.MIN_WIDTH, Math.min(HeroBtn.MIN_WIDTH + 15, w / cols));
 			heroBarHeight = rows * HeroBtn.HEIGHT;
 
 			float topY = insets.top + h - heroBarHeight + 3;
 			for (int i = 0; i < heroBtns.size(); i++){
-				int row = i / cols;
-				int inRow = Math.min(cols, heroBtns.size() - row*cols);
+				int row = heroRow(i);
+				int inRow = heroRowSize(row);
 				float rowX = insets.left + (w - btnWidth * inRow) / 2f;
 				boolean last = row == rows - 1;
-				heroBtns.get(i).setRect(rowX + (i % cols)*btnWidth, topY + row*HeroBtn.HEIGHT, btnWidth, HeroBtn.HEIGHT + (last ? insets.bottom : 0));
+				heroBtns.get(i).setRect(rowX + heroCol(i)*btnWidth, topY + row*HeroBtn.HEIGHT, btnWidth, HeroBtn.HEIGHT + (last ? insets.bottom : 0));
 			}
 
 			//add a darkening bar along bottom

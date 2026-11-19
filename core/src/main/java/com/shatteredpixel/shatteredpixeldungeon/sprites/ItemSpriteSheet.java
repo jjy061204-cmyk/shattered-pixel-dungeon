@@ -31,7 +31,7 @@ public class ItemSpriteSheet {
 
 	private static final int TX_WIDTH = 256;
 	//모드: 아래쪽에 모드 전용 줄(33줄~)을 붙여서 높이를 늘림
-	private static final int TX_HEIGHT = 672;   //39~41줄: 에테르 점토 무기 모양
+	private static final int TX_HEIGHT = 688;   //39~41줄: 에테르 점토 무기 모양, 42~43줄: 정령 탄
 
 	private static final int WIDTH = TX_WIDTH / SIZE;
 
@@ -1038,6 +1038,16 @@ public class ItemSpriteSheet {
 	public static final int ORNAMENTAL_SWORD  = MOD_WEAPON+7;   //뱀파이어의 장식용 검
 	public static final int FOREST_WAND       = MOD_WEAPON+8;   //정령사의 숲의 완드
 	public static final int FOREST_BOLT       = MOD_WEAPON+9;   //숲의 완드가 쏘는 정령 탄
+
+	//정령 탄: 깃든 정령마다 다른 모양 (ForestWand.Spirit 순서, 북동쪽을 향하게 그림)
+	private static final int SPIRIT_BOLTS  =                                xy(1, 42);  //16 slots
+	private static final int SPIRIT_BOLTS2 =                                xy(1, 43);  //16 slots
+	public static int spiritBolt( int ordinal ){
+		return ordinal < 16 ? SPIRIT_BOLTS + ordinal : SPIRIT_BOLTS2 + (ordinal - 16);
+	}
+	static{
+		for (int i = 0; i < 32; i++) assignItemRect( spiritBolt( i ), 12, 12 );
+	}
 	public static final int ETHER_CLAY        = MOD_WEAPON+10;  //마법 기사의 에테르 점토
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);

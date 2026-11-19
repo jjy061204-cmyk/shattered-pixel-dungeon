@@ -59,6 +59,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SpiritItemParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
@@ -423,19 +425,80 @@ public class ForestWand extends Weapon {
 			return 1;
 		}
 
+		//탄 그림: 깃든 정령마다 다른 모양 (불덩이·물방울·얼음 창·번개·나뭇잎·바위·룬 등)
+		@Override
+		public int image() {
+			Spirit s = active();
+			return s != null ? ItemSpriteSheet.spiritBolt( s.ordinal() ) : ItemSpriteSheet.FOREST_BOLT;
+		}
+
+		//궤도: 정령 고유 입자와 정령 빛깔의 잔광을 번갈아 남김
 		@Override
 		public Emitter emitter() {
 			Emitter e = new Emitter();
-			e.pos( 5, 5 );
 			e.fillTarget = false;
 			Spirit s = active();
-			e.pour( s != null ? s.particle() : LeafParticle.GENERAL, s != null && s.strong ? 0.015f : 0.025f );
+			if (s == null){
+				e.pos( 5, 5 );
+				e.pour( LeafParticle.GENERAL, 0.025f );
+			} else {
+				e.pos( 6, 6 );
+				e.pour( SpiritItemParticle.trail( s ), s.strong ? 0.008f : 0.012f );
+			}
 			return e;
 		}
 
+		//탄 그림에 이미 정령 빛깔이 있으니 덧칠하지 않음
 		@Override
 		public ItemSprite.Glowing glowing() {
-			return ForestWand.this.glowing();
+			return null;
+		}
+
+		//날아가는 동안 도는 빠르기 (0이면 날아가는 쪽을 향해 곧게)
+		public int spin(){
+			Spirit s = active();
+			if (s == null) return 720;
+			switch (s){
+				case EARTH: case ROCK: case GNOME: case NATURE: return 540;
+				case GOLD:  return 900;
+				case CHAOS: return 720;
+				case RUNE:  return 360;
+				default:    return 0;
+			}
+		}
+
+		//날아가는 빠르기 배율 (번개는 번쩍, 바위는 묵직하게)
+		public float speedFactor(){
+			Spirit s = active();
+			if (s == null) return 1.2f;
+			switch (s){
+				case SHOCK: return 2.2f;
+				case WIND: case SYLPH: return 1.7f;
+				case EARTH: case ROCK: case GNOME: return 1.0f;
+				default: return 1.35f;
+			}
+		}
+
+		//쏘는 순간 완드 끝에서 정령 입자가 조금 튐
+		@Override
+		public void cast( Hero user, int dst ) {
+			Spirit s = active();
+			if (s != null && user.sprite != null) user.sprite.centerEmitter().burst( s.particle(), 3 );
+			super.cast( user, dst );
+		}
+
+		//닿은 자리에서 정령 빛깔로 터짐 (맞든 빗나가든)
+		private void impactFx( int cell ){
+			if (Dungeon.level == null || cell < 0 || cell >= Dungeon.level.length() || !Dungeon.level.heroFOV[cell]) return;
+			Spirit s = active();
+			int col = s != null ? s.color : 0x9CE07A;
+			boolean big = s != null && s.strong;
+			Splash.at( cell, 0xCC000000 | col, big ? 7 : 4 );
+			CellEmitter.center( cell ).burst( s != null ? s.particle() : LeafParticle.GENERAL, big ? 8 : 5 );
+			if (curUser != null && curUser.sprite != null && curUser.sprite.parent != null){
+				new Flare( 6, big ? 14 : 10 ).color( col, true )
+						.show( curUser.sprite.parent, DungeonTilemap.tileCenterToWorld( cell ), 0.35f );
+			}
 		}
 
 		@Override
@@ -465,20 +528,17 @@ public class ForestWand extends Weapon {
 
 		@Override
 		protected void onThrow( int cell ) {
+			impactFx( cell );
 			Char enemy = Actor.findChar( cell );
 			//마법사 퀘스트: 갓 소환된 화염 정령은 정령 탄을 맞으면 싸우지 않고 길들여짐
 			if (enemy instanceof Elemental.NewbornFireElemental && enemy.alignment == Char.Alignment.ENEMY){
 				tame( curUser, (Elemental.NewbornFireElemental) enemy );
 				return;
 			}
-			int col = active() != null ? active().color : 0x9CE07A;
 			if (enemy == null || enemy == curUser) {
 				parent = null;
-				Splash.at( cell, 0xCC000000 | col, 1 );
 			} else {
-				if (!curUser.shoot( enemy, this )) {
-					Splash.at( cell, 0xCC000000 | col, 1 );
-				}
+				curUser.shoot( enemy, this );
 			}
 		}
 
