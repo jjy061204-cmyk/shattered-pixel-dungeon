@@ -232,8 +232,13 @@ public class CavesLevel extends RegularLevel {
 	@Override
 	public Group addVisuals() {
 		super.addVisuals();
-		addCavesVisuals( this, visuals );
+		if (veinSparkles()) addCavesVisuals( this, visuals );
 		return visuals;
+	}
+
+	//모드: 벽 장식이 금맥이 아닌 층(놀 제국 등)은 반짝임을 끔
+	protected boolean veinSparkles(){
+		return true;
 	}
 
 	public static void addCavesVisuals( Level level, Group group ) {

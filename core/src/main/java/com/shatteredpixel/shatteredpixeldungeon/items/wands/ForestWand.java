@@ -1089,6 +1089,8 @@ public class ForestWand extends Weapon {
 		//낭떠러지의 어둠
 		if (t == Terrain.CHASM) return Spirit.DARK;
 		if (t == Terrain.WALL_DECO && level instanceof PrisonLevel) return Spirit.FIRE;   //감옥 벽의 횃불
+		//놀 제국의 모닥불·용광로
+		if (t == Terrain.STATUE_SP && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isEmpireLevel( level )) return Spirit.FIRE;
 		if (level.water[cell] || t == Terrain.WATER) return Spirit.WATER;
 		if (t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS) return Random.Int(2) == 0 ? Spirit.WIND : Spirit.NATURE;
 		//맨땅: 땅의 정령 또는 바위의 정령

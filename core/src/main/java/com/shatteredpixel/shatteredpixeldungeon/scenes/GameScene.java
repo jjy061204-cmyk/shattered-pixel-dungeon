@@ -727,6 +727,12 @@ public class GameScene extends PixelScene {
 					break;
 			}
 
+			//모드: 갈림길 테마 층에 처음 들어설 때의 문구
+			String entryText = Dungeon.level.entryText();
+			if (entryText != null){
+				GLog.w( entryText );
+			}
+
 			for (Mob mob : Dungeon.level.mobs) {
 				if (!mob.buffs(ChampionEnemy.class).isEmpty()) {
 					GLog.w(Messages.get(ChampionEnemy.class, "warn"));

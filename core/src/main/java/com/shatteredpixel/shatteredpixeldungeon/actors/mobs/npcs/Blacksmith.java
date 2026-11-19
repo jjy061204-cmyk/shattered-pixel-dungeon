@@ -100,6 +100,11 @@ public class Blacksmith extends NPC {
 
 			msg1 += "\n\n" + Messages.get(Blacksmith.this, "intro_quest_start");
 
+			//모드: 놀 제국에서는 놀에게 붙잡혀 일하는 중
+			if (com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active()){
+				msg1 = Messages.get(Blacksmith.this, "intro_captive") + "\n\n" + msg1;
+			}
+
 			switch (Quest.type){
 				case Quest.CRYSTAL: msg2 += Messages.get(Blacksmith.this, "intro_quest_crystal"); break;
 				case Quest.GNOLL:   msg2 += Messages.get(Blacksmith.this, "intro_quest_gnoll"); break;
@@ -345,13 +350,19 @@ public class Blacksmith extends NPC {
 		}
 		
 		public static ArrayList<Room> spawn( ArrayList<Room> rooms ) {
-			if (!spawned && Dungeon.depth > 11 && Random.Int( 15 - Dungeon.depth ) == 0) {
+			//모드: 놀 제국 루트에서는 놀에게 붙잡힌 대장장이를 13층 노역장에서 만남 (못 만들었으면 14층)
+			boolean empire = Dungeon.branch == 0
+					&& com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active();
+			boolean roll = empire ? Dungeon.depth >= 13 : (Dungeon.depth > 11 && Random.Int( 15 - Dungeon.depth ) == 0);
+			if (!spawned && roll) {
 				
-				rooms.add(new BlacksmithRoom());
+				rooms.add(empire ? new com.shatteredpixel.shatteredpixeldungeon.levels.rooms.gnoll.GnollLaborCampRoom()
+						: new BlacksmithRoom());
 				spawned = true;
 
 				//Currently cannot roll the fungi quest, as it is not fully implemented
-				type = Random.IntRange(1, 2);
+				//모드: 놀 제국에서는 채굴 층이 놀과 겹치지 않게 수정 광맥으로 (버섯 채굴은 원작에서도 미완성)
+				type = empire ? CRYSTAL : Random.IntRange(1, 2);
 				
 				given = false;
 				generateRewards( true );

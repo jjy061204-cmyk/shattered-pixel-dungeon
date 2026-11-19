@@ -28,26 +28,29 @@ public class Routes {
 
 	//광산 (11~15층)
 	public enum Caves {
-		MINES( 2 ),            //원작 광산
-		GNOLL_EMPIRE( 3 ),     //놀 군단이 DM-300과 기계들을 몰아내고 세운 놀 제국
-		VAMPIRE_CASTLE( 3 ),   //광산에 숨어든 뱀파이어가 생물들을 감염시킨 흡혈귀의 성
-		CRYSTAL_VEIN( 2 );     //드워프들이 캐다 깨운 수정 생명체가 뒤덮은 수정 광맥
+		MINES( 2, true ),            //원작 광산
+		GNOLL_EMPIRE( 3, true ),     //놀 군단이 DM-300과 기계들을 몰아내고 세운 놀 제국
+		VAMPIRE_CASTLE( 3, false ),  //광산에 숨어든 뱀파이어가 생물들을 감염시킨 흡혈귀의 성
+		CRYSTAL_VEIN( 2, false );    //드워프들이 캐다 깨운 수정 생명체가 뒤덮은 수정 광맥
 
 		public final int danger;
-		Caves( int danger ){ this.danger = danger; }
+		//만들어진 길인지 (아직이면 갈림길에서 고를 수 없음)
+		public final boolean ready;
+		Caves( int danger, boolean ready ){ this.danger = danger; this.ready = ready; }
 		public String title(){ return Messages.get( Routes.class, "caves_" + name().toLowerCase() ); }
 		public String desc(){ return Messages.get( Routes.class, "caves_" + name().toLowerCase() + "_desc" ); }
 	}
 
 	//지옥 (21~25층)
 	public enum Halls {
-		DEMON_HALLS( 3 ),          //원작 지옥 (요그제바)
-		DRAGON_RUINS( 4 ),         //요그제바가 고룡을 조종하는 용의 유적
-		SHATTERED_DIMENSION( 4 ),  //아뮬렛의 힘이 시공을 뒤틀어 온갖 테마가 뒤섞인 깨어진 이차원
-		FROZEN_ABYSS( 3 );         //요그제바의 냉기가 지옥 불을 꺼 버린 얼어붙은 심연
+		DEMON_HALLS( 3, true ),          //원작 지옥 (요그제바)
+		DRAGON_RUINS( 4, false ),        //요그제바가 고룡을 조종하는 용의 유적
+		SHATTERED_DIMENSION( 4, false ), //아뮬렛의 힘이 시공을 뒤틀어 온갖 테마가 뒤섞인 깨어진 이차원
+		FROZEN_ABYSS( 3, false );        //요그제바의 냉기가 지옥 불을 꺼 버린 얼어붙은 심연
 
 		public final int danger;
-		Halls( int danger ){ this.danger = danger; }
+		public final boolean ready;
+		Halls( int danger, boolean ready ){ this.danger = danger; this.ready = ready; }
 		public String title(){ return Messages.get( Routes.class, "halls_" + name().toLowerCase() ); }
 		public String desc(){ return Messages.get( Routes.class, "halls_" + name().toLowerCase() + "_desc" ); }
 	}
@@ -109,9 +112,11 @@ public class Routes {
 		final boolean isCaves = Dungeon.depth == 10;
 		final Enum<?>[] opts = isCaves ? Caves.values() : Halls.values();
 		final String[] labels = new String[opts.length];
+		final boolean[] ready = new boolean[opts.length];
 		for (int i = 0; i < opts.length; i++){
-			if (isCaves) labels[i] = ((Caves) opts[i]).title();
-			else         labels[i] = ((Halls) opts[i]).title();
+			if (isCaves) { labels[i] = ((Caves) opts[i]).title(); ready[i] = ((Caves) opts[i]).ready; }
+			else         { labels[i] = ((Halls) opts[i]).title(); ready[i] = ((Halls) opts[i]).ready; }
+			if (!ready[i]) labels[i] = Messages.get( Routes.class, "not_ready", labels[i] );
 		}
 		Game.runOnRenderThread( new Callback() {
 			@Override
@@ -123,6 +128,11 @@ public class Routes {
 					@Override
 					protected void onSelect( int index ) {
 						confirm( hero, transition, isCaves, opts[index] );
+					}
+
+					@Override
+					protected boolean enabled( int index ) {
+						return ready[index];
 					}
 
 					@Override

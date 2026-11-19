@@ -1566,6 +1566,11 @@ public abstract class Level implements Bundlable {
 
 	//usually just if the base terrain of a cell is solid, but other cases exist too
 	//only check on base terrain, we want to ignore temporary changes from blobs (e.g. light wall)
+	//모드: 이 층에 처음 내려왔을 때 보여 줄 문구 (없으면 null)
+	public String entryText(){
+		return null;
+	}
+
 	public boolean invalidHeroPos( int tile ){
 		int flags = Terrain.flags[map[tile]];
 		return (flags & Terrain.PASSABLE) != 0 && (flags & Terrain.AVOID) != 0;

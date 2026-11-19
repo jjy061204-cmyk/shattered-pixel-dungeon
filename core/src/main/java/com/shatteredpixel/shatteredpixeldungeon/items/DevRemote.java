@@ -56,12 +56,14 @@ public class DevRemote extends Item {
 		//특수 몬스터와 중간 보스
 		{ FetidRat.class, GnollTrickster.class, GreatCrab.class, Mimic.class, GoldenMimic.class, CrystalMimic.class, EbonyMimic.class, Statue.class, ArmoredStatue.class, Wraith.class, TormentedSpirit.class, RotLasher.class },
 		//이차원의 성소
-		{ StoneSoldier.class, StoneWarden.class, RuneSentinel.class }
+		{ StoneSoldier.class, StoneWarden.class, RuneSentinel.class },
+		//갈림길: 놀 제국
+		{ GnollScout.class, GnollJavelineer.class, ScrapGnoll.class, GnollCenturion.class, GnollGatekeeper.class }
 	};
 
 	//보스: 그 자리 소환이 되는 보스(구)와, 전용 무대가 있어야 하는 보스(그 층으로 이동)
-	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class, SanctuaryColossus.class };
-	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1 };   //-1: 이차원의 성소 2층
+	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class, SanctuaryColossus.class, GnollWarlord.class };
+	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1, 15 };   //-1: 이차원의 성소 2층
 
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
@@ -122,7 +124,7 @@ public class DevRemote extends Item {
 		if (travel){
 			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "depth_26" ), txt( "sanctuary" ) };
 		} else {
-			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "bosses" ) };
+			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "gnoll_empire" ), txt( "bosses" ) };
 		}
 		GameScene.show( new WndOptions( new ItemSprite( this ), txt( travel ? "travel_title" : "summon_title" ),
 				txt( travel ? "travel_msg" : "summon_msg", Dungeon.depth ), regions ){
@@ -131,9 +133,10 @@ public class DevRemote extends Item {
 				if (travel){
 					if (index == 5) travel( 26 );
 					else if (index == 6) chooseSanctuary();
+					else if (index == 2 && com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves == null) chooseCavesRoute( index );
 					else chooseDepth( index );
 				} else {
-					if (index == 7) chooseBoss();
+					if (index == 8) chooseBoss();
 					else chooseMob( index );
 				}
 			}
@@ -155,6 +158,27 @@ public class DevRemote extends Item {
 			@Override
 			protected boolean enabled( int index ) {
 				return region * 5 + index + 1 != Dungeon.depth || Dungeon.branch != 0;
+			}
+		});
+	}
+
+	//광산 층으로 처음 갈 때: 갈림길 테마부터 고름 (만들어진 길만)
+	private void chooseCavesRoute( final int region ){
+		final com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves[] all = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.values();
+		String[] names = new String[all.length];
+		for (int i = 0; i < all.length; i++){
+			names[i] = all[i].ready ? all[i].title()
+					: Messages.get( com.shatteredpixel.shatteredpixeldungeon.levels.Routes.class, "not_ready", all[i].title() );
+		}
+		GameScene.show( new WndOptions( new ItemSprite( this ), txt( "route_title" ), txt( "route_msg" ), names ){
+			@Override
+			protected void onSelect( int index ) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = all[index];
+				chooseDepth( region );
+			}
+			@Override
+			protected boolean enabled( int index ) {
+				return all[index].ready;
 			}
 		});
 	}
@@ -199,7 +223,8 @@ public class DevRemote extends Item {
 		for (int i = 0; i < list.length; i++){
 			names[i] = Messages.titleCase( ((Mob) Reflection.newInstance( list[i] )).name() );
 		}
-		GameScene.show( new WndOptions( new ItemSprite( this ), group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : txt( "sanctuary" )), txt( "pick_mob" ), names ){
+		String title = group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : (group == 6 ? txt( "sanctuary" ) : txt( "gnoll_empire" )));
+		GameScene.show( new WndOptions( new ItemSprite( this ), title, txt( "pick_mob" ), names ){
 			@Override
 			protected void onSelect( int index ) {
 				summon( list[index] );
@@ -227,6 +252,20 @@ public class DevRemote extends Item {
 						com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryQuest.travel(
 								com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
 					}
+				}
+				else if (BOSSES[index] == GnollWarlord.class){
+					//놀 대족장은 놀 제국 루트의 15층에만 있음
+					com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves r = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves;
+					if (r != null && r != com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.GNOLL_EMPIRE){
+						GLog.w( txt( "other_route" ) );
+					} else {
+						com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.GNOLL_EMPIRE;
+						travel( 15 );
+					}
+				}
+				else if (BOSSES[index] == DM300.class
+						&& com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves() != com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.MINES){
+					GLog.w( txt( "other_route" ) );
 				}
 				else travel( BOSS_DEPTH[index] );   //텐구·DM-300·드워프 왕·요그는 전용 무대가 있어야 싸움이 됨
 			}

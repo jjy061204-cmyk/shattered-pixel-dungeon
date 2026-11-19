@@ -69,6 +69,10 @@ public class MobSpawner extends Actor {
 
 	//returns a rotation of standard mobs, unshuffled.
 	private static ArrayList<Class<? extends Mob>> standardMobRotation( int depth ){
+		//모드: 갈림길 루트 '놀 제국'의 광산 (박쥐→척후병, 거미→투척병, DM-200→고철 갑주 놀 자리)
+		if (depth >= 11 && depth <= 15 && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active()){
+			return gnollEmpireRotation( depth );
+		}
 		switch(depth){
 
 			// Sewers
@@ -212,7 +216,47 @@ public class MobSpawner extends Actor {
 	}
 
 	//has a chance to add a rarely spawned mobs to the rotation
+	private static ArrayList<Class<? extends Mob>> gnollEmpireRotation( int depth ){
+		switch (depth){
+			case 11: default:
+				//3x 척후병, 1x 브루트, 1x 주술사
+				return new ArrayList<>(Arrays.asList(
+						GnollScout.class, GnollScout.class, GnollScout.class,
+						Brute.class,
+						Shaman.random()));
+			case 12:
+				//2x 척후병, 2x 브루트, 1x 주술사, 1x 투척병
+				return new ArrayList<>(Arrays.asList(
+						GnollScout.class, GnollScout.class,
+						Brute.class, Brute.class,
+						Shaman.random(),
+						GnollJavelineer.class));
+			case 13:
+				//1x 척후병, 2x 브루트, 2x 주술사, 2x 투척병, 1x 고철 갑주 놀
+				return new ArrayList<>(Arrays.asList(
+						GnollScout.class,
+						Brute.class, Brute.class,
+						Shaman.random(), Shaman.random(),
+						GnollJavelineer.class, GnollJavelineer.class,
+						ScrapGnoll.class));
+			case 14: case 15:
+				//1x 척후병, 1x 브루트, 2x 주술사, 2x 투척병, 2x 고철 갑주 놀
+				return new ArrayList<>(Arrays.asList(
+						GnollScout.class,
+						Brute.class,
+						Shaman.random(), Shaman.random(),
+						GnollJavelineer.class, GnollJavelineer.class,
+						ScrapGnoll.class, ScrapGnoll.class));
+		}
+	}
+
 	public static void addRareMobs( int depth, ArrayList<Class<?extends Mob>> rotation ){
+
+		//모드: 놀 제국 14층의 희귀 몹은 구울 대신 놀 백부장
+		if (depth == 14 && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active()){
+			if (Random.Float() < 0.025f) rotation.add(GnollCenturion.class);
+			return;
+		}
 
 		switch (depth){
 

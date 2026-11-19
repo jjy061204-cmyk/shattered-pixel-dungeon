@@ -451,6 +451,11 @@ public abstract class Char extends Actor {
 				dmg *= 1.5f;
 			}
 
+			//모드: 놀 백부장·놀 대족장의 지휘를 받는 놀은 공격력 +20%
+			if (buff( com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollCenturion.Command.class ) != null) {
+				dmg *= 1.2f;
+			}
+
 			if (buff( PowerOfMany.PowerBuff.class) != null){
 				if (buff( BeamingRay.BeamingRayBoost.class) != null
 					&& buff( BeamingRay.BeamingRayBoost.class).object == enemy.id()){

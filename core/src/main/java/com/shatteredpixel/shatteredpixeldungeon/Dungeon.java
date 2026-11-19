@@ -62,6 +62,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.DragonRuinsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastleLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpireLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpireBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Routes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityLevel;
@@ -348,7 +349,11 @@ public class Dungeon {
 					}
 					break;
 				case 15:
-					level = new CavesBossLevel();
+					//모드: 갈림길 테마의 보스 층
+					switch (Routes.caves()){
+						case GNOLL_EMPIRE:   level = new GnollEmpireBossLevel(); break;
+						default:             level = new CavesBossLevel(); break;
+					}
 					break;
 				case 16:
 				case 17:
