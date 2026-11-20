@@ -53,6 +53,10 @@ public class Assets {
 		//모드: 갈림길 루트 - 놀 제국
 		public static final String TILES_GNOLL_EMPIRE = "environment/tiles_gnoll_empire.png";
 		public static final String GNOLL_ARENA        = "environment/custom_tiles/gnoll_arena.png";  //놀 대족장 투기장 장식
+		//흡혈귀의 성: 11~12층 핏줄이 번진 동굴, 13~15층 고딕 성, 핏물 웅덩이
+		public static final String TILES_VAMPIRE_CAVE   = "environment/tiles_vampire_cave.png";
+		public static final String TILES_VAMPIRE_CASTLE = "environment/tiles_vampire_castle.png";
+		public static final String WATER_BLOOD          = "environment/water_blood.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
@@ -301,6 +305,15 @@ public class Assets {
 		public static final String GNOLL_EMPIRE_PROPS = "sprites/gnoll_empire_props.png";
 		public static final String GNOLL_WARLORD      = "sprites/gnoll_warlord.png";
 		public static final String WAR_BANNER         = "sprites/war_banner.png";
+		//흡혈귀의 성 몹·장치
+		public static final String VC_GHOUL_GNOLL     = "sprites/vc_ghoul_gnoll.png";
+		public static final String VC_BLOOD_PRIEST    = "sprites/vc_blood_priest.png";
+		public static final String VC_BLOOD_SPIDER    = "sprites/vc_blood_spider.png";
+		public static final String VC_CASTLE_KNIGHT   = "sprites/vc_castle_knight.png";
+		public static final String VC_VAMPIRE_BRIDE   = "sprites/vc_vampire_bride.png";
+		public static final String VC_BLOOD_THRALL    = "sprites/vc_blood_thrall.png";
+		public static final String VC_VAMPIRE_LORD    = "sprites/vc_vampire_lord.png";
+		public static final String VC_PROPS           = "sprites/vc_props.png";
 		public static final String RUNE_AEGIS_HERO = "sprites/rune_aegis_hero.png";
 		public static final String RUNE_AEGIS_PARTS = "sprites/rune_aegis_parts.png";
 		//모드: 현대 세계 가게 화면, 자판기 화면 그림

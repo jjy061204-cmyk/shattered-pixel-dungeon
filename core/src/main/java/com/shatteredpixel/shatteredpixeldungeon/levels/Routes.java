@@ -30,7 +30,7 @@ public class Routes {
 	public enum Caves {
 		MINES( 2, true ),            //원작 광산
 		GNOLL_EMPIRE( 3, true ),     //놀 군단이 DM-300과 기계들을 몰아내고 세운 놀 제국
-		VAMPIRE_CASTLE( 3, false ),  //광산에 숨어든 뱀파이어가 생물들을 감염시킨 흡혈귀의 성
+		VAMPIRE_CASTLE( 3, true ),   //광산에 숨어든 뱀파이어가 생물들을 감염시킨 흡혈귀의 성
 		CRYSTAL_VEIN( 2, false );    //드워프들이 캐다 깨운 수정 생명체가 뒤덮은 수정 광맥
 
 		public final int danger;
@@ -107,8 +107,27 @@ public class Routes {
 		return false;
 	}
 
+	//낭떠러지·구덩이 함정으로 떨어질 때도 갈림길을 골라야 하는지 (10층→광산, 20층→지옥)
+	public static boolean needsFallChoice(){
+		if (Dungeon.branch != 0) return false;
+		if (Dungeon.depth == 10 && caves == null) return true;
+		if (Dungeon.depth == 20 && halls == null) return true;
+		return false;
+	}
+
 	//갈림길 창: 테마를 누르면 소개를 보고 그 길로 내려감
 	public static void choose( final Hero hero, final LevelTransition transition ){
+		chooseThen( new Callback() {
+			@Override
+			public void call() {
+				Dungeon.level.activateTransition( hero, transition );
+			}
+		}, false );
+	}
+
+	//테마를 고른 뒤 then 을 부름 (계단·낙하 공용)
+	//forced: 떨어지는 중이라 창을 닫을 수 없음 (반드시 골라야 함)
+	public static void chooseThen( final Callback then, final boolean forced ){
 		final boolean isCaves = Dungeon.depth == 10;
 		final Enum<?>[] opts = isCaves ? Caves.values() : Halls.values();
 		final String[] labels = new String[opts.length];
@@ -127,7 +146,12 @@ public class Routes {
 						labels ){
 					@Override
 					protected void onSelect( int index ) {
-						confirm( hero, transition, isCaves, opts[index] );
+						confirm( then, isCaves, opts[index], forced );
+					}
+
+					@Override
+					public void onBackPressed() {
+						if (!forced) super.onBackPressed();
 					}
 
 					@Override
@@ -154,7 +178,7 @@ public class Routes {
 		} );
 	}
 
-	private static void confirm( final Hero hero, final LevelTransition transition, final boolean isCaves, final Enum<?> o ){
+	private static void confirm( final Callback then, final boolean isCaves, final Enum<?> o, final boolean forced ){
 		String title = isCaves ? ((Caves) o).title() : ((Halls) o).title();
 		String desc = isCaves ? ((Caves) o).desc() : ((Halls) o).desc();
 		int danger = isCaves ? ((Caves) o).danger : ((Halls) o).danger;
@@ -166,10 +190,16 @@ public class Routes {
 				if (index == 0){
 					if (isCaves) caves = (Caves) o;
 					else         halls = (Halls) o;
-					Dungeon.level.activateTransition( hero, transition );
+					then.call();
 				} else {
-					choose( hero, transition );
+					chooseThen( then, forced );
 				}
+			}
+
+			@Override
+			public void onBackPressed() {
+				if (!forced) super.onBackPressed();
+				else { hide(); chooseThen( then, true ); }
 			}
 		} );
 	}

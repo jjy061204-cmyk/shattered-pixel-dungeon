@@ -1138,6 +1138,11 @@ public class ForestWand extends Weapon {
 		Blob fire = level.blobs.get( Fire.class );
 		if (blobAt( fire, cell )) return Spirit.FIRE;
 
+		//흡혈귀의 성: 켜진 촛대·화로·샹들리에
+		com.shatteredpixel.shatteredpixeldungeon.actors.Char lightCh = com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( cell );
+		if (lightCh instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleLight
+				&& ((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleLight) lightCh).lit) return Spirit.FIRE;
+
 		//서리 물약·서리 함정의 서리 구름
 		Blob ice = level.blobs.get( com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing.class );
 		if (blobAt( ice, cell )) return Spirit.ICE;
@@ -1157,6 +1162,8 @@ public class ForestWand extends Weapon {
 		if (t == Terrain.WALL_DECO && level instanceof PrisonLevel) return Spirit.FIRE;   //감옥 벽의 횃불
 		//놀 제국의 모닥불·용광로
 		if (t == Terrain.STATUE_SP && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isEmpireLevel( level )) return Spirit.FIRE;
+		//흡혈귀의 성의 핏물 웅덩이는 물이 아니라 물의 정령을 부르지 못함
+		if ((level.water[cell] || t == Terrain.WATER) && com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isCastleLevel( level )) return null;
 		if (level.water[cell] || t == Terrain.WATER) return Spirit.WATER;
 		if (t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS) return Random.Int(2) == 0 ? Spirit.WIND : Spirit.NATURE;
 		//맨땅: 땅의 정령 또는 바위의 정령
@@ -1194,6 +1201,13 @@ public class ForestWand extends Weapon {
 		} else if (s == Spirit.FIRE){
 			Blob fire = level.blobs.get( Fire.class );
 			if (blobAt( fire, cell )) fire.clear( cell );
+			else {
+				//촛대·화로의 불을 옮겨 가면 꺼짐 (꺼지지 않는 불은 그대로)
+				com.shatteredpixel.shatteredpixeldungeon.actors.Char lightCh = com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( cell );
+				if (lightCh instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleLight){
+					((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleLight) lightCh).snuff( null );
+				}
+			}
 		} else if ((s == Spirit.WIND || s == Spirit.NATURE)
 				&& (level.map[cell] == Terrain.HIGH_GRASS || level.map[cell] == Terrain.FURROWED_GRASS)){
 			Level.set( cell, Terrain.GRASS );

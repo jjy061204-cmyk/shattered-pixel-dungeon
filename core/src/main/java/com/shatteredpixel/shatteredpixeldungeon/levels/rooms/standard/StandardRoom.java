@@ -187,8 +187,12 @@ public abstract class StandardRoom extends Room {
 	}
 	
 	
+	//모드: 다른 지역의 방 모양을 빌려 쓸 때 (흡혈귀의 성 13·14층은 드워프 도시의 반듯한 방)
+	public static int depthOverride = 0;
+
 	public static StandardRoom createRoom(){
-		return Reflection.newInstance(rooms.get(Random.chances(chances[Dungeon.depth])));
+		int d = depthOverride > 0 ? depthOverride : Dungeon.depth;
+		return Reflection.newInstance(rooms.get(Random.chances(chances[d])));
 	}
 	
 }

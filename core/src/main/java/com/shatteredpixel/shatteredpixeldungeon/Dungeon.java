@@ -352,6 +352,7 @@ public class Dungeon {
 					//모드: 갈림길 테마의 보스 층
 					switch (Routes.caves()){
 						case GNOLL_EMPIRE:   level = new GnollEmpireBossLevel(); break;
+						case VAMPIRE_CASTLE: level = new com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastleBossLevel(); break;
 						default:             level = new CavesBossLevel(); break;
 					}
 					break;

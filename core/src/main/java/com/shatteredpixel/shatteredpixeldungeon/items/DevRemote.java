@@ -58,12 +58,20 @@ public class DevRemote extends Item {
 		//이차원의 성소
 		{ StoneSoldier.class, StoneWarden.class, RuneSentinel.class },
 		//갈림길: 놀 제국
-		{ GnollScout.class, GnollJavelineer.class, ScrapGnoll.class, GnollCenturion.class, GnollGatekeeper.class }
+		{ GnollScout.class, GnollJavelineer.class, ScrapGnoll.class, GnollCenturion.class, GnollGatekeeper.class },
+		//갈림길: 흡혈귀의 성
+		{ com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GhoulGnoll.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.BloodPriest.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.BloodSpider.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleKnight.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireBride.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.BloodThrall.class }
 	};
 
 	//보스: 그 자리 소환이 되는 보스(구)와, 전용 무대가 있어야 하는 보스(그 층으로 이동)
-	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class, SanctuaryColossus.class, GnollWarlord.class };
-	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1, 15 };   //-1: 이차원의 성소 2층
+	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class, SanctuaryColossus.class, GnollWarlord.class,
+			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireLord.class };
+	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1, 15, 15 };   //-1: 이차원의 성소 2층
 
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
@@ -124,7 +132,7 @@ public class DevRemote extends Item {
 		if (travel){
 			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "depth_26" ), txt( "sanctuary" ) };
 		} else {
-			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "gnoll_empire" ), txt( "bosses" ) };
+			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "gnoll_empire" ), txt( "vampire_castle" ), txt( "bosses" ) };
 		}
 		GameScene.show( new WndOptions( new ItemSprite( this ), txt( travel ? "travel_title" : "summon_title" ),
 				txt( travel ? "travel_msg" : "summon_msg", Dungeon.depth ), regions ){
@@ -136,7 +144,7 @@ public class DevRemote extends Item {
 					else if (index == 2 && com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves == null) chooseCavesRoute( index );
 					else chooseDepth( index );
 				} else {
-					if (index == 8) chooseBoss();
+					if (index == 9) chooseBoss();
 					else chooseMob( index );
 				}
 			}
@@ -223,7 +231,7 @@ public class DevRemote extends Item {
 		for (int i = 0; i < list.length; i++){
 			names[i] = Messages.titleCase( ((Mob) Reflection.newInstance( list[i] )).name() );
 		}
-		String title = group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : (group == 6 ? txt( "sanctuary" ) : txt( "gnoll_empire" )));
+		String title = group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : (group == 6 ? txt( "sanctuary" ) : (group == 7 ? txt( "gnoll_empire" ) : txt( "vampire_castle" ))));
 		GameScene.show( new WndOptions( new ItemSprite( this ), title, txt( "pick_mob" ), names ){
 			@Override
 			protected void onSelect( int index ) {
@@ -260,6 +268,16 @@ public class DevRemote extends Item {
 						GLog.w( txt( "other_route" ) );
 					} else {
 						com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.GNOLL_EMPIRE;
+						travel( 15 );
+					}
+				}
+				else if (BOSSES[index] == com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireLord.class){
+					//흡혈 군주는 흡혈귀의 성 루트의 15층에만 있음
+					com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves r = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves;
+					if (r != null && r != com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.VAMPIRE_CASTLE){
+						GLog.w( txt( "other_route" ) );
+					} else {
+						com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.VAMPIRE_CASTLE;
 						travel( 15 );
 					}
 				}

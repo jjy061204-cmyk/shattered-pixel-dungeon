@@ -123,7 +123,7 @@ public class Spinner extends Mob {
 			int duration = Random.IntRange(7, 8);
 			//we only use half the ascension modifier here as total poison dmg doesn't scale linearly
 			duration = Math.round(duration * (AscensionChallenge.statModifier(this)/2f + 0.5f));
-			Buff.affect(enemy, Poison.class).set(duration);
+			venom(enemy, duration);
 			webCoolDown = 0;
 			state = FLEEING;
 		}
@@ -131,6 +131,11 @@ public class Spinner extends Mob {
 		return damage;
 	}
 	
+	//모드: 독 대신 다른 상태 이상을 거는 변종(혈사 거미)을 위해 분리
+	protected void venom( Char enemy, int duration ){
+		Buff.affect(enemy, Poison.class).set(duration);
+	}
+
 	private boolean shotWebVisually = false;
 
 	public int webPos(){

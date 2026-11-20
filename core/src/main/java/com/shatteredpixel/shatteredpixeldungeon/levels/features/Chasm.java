@@ -96,7 +96,19 @@ public class Chasm implements Hero.Doom {
 		});
 	}
 	
-	public static void heroFall( int pos ) {
+	public static void heroFall( final int pos ) {
+
+		//모드: 10층·20층에서 떨어지면, 떨어지기 전에 아래 지역의 갈림길 테마를 고름
+		if (com.shatteredpixel.shatteredpixeldungeon.levels.Routes.needsFallChoice() && Dungeon.hero.isAlive()){
+			Dungeon.hero.interrupt();
+			com.shatteredpixel.shatteredpixeldungeon.levels.Routes.chooseThen( new com.watabou.utils.Callback() {
+				@Override
+				public void call() {
+					heroFall( pos );
+				}
+			}, true );
+			return;
+		}
 		
 		jumpConfirmed = false;
 				

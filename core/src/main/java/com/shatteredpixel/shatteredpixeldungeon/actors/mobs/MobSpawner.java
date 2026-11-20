@@ -73,6 +73,10 @@ public class MobSpawner extends Actor {
 		if (depth >= 11 && depth <= 15 && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active()){
 			return gnollEmpireRotation( depth );
 		}
+		//모드: 갈림길 루트 '흡혈귀의 성' (브루트→구울 놀, 주술사→피의 사제, 거미→혈사 거미, DM-200→호위 기사)
+		if (depth >= 11 && depth <= 15 && com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.active()){
+			return vampireCastleRotation( depth );
+		}
 		switch(depth){
 
 			// Sewers
@@ -250,7 +254,43 @@ public class MobSpawner extends Actor {
 		}
 	}
 
+	private static ArrayList<Class<? extends Mob>> vampireCastleRotation( int depth ){
+		switch (depth){
+			case 11: default:
+				return new ArrayList<>(Arrays.asList(
+						Bat.class, Bat.class, Bat.class,
+						GhoulGnoll.class,
+						BloodPriest.class));
+			case 12:
+				return new ArrayList<>(Arrays.asList(
+						Bat.class, Bat.class,
+						GhoulGnoll.class, GhoulGnoll.class,
+						BloodPriest.class,
+						BloodSpider.class));
+			case 13:
+				return new ArrayList<>(Arrays.asList(
+						Bat.class,
+						GhoulGnoll.class, GhoulGnoll.class,
+						BloodPriest.class, BloodPriest.class,
+						BloodSpider.class, BloodSpider.class,
+						CastleKnight.class));
+			case 14: case 15:
+				return new ArrayList<>(Arrays.asList(
+						Bat.class,
+						GhoulGnoll.class,
+						BloodPriest.class, BloodPriest.class,
+						BloodSpider.class, BloodSpider.class,
+						CastleKnight.class, CastleKnight.class));
+		}
+	}
+
 	public static void addRareMobs( int depth, ArrayList<Class<?extends Mob>> rotation ){
+
+		//모드: 흡혈귀의 성 14층의 희귀 몹은 구울 대신 흡혈귀 신부
+		if (depth == 14 && com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.active()){
+			if (Random.Float() < 0.025f) rotation.add(VampireBride.class);
+			return;
+		}
 
 		//모드: 놀 제국 14층의 희귀 몹은 구울 대신 놀 백부장
 		if (depth == 14 && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active()){

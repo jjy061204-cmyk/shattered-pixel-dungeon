@@ -666,6 +666,9 @@ public abstract class Char extends Actor {
 		if (attacker.buff(Bless.class) != null) acuRoll *= 1.25f;
 		if (attacker.buff(  Hex.class) != null) acuRoll *= 0.8f;
 		if (attacker.buff( Daze.class) != null) acuRoll *= 0.5f;
+		//모드: 흡혈귀의 성 — 빛 속의 흡혈 몹은 명중 20% 감소
+		if (attacker.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.NightBlood.class ) != null
+				&& com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isLit( attacker.pos )) acuRoll *= 0.8f;
 		for (ChampionEnemy buff : attacker.buffs(ChampionEnemy.class)){
 			acuRoll *= buff.evasionAndAccuracyFactor();
 		}
