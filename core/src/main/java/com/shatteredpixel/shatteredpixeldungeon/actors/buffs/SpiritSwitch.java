@@ -60,7 +60,7 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		return true;
 	}
 
-	//버튼을 보이거나 감추고, 다음 정령이 바뀌었으면 그림을 새로 그림
+	//버튼을 보이거나 감추고, 발현 중인 정령이 바뀌었으면 그림을 새로 그림
 	public void refreshButton(){
 		ForestWand w = wand();
 		ForestWand.Spirit next = shownSpirit( w );
@@ -78,11 +78,10 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 		}
 	}
 
-	//버튼에 보일 정령: 바꿀 정령이 있으면 다음 정령, 하나뿐이면 지금 정령
+	//버튼에 보일 정령: 지금 발현 중인(가운데 칸) 정령. 가운데가 비었으면 완드 그림
 	private static ForestWand.Spirit shownSpirit( ForestWand w ){
-		if (w == null || w.spiritCount() <= 0) return null;
-		ForestWand.Spirit next = w.nextSpirit();
-		return next != null ? next : w.active();
+		if (w == null) return null;
+		return w.active();
 	}
 
 	@Override
