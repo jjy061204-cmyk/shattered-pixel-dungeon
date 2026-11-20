@@ -108,6 +108,18 @@ public class WndForestWand extends Window {
 		};
 		help.setRect( WIDTH - 14, 1, 14, 14 );
 		add( help );
+		//깃들이기는 어느 칸을 골랐든 언제나 머리줄에서 바로 (완드가 가득 차면 꺼짐)
+		boolean full = wand.freeSlot() < 0;
+		UiButton imbueTop = new UiButton( Messages.get( this, full ? "imbue_full" : "imbue_top" ), 7, full ? PAL_NEUTRAL : PAL_IMBUE ){
+			@Override
+			protected void onClick() {
+				imbue();
+			}
+		};
+		float iw = Math.max( 36, imbueTop.labelWidth() + 8 );
+		imbueTop.setRect( WIDTH - 14 - 2 - iw, 1, iw, 14 );
+		if (full) imbueTop.enable( false );
+		add( imbueTop );
 		float y = 16 + 7;
 
 		// ── 정령 3칸: 가운데(발현)는 크게, 양옆(저장)은 작게. 빈칸을 누르면 곧바로 깃들이기 ──
@@ -339,6 +351,10 @@ public class WndForestWand extends Window {
 			hi.color( p[2] );
 			lo.color( p[3] );
 			label.hardlight( p[4] );
+		}
+
+		float labelWidth(){
+			return label.width();
 		}
 
 		void icon( Image img ){
