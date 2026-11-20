@@ -60,6 +60,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
+import com.shatteredpixel.shatteredpixeldungeon.effects.StraightTrail;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
@@ -212,7 +213,12 @@ public class ForestWand extends Weapon {
 	}
 
 	//새 정령이 들어갈 칸: 가운데가 비었으면 가운데, 아니면 왼쪽·오른쪽 순
+	//모드: 정령 관리 창에서 고른 빈칸. 깃들이기·되돌리기·실체 거두기가 그 칸부터 채움.
+	//한 번 쓰면 -1로 돌아가며 저장하지 않음
+	public int preferredSlot = -1;
+
 	public int freeSlot(){
+		if (preferredSlot >= 0 && preferredSlot < SLOTS && slots[preferredSlot] == null) return preferredSlot;
 		if (slots[CENTER] == null) return CENTER;
 		for (int i = 0; i < SLOTS; i++) if (slots[i] == null) return i;
 		return -1;
@@ -431,10 +437,10 @@ public class ForestWand extends Weapon {
 			return s != null ? ItemSpriteSheet.spiritBolt( s.ordinal() ) : ItemSpriteSheet.FOREST_BOLT;
 		}
 
-		//궤도: 정령 고유 입자 (탄 그림의 한가운데에서 뿌림)
+		//궤도: 정령 고유 입자를 탄 그림의 한가운데에서 뿌리되, 뿌린 자리에 멈춰 두어 지나간 길을 따라 곧게 남김
 		@Override
 		public Emitter emitter() {
-			Emitter e = new Emitter();
+			Emitter e = new StraightTrail();
 			e.fillTarget = false;
 			Spirit s = active();
 			if (s == null) e.pos( 5, 5 );
@@ -1065,6 +1071,7 @@ public class ForestWand extends Weapon {
 			GLog.i( Messages.get( ForestWand.class, "unmaterialized", g.spirit().title() ) );
 			n++;
 		}
+		preferredSlot = -1;
 		if (n > 0){
 			updateQuickslot();
 			Sample.INSTANCE.play( Assets.Sounds.MELD );
@@ -1110,23 +1117,30 @@ public class ForestWand extends Weapon {
 
 	// ── 정령 깃들이기 ──
 
+	//블롭이 그 칸에 남아 있는지.
+	//불러온 판에서는 다 사라진 블롭이 칸 배열(cur) 없이 남아 있을 수 있어 꼭 부피와 배열부터 확인함
+	private static boolean blobAt( Blob b, int cell ){
+		return b != null && b.volume > 0 && b.cur != null
+				&& cell >= 0 && cell < b.cur.length && b.cur[cell] > 0;
+	}
+
 	//칸에 있는 촉매에서 얻을 수 있는 정령 (없으면 null)
 	public static Spirit catalystAt( int cell ){
 		Level level = Dungeon.level;
 
 		for (Class<? extends SpiritRemnant> c : SpiritRemnant.TYPES){
 			Blob b = level.blobs.get( c );
-			if (b != null && b.volume > 0 && b.cur[cell] > 0){
+			if (blobAt( b, cell )){
 				return ((SpiritRemnant) b).spirit();
 			}
 		}
 
 		Blob fire = level.blobs.get( Fire.class );
-		if (fire != null && fire.volume > 0 && fire.cur[cell] > 0) return Spirit.FIRE;
+		if (blobAt( fire, cell )) return Spirit.FIRE;
 
 		//서리 물약·서리 함정의 서리 구름
 		Blob ice = level.blobs.get( com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing.class );
-		if (ice != null && ice.volume > 0 && ice.cur[cell] > 0) return Spirit.ICE;
+		if (blobAt( ice, cell )) return Spirit.ICE;
 
 		//바닥에 떨어진 금화
 		if (goldAt( cell ) != null) return Spirit.GOLD;
@@ -1165,7 +1179,7 @@ public class ForestWand extends Weapon {
 		Level level = Dungeon.level;
 		for (Class<? extends SpiritRemnant> c : SpiritRemnant.TYPES){
 			Blob b = level.blobs.get( c );
-			if (b != null && b.cur[cell] > 0) { b.clear( cell ); return; }
+			if (blobAt( b, cell )) { b.clear( cell ); return; }
 		}
 		if (s == Spirit.GOLD){
 			//금화는 정령이 되어 사라짐
@@ -1176,10 +1190,10 @@ public class ForestWand extends Weapon {
 		}
 		if (s == Spirit.ICE){
 			Blob ice = level.blobs.get( com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing.class );
-			if (ice != null && ice.cur[cell] > 0) ice.clear( cell );
+			if (blobAt( ice, cell )) ice.clear( cell );
 		} else if (s == Spirit.FIRE){
 			Blob fire = level.blobs.get( Fire.class );
-			if (fire != null && fire.cur[cell] > 0) fire.clear( cell );
+			if (blobAt( fire, cell )) fire.clear( cell );
 		} else if ((s == Spirit.WIND || s == Spirit.NATURE)
 				&& (level.map[cell] == Terrain.HIGH_GRASS || level.map[cell] == Terrain.FURROWED_GRASS)){
 			Level.set( cell, Terrain.GRASS );
@@ -1229,8 +1243,12 @@ public class ForestWand extends Weapon {
 	protected static CellSelector.Listener imbuer = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer target ) {
-			if (target == null || !(curItem instanceof ForestWand)) return;
+			if (!(curItem instanceof ForestWand)) return;
 			final ForestWand wand = (ForestWand) curItem;
+			//고른 빈칸은 이번 한 번만 씀
+			final int pref = wand.preferredSlot;
+			wand.preferredSlot = -1;
+			if (target == null) return;
 			final Hero hero = curUser;
 			final int cell = target;
 
@@ -1248,7 +1266,9 @@ public class ForestWand extends Weapon {
 				return;
 			}
 
+			wand.preferredSlot = pref;
 			final int slot = wand.freeSlot();
+			wand.preferredSlot = -1;
 			if (slot < 0){
 				GLog.w( Messages.get( ForestWand.class, "full" ) );
 				return;
