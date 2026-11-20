@@ -61,11 +61,11 @@ public class GnollEmpireBossLevel extends Level {
 
 	//'#' 바위, '=' 방책, '.' 바닥, ',' 짓밟힌 흙, '_' 왕좌 단, 'T' 왕좌(대족장 자리), 'B' 깃발,
 	//'G' 증원 성문(골방), 'g' 방책의 성문 틈, 'f' 모닥불, 'S' 승리하면 열리는 통로(바위), 'P' 승리하면 열리는 방책,
-	//'<' 입구, '>' 출구
+	//'<' 입구, 'E' 출구 (해골 입으로 내려가는 큰 돌계단, 3x2)
 	private static final String[] MAP = {
 			"#################################",
-			"############f.......f############",
-			"############....>....############",
+			"############f.#EEE#.f############",
+			"############..#EEE#..############",
 			"############..,...,..############",
 			"############%.......%############",
 			"###############SSS###############",
@@ -163,7 +163,7 @@ public class GnollEmpireBossLevel extends Level {
 					case 'S': t = Terrain.WALL; victoryPath.add( cell ); break;
 					case 'P': t = Terrain.BARRICADE; victoryPath.add( cell ); break;
 					case '<': t = Terrain.ENTRANCE; entrance = cell; break;
-					case '>': t = Terrain.EXIT; exit = cell; break;
+					case '>': case 'E': t = Terrain.EXIT; break;
 					case '.': default: t = Terrain.EMPTY; break;
 				}
 				map[cell] = t;
@@ -174,7 +174,11 @@ public class GnollEmpireBossLevel extends Level {
 		sealCell = 16 + 21 * W;
 
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
-		transitions.add( new LevelTransition( this, exit, LevelTransition.Type.REGULAR_EXIT ) );
+		//출구: 3x2 계단 어디를 밟아도 내려감
+		exit = 16 + 2 * W;
+		LevelTransition down = new LevelTransition( this, exit, LevelTransition.Type.REGULAR_EXIT );
+		down.set( 15, 1, 17, 2 );
+		transitions.add( down );
 
 		feeling = Feeling.NONE;
 		return true;
@@ -497,6 +501,9 @@ public class GnollEmpireBossLevel extends Level {
 			visuals.add( arenaImage( 112 + 16*d[2], 128, 16, 16, d[0]*S, d[1]*S ) );
 		}
 
+		//내려가는 곳의 문턱 (3행, 몹 아래)
+		visuals.add( arenaImage( 0, 208, 80, 16, 14*S, 3*S ) );
+
 		//왕좌 단 (쓰러뜨린 뒤에는 부서진 왕좌)
 		throneLow = arenaImage( bossDefeated ? 112 : 0, 0, 112, 64, THRONE_X*S, THRONE_Y*S );
 		visuals.add( throneLow );
@@ -524,6 +531,8 @@ public class GnollEmpireBossLevel extends Level {
 		wallVisuals.add( throneUp );
 		//입구 아치 (지나갈 때 머리 위로 지나가게 벽 위 층)
 		wallVisuals.add( arenaImage( 144, 80, 80, 40, 14*S, 21*S - 40 ) );
+		//내려가는 곳: 바위에 새긴 거대한 놀 해골, 그 입 안으로 이어진 돌계단 (0~2행은 벽 위 층)
+		wallVisuals.add( arenaImage( 0, 160, 80, 48, 14*S, 0 ) );
 		return wallVisuals;
 	}
 
@@ -541,6 +550,7 @@ public class GnollEmpireBossLevel extends Level {
 	@Override
 	public String tileName( int tile ) {
 		if (tile == Terrain.EMPTY_SP) return Messages.get( this, "throne_name" );
+		if (tile == Terrain.EXIT) return Messages.get( this, "exit_name" );
 		String n = GnollEmpire.tileName( tile );
 		return n != null ? n : super.tileName( tile );
 	}
@@ -549,7 +559,7 @@ public class GnollEmpireBossLevel extends Level {
 	public String tileDesc( int tile ) {
 		if (tile == Terrain.EMPTY_SP) return Messages.get( this, "throne_desc" );
 		if (tile == Terrain.ENTRANCE) return Messages.get( CavesLevel.class, "entrance_desc" );
-		if (tile == Terrain.EXIT) return Messages.get( CavesLevel.class, "exit_desc" );
+		if (tile == Terrain.EXIT) return Messages.get( this, "exit_desc" );
 		String d = GnollEmpire.tileDesc( tile );
 		return d != null ? d : super.tileDesc( tile );
 	}
