@@ -96,10 +96,6 @@ public class WndForestWand extends Window {
 		wandIcon.x = 0;
 		wandIcon.y = 0;
 		add( wandIcon );
-		RenderedTextBlock title = PixelScene.renderTextBlock( Messages.get( this, "title" ), 9 );
-		title.hardlight( TITLE_COLOR );
-		title.setPos( 19, (16 - title.height()) / 2f );
-		add( title );
 		UiButton help = new UiButton( "?", 8, PAL_NEUTRAL ){
 			@Override
 			protected void onClick() {
@@ -116,10 +112,21 @@ public class WndForestWand extends Window {
 				imbue();
 			}
 		};
+		//되돌리기도 어느 칸을 골랐든 머리줄에서 (장비에 깃든 정령이 없거나 완드가 가득 차면 꺼짐)
+		UiButton recallTop = new UiButton( Messages.get( this, "act_recall" ), 7, PAL_NEUTRAL ){
+			@Override
+			protected void onClick() {
+				recall();
+			}
+		};
+		float rw = Math.max( 34, recallTop.labelWidth() + 8 );
 		float iw = Math.max( 36, imbueTop.labelWidth() + 8 );
-		imbueTop.setRect( WIDTH - 14 - 2 - iw, 1, iw, 14 );
+		recallTop.setRect( WIDTH - 14 - 2 - rw, 1, rw, 14 );
+		imbueTop.setRect( recallTop.left() - 2 - iw, 1, iw, 14 );
 		if (full) imbueTop.enable( false );
+		if (full || !hasBestowed()) recallTop.enable( false );
 		add( imbueTop );
+		add( recallTop );
 		float y = 16 + 7;
 
 		// ── 정령 3칸: 가운데(발현)는 크게, 양옆(저장)은 작게. 빈칸을 누르면 곧바로 깃들이기 ──
