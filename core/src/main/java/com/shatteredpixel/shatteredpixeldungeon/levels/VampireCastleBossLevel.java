@@ -59,11 +59,11 @@ public class VampireCastleBossLevel extends Level {
 
 	private static final int W = 23;
 
-	//'#' 벽, 'w' 달빛 창이 난 벽, 'L' 화로, 'T' 옥좌, 'C' 관 제단, '~' 핏물, 'P' 석상 기둥, '<' 입구
+	//'#' 벽, 'w' 달빛 창이 난 벽, 'L' 화로, 'T' 옥좌, '_' 진홍 카펫, 'C' 관 제단, '~' 핏물, 'P' 군주의 석상, '<' 입구
 	private static final String[] MAP = {
 			"#######################",
 			"#####w#####w#####w#####",
-			"#L.........T.........L#",
+			"#L.......__T__.......L#",
 			"#..P.....~~~~~.....P..#",
 			"#.........~~~.........#",
 			"#..P.......C.......P..#",
@@ -137,7 +137,8 @@ public class VampireCastleBossLevel extends Level {
 					case 'T': t = Terrain.EMPTY_SP; throne = cell; break;
 					case 'C': t = Terrain.EMPTY_SP; coffin = cell; break;
 					case '~': t = Terrain.WATER; break;
-					case 'P': t = Terrain.STATUE; break;
+					case 'P': t = Terrain.STATUE_SP; break;
+					case '_': t = Terrain.EMPTY_SP; break;
 					case '<': t = Terrain.ENTRANCE; entrance = cell; break;
 					case '.': default: t = Terrain.EMPTY; break;
 				}
@@ -412,7 +413,8 @@ public class VampireCastleBossLevel extends Level {
 	public String tileName( int tile ) {
 		switch (tile){
 			case Terrain.EMPTY_SP: return Messages.get( this, "dais_name" );
-			case Terrain.STATUE:   return Messages.get( this, "statue_name" );
+			case Terrain.EMPTY_DECO: return Messages.get( VampireCastleLevel.class, "castle_floor_deco_name" );
+			case Terrain.STATUE_SP:return Messages.get( this, "statue_name" );
 			case Terrain.WALL:     return Messages.get( this, "wall_name" );
 		}
 		String n = VampireCastle.tileName( tile );
@@ -423,7 +425,8 @@ public class VampireCastleBossLevel extends Level {
 	public String tileDesc( int tile ) {
 		switch (tile){
 			case Terrain.EMPTY_SP: return Messages.get( this, "dais_desc" );
-			case Terrain.STATUE:   return Messages.get( this, "statue_desc" );
+			case Terrain.EMPTY_DECO: return Messages.get( VampireCastleLevel.class, "castle_floor_deco_desc" );
+			case Terrain.STATUE_SP:return Messages.get( this, "statue_desc" );
 			case Terrain.WALL:     return Messages.get( this, "wall_desc" );
 			case Terrain.EXIT:     return Messages.get( this, "exit_desc" );
 		}

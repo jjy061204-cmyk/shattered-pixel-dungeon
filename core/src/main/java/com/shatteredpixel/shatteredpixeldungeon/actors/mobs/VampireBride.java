@@ -82,6 +82,7 @@ public class VampireBride extends Mob {
 			c.object = id();
 			c.ignoreNextHit = true;
 			if (enemy.sprite != null) enemy.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 4 );
+			if (sprite instanceof VampireCastleSprites.VampireBride) ((VampireCastleSprites.VampireBride) sprite).charm();
 			if (enemy == Dungeon.hero) Sample.INSTANCE.play( Assets.Sounds.CHARMS );
 		}
 		return damage;

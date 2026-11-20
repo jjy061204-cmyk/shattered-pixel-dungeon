@@ -53,8 +53,8 @@ public class Assets {
 		//모드: 갈림길 루트 - 놀 제국
 		public static final String TILES_GNOLL_EMPIRE = "environment/tiles_gnoll_empire.png";
 		public static final String GNOLL_ARENA        = "environment/custom_tiles/gnoll_arena.png";  //놀 대족장 투기장 장식
-		//흡혈귀의 성: 11~12층 핏줄이 번진 동굴, 13~15층 고딕 성, 핏물 웅덩이
-		public static final String TILES_VAMPIRE_CAVE   = "environment/tiles_vampire_cave.png";
+		//흡혈귀의 성: 11~12층 지하 묘지, 13~15층 성의 홀, 핏물 웅덩이
+		public static final String TILES_VAMPIRE_CRYPT  = "environment/tiles_vampire_crypt.png";
 		public static final String TILES_VAMPIRE_CASTLE = "environment/tiles_vampire_castle.png";
 		public static final String WATER_BLOOD          = "environment/water_blood.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";

@@ -1,7 +1,8 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
  * 흡혈귀의 성 몹·장치 그림
- *  - 몹: 원작 그림의 틀을 그대로 쓰고 색만 바꾼 그림 (vc_*.png)
+ *  - 광산 생물이 감염된 몹(구울 놀·피의 사제·혈사 거미): 원작 그림의 틀에 색만 바꾼 그림
+ *  - 성 전용 몹(호위 기사·신부·피의 하수인·흡혈 군주): 새로 찍은 그림과 동작 (vc_*.png)
  *  - 장치: vc_props.png (16x16, 한 줄에 16칸)
  *     0 촛대(꺼짐) 1~3 촛대(켜짐) · 4 화로(꺼짐) 5~7 화로(켜짐) · 8 관 9 열린 관 10 부서진 관
  *     11~12 샹들리에 13 떨어진 샹들리에 · 14 성배 제단 15 빈 제단 · 16~17 군주의 관 · 18~19 달빛 창 · 20 옥좌
@@ -71,32 +72,148 @@ public class VampireCastleSprites {
 		}
 	}
 
-	public static class CastleKnight extends GuardSprite {
+	// ── 성 전용 몹 (새로 찍은 그림과 동작) ──
+
+	//성의 호위 기사 16x16: 숨 고르기 2 · 걷기 4 · 내리치기 3 · 방패 막기 3 · 쓰러짐 5
+	public static class CastleKnight extends MobSprite {
+
+		private Animation guard;
+
 		public CastleKnight(){
 			super();
 			texture( Assets.Sprites.VC_CASTLE_KNIGHT );
+			TextureFilm frames = new TextureFilm( texture, 16, 16 );
+
+			idle = new Animation( 2, true );
+			idle.frames( frames, 0, 0, 0, 1, 0, 0 );
+			run = new Animation( 9, true );
+			run.frames( frames, 2, 3, 4, 5 );
+			attack = new Animation( 12, false );
+			attack.frames( frames, 6, 7, 8, 0 );
+			guard = new Animation( 14, false );
+			guard.frames( frames, 9, 10, 11 );
+			die = new Animation( 10, false );
+			die.frames( frames, 12, 13, 14, 15, 16 );
+
+			play( idle );
+		}
+
+		//방패로 막음
+		public void block(){
+			if (curAnim != die) play( guard, true );
+		}
+
+		@Override
+		public void onComplete( Animation anim ) {
+			if (anim == guard){
+				idle();
+				return;
+			}
+			super.onComplete( anim );
 		}
 	}
 
-	public static class VampireBride extends SuccubusSprite {
+	//흡혈귀 신부 12x16: 떠 있기 4 · 미끄러지기 4 · 덮치기 3 · 입맞춤(매혹) 4 · 박쥐로 흩어짐 5
+	public static class VampireBride extends MobSprite {
+
+		private Animation kiss;
+
 		public VampireBride(){
 			super();
 			texture( Assets.Sprites.VC_VAMPIRE_BRIDE );
+			TextureFilm frames = new TextureFilm( texture, 12, 16 );
+
+			idle = new Animation( 5, true );
+			idle.frames( frames, 0, 1, 2, 3 );
+			run = new Animation( 10, true );
+			run.frames( frames, 4, 5, 6, 7 );
+			attack = new Animation( 12, false );
+			attack.frames( frames, 8, 9, 10 );
+			kiss = new Animation( 10, false );
+			kiss.frames( frames, 11, 12, 13, 14 );
+			die = new Animation( 10, false );
+			die.frames( frames, 15, 16, 17, 18, 19 );
+
+			play( idle );
+		}
+
+		//매혹을 걸 때 입맞춤을 날림
+		public void charm(){
+			if (curAnim == die) return;
+			play( kiss, true );
+			emitter().burst( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.HEART ), 3 );
+		}
+
+		@Override
+		public void onComplete( Animation anim ) {
+			if (anim == kiss){
+				idle();
+				return;
+			}
+			super.onComplete( anim );
+		}
+
+		@Override
+		public void die() {
+			super.die();
+			emitter().burst( com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle.UP, 8 );
 		}
 	}
 
-	public static class BloodThrall extends GhoulSprite {
+	//피의 하수인 12x14: 숨 고르기 3 · 비틀걸음 4 · 휘두르기 3 · 촛불 끄기 3 · 먼지로 무너짐 4
+	public static class BloodThrall extends MobSprite {
+
 		public BloodThrall(){
 			super();
 			texture( Assets.Sprites.VC_BLOOD_THRALL );
+			TextureFilm frames = new TextureFilm( texture, 12, 14 );
+
+			idle = new Animation( 3, true );
+			idle.frames( frames, 0, 0, 1, 0, 2 );
+			run = new Animation( 9, true );
+			run.frames( frames, 3, 4, 5, 6 );
+			attack = new Animation( 12, false );
+			attack.frames( frames, 7, 8, 9 );
+			operate = new Animation( 8, false );
+			operate.frames( frames, 10, 11, 12 );
+			die = new Animation( 10, false );
+			die.frames( frames, 13, 14, 15, 16 );
+
+			play( idle );
 		}
 	}
 
-	public static class VampireLord extends KingSprite {
+	//흡혈 군주 16x18: 망토 자락 4 · 미끄러지기 4 · 할퀴기 4 · 피의 화살 3 · 안개로 흩어짐 4 · 안개 4 · 재가 됨 6
+	public static class VampireLord extends MobSprite {
+
+		private Animation stand, mistIn, mistOut, mistIdle;
+		private boolean misted = false;
 
 		public VampireLord(){
 			super();
 			texture( Assets.Sprites.VC_VAMPIRE_LORD );
+			TextureFilm frames = new TextureFilm( texture, 16, 18 );
+
+			stand = new Animation( 3, true );
+			stand.frames( frames, 0, 1, 0, 3, 0, 2 );
+			idle = stand;
+			run = new Animation( 9, true );
+			run.frames( frames, 4, 5, 6, 7 );
+			attack = new Animation( 14, false );
+			attack.frames( frames, 8, 9, 10, 11 );
+			zap = new Animation( 12, false );
+			zap.frames( frames, 12, 13, 14 );
+			mistIn = new Animation( 10, false );
+			mistIn.frames( frames, 15, 16, 17, 18 );
+			mistOut = new Animation( 10, false );
+			mistOut.frames( frames, 18, 17, 16, 15 );
+			mistIdle = new Animation( 6, true );
+			mistIdle.frames( frames, 19, 20, 21, 22 );
+			die = new Animation( 8, false );
+			die.frames( frames, 23, 24, 25, 26, 27, 28 );
+
+			play( idle );
 		}
 
 		//피의 화살 (세 갈래 중 하나)
@@ -104,9 +221,38 @@ public class VampireCastleSprites {
 			MagicMissile.boltFromChar( parent, MagicMissile.SHAMAN_RED, this, cell, onHit );
 		}
 
-		//안개가 된 동안은 흐릿하게
+		public void cast( int cell ){
+			turnTo( ch.pos, cell );
+			play( zap, true );
+		}
+
+		//안개가 됨 / 안개에서 다시 모습을 드러냄
 		public void mist( boolean on ){
-			alpha( on ? 0.35f : 1f );
+			if (on == misted) return;
+			misted = on;
+			if (on){
+				idle = mistIdle;
+				play( mistIn, true );
+			} else {
+				idle = stand;
+				play( mistOut, true );
+			}
+		}
+
+		//불러올 때 (애니메이션 없이 바로)
+		public void setMisted( boolean on ){
+			misted = on;
+			idle = on ? mistIdle : stand;
+			play( idle, true );
+		}
+
+		@Override
+		public void onComplete( Animation anim ) {
+			if (anim == mistIn || anim == mistOut || anim == zap){
+				idle();
+				return;
+			}
+			super.onComplete( anim );
 		}
 	}
 

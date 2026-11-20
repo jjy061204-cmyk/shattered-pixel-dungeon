@@ -1,7 +1,7 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
  * 갈림길 테마: 흡혈귀의 성 (11~14층) — 햇빛을 피해 광산에 숨어든 흡혈 군주가 동굴 생물을 감염시키고 세운 성
- *  - 11~12층: 핏줄이 번진 동굴 (원작 동굴 지형). 13~14층: 반듯한 성의 방 (드워프 도시의 방 모양)
+ *  - 11~12층: 성 아래 지하 묘지 (감옥의 방 모양: 묘실·기둥·관이 늘어선 방). 13~14층: 성의 홀 (드워프 도시의 방 모양)
  *  - 물 대신 핏물 웅덩이. 촛대·화로를 켜면 둘레가 밝아져 흡혈 몹의 회복·흡혈을 막음
  *  - 관: 12·13층 1개, 14층 2개. 관이 있는 층은 자연 리스폰 대신 어둠 속 관에서 피의 하수인이 나옴
  *  - 14층 연회장 샹들리에, 13층 성배 제단(특수방 하나를 대신)
@@ -24,8 +24,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Chandelier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Coffin;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GrailAltar;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.levels.painters.CavesPainter;
-import com.shatteredpixel.shatteredpixeldungeon.levels.painters.CityPainter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.painters.CastlePainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.BlacksmithRoom;
@@ -49,7 +48,7 @@ public class VampireCastleLevel extends CavesLevel {
 
 	@Override
 	public String tilesTex() {
-		return castle() ? Assets.Environment.TILES_VAMPIRE_CASTLE : Assets.Environment.TILES_VAMPIRE_CAVE;
+		return castle() ? Assets.Environment.TILES_VAMPIRE_CASTLE : Assets.Environment.TILES_VAMPIRE_CRYPT;
 	}
 
 	@Override
@@ -69,22 +68,16 @@ public class VampireCastleLevel extends CavesLevel {
 
 	@Override
 	protected Painter painter() {
-		if (castle()){
-			return new CityPainter()
-					.setWater( feeling == Feeling.WATER ? 0.90f : 0.30f, 4 )
-					.setGrass( feeling == Feeling.GRASS ? 0.80f : 0.20f, 3 )
-					.setTraps( nTraps(), trapClasses(), trapChances() );
-		}
-		return new CavesPainter()
-				.setWater( feeling == Feeling.WATER ? 0.85f : 0.30f, 6 )
-				.setGrass( feeling == Feeling.GRASS ? 0.65f : 0.15f, 3 )
+		return new CastlePainter()
+				.setWater( feeling == Feeling.WATER ? 0.85f : 0.30f, 5 )
+				.setGrass( feeling == Feeling.GRASS ? 0.75f : 0.20f, 3 )
 				.setTraps( nTraps(), trapClasses(), trapChances() );
 	}
 
 	@Override
 	protected ArrayList<Room> initRooms() {
-		//13·14층은 반듯한 성의 방 (드워프 도시의 방 모양)
-		StandardRoom.depthOverride = castle() ? 17 : 0;
+		//11·12층은 지하 묘지 (감옥의 방 모양), 13·14층은 성의 홀 (드워프 도시의 방 모양)
+		StandardRoom.depthOverride = castle() ? 17 : 7;
 		try {
 			return super.initRooms();
 		} finally {
@@ -232,19 +225,39 @@ public class VampireCastleLevel extends CavesLevel {
 
 	@Override
 	public String tileName( int tile ) {
-		switch (tile){
-			case Terrain.WALL_DECO: return Messages.get( VampireCastleLevel.class, castle() ? "wall_deco_castle_name" : "wall_deco_name" );
-		}
+		String key = tileKey( tile );
+		if (key != null) return Messages.get( VampireCastleLevel.class, key + "_name" );
 		String n = VampireCastle.tileName( tile );
 		return n != null ? n : super.tileName( tile );
 	}
 
 	@Override
 	public String tileDesc( int tile ) {
-		switch (tile){
-			case Terrain.WALL_DECO: return Messages.get( VampireCastleLevel.class, castle() ? "wall_deco_castle_desc" : "wall_deco_desc" );
-		}
+		String key = tileKey( tile );
+		if (key != null) return Messages.get( VampireCastleLevel.class, key + "_desc" );
 		String d = VampireCastle.tileDesc( tile );
 		return d != null ? d : super.tileDesc( tile );
+	}
+
+	//성(13~14층)과 지하 묘지(11~12층)가 같은 지형을 다르게 그림
+	private String tileKey( int tile ){
+		String p = castle() ? "castle_" : "crypt_";
+		switch (tile){
+			case Terrain.WALL_DECO:       return p + "wall_deco";
+			case Terrain.EMPTY_DECO:      return p + "floor_deco";
+			case Terrain.EMPTY_SP:        return p + "floor_sp";
+			case Terrain.GRASS:           return p + "grass";
+			case Terrain.HIGH_GRASS:      return p + "high_grass";
+			case Terrain.FURROWED_GRASS:  return p + "furrowed_grass";
+			case Terrain.BOOKSHELF:       return p + "bookshelf";
+			case Terrain.STATUE:          return p + "statue";
+			case Terrain.STATUE_SP:       return "lord_statue";
+			case Terrain.REGION_DECO:     return p + "region_deco";
+			case Terrain.REGION_DECO_ALT: return p + "region_deco_alt";
+			case Terrain.ENTRANCE:
+			case Terrain.ENTRANCE_SP:     return "entrance";
+			case Terrain.EXIT:            return "exit";
+			default:                      return null;
+		}
 	}
 }

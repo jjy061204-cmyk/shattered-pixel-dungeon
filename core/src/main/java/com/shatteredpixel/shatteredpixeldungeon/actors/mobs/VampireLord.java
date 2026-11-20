@@ -205,6 +205,7 @@ public class VampireLord extends Mob {
 		spend( TICK );
 		if (sprite != null && (sprite.visible || target.sprite.visible)){
 			sprite.turnTo( pos, target.pos );
+			if (sprite instanceof VampireCastleSprites.VampireLord) ((VampireCastleSprites.VampireLord) sprite).cast( target.pos );
 			Sample.INSTANCE.play( Assets.Sounds.ZAP );
 			final int[] left = { aims.size() };
 			for (int a : aims){
@@ -368,7 +369,9 @@ public class VampireLord extends Mob {
 			return;
 		}
 		misted = false;
-		if (sprite instanceof VampireCastleSprites.VampireLord) ((VampireCastleSprites.VampireLord) sprite).mist( false );
+		//빛에 끌려 나오면 바로 모습을 드러내고 비틀거림 (마비 중에는 그림이 멈추므로 변신 동작 없이)
+		if (sprite instanceof VampireCastleSprites.VampireLord) ((VampireCastleSprites.VampireLord) sprite).setMisted( false );
+		if (sprite != null) CellEmitter.get( pos ).burst( ShadowParticle.UP, 10 );
 		Buff.prolong( this, Paralysis.class, 2f );
 		if (sprite != null) CellEmitter.get( pos ).burst( Speck.factory( Speck.LIGHT ), 8 );
 		yell( Messages.get( this, "pulled" ) );
@@ -390,7 +393,7 @@ public class VampireLord extends Mob {
 	public void updateSpriteState() {
 		super.updateSpriteState();
 		if (misted && sprite instanceof VampireCastleSprites.VampireLord){
-			((VampireCastleSprites.VampireLord) sprite).mist( true );
+			((VampireCastleSprites.VampireLord) sprite).setMisted( true );
 		}
 	}
 

@@ -68,6 +68,9 @@ public class CastleKnight extends Mob {
 		//방패는 정면(지금 노리는 적)만 막음
 		if (attacker != null && attacker == enemy && state == HUNTING && buff( Paralysis.class ) == null
 				&& damage > 0 && Random.Float() < 0.3f){
+			if (sprite instanceof VampireCastleSprites.CastleKnight){
+				((VampireCastleSprites.CastleKnight) sprite).block();
+			}
 			if (sprite != null && sprite.visible){
 				sprite.showStatus( CharSprite.NEUTRAL, Messages.get( CastleKnight.class, "block" ) );
 				Sample.INSTANCE.play( Assets.Sounds.HIT_PARRY );

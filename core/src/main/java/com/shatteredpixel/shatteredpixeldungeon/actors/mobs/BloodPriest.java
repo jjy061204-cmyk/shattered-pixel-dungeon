@@ -59,7 +59,14 @@ public class BloodPriest extends Shaman {
 					best.sprite.emitter().burst( BloodParticle.BURST, 8 );
 					best.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( heal ), FloatingText.HEALING );
 				}
-				if (sprite != null && Dungeon.level.heroFOV[pos]) sprite.operate( best.pos );
+				//사제와 치유받는 몹 사이에 붉은 빛줄기
+				if (sprite != null && best.sprite != null && sprite.parent != null
+						&& (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[best.pos])){
+					com.shatteredpixel.shatteredpixeldungeon.effects.Beam beam =
+							new com.shatteredpixel.shatteredpixeldungeon.effects.Beam.LightRay( sprite.center(), best.sprite.center() );
+					beam.hardlight( 0.85f, 0.1f, 0.15f );
+					sprite.parent.add( beam );
+				}
 				healCooldown = 6;
 				spend( TICK );
 				return true;
