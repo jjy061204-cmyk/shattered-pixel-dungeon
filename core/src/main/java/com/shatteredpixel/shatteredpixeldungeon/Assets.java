@@ -52,6 +52,7 @@ public class Assets {
 		public static final String TILES_MODERN = "environment/tiles_modern.png";
 		//모드: 갈림길 루트 - 놀 제국
 		public static final String TILES_GNOLL_EMPIRE = "environment/tiles_gnoll_empire.png";
+		public static final String GNOLL_ARENA        = "environment/custom_tiles/gnoll_arena.png";  //놀 대족장 투기장 장식
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
@@ -299,6 +300,7 @@ public class Assets {
 		public static final String GNOLL_EMPIRE       = "sprites/gnoll_empire.png";
 		public static final String GNOLL_EMPIRE_PROPS = "sprites/gnoll_empire_props.png";
 		public static final String GNOLL_WARLORD      = "sprites/gnoll_warlord.png";
+		public static final String WAR_BANNER         = "sprites/war_banner.png";
 		public static final String RUNE_AEGIS_HERO = "sprites/rune_aegis_hero.png";
 		public static final String RUNE_AEGIS_PARTS = "sprites/rune_aegis_parts.png";
 		//모드: 현대 세계 가게 화면, 자판기 화면 그림

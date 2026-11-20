@@ -1,10 +1,12 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
  * 놀 제국 15층 보스: 놀 대족장 (원작 DM-300과 같은 예산: 체력, 무적 구간 2번, 3단계, 전리품, 보스 점수)
- *  1단계 (100~66%): 왕좌에서 내려오지 않고 3턴마다 투창. 맞을 줄을 1턴 전에 표시. 성문 4곳에서 놀이 2마리씩 (동시에 최대 4)
- *  결집 (66%·33%): 가까운 전투 깃발로 달려가 깃발이 서 있는 동안 무적. 깃발을 부수면 풀림
- *  2단계 (66~33%): 왕좌에서 내려와 드릴 도끼로 싸움. 2턴 예고 뒤 직선 돌진, 벽·방책에 박히면 1턴 기절
- *  3단계 (33% 아래): 최후의 함성. 방책에 불이 붙고 5턴마다 불길이 한 칸씩 좁혀 옴(최대 3칸). 대족장은 빨라짐
+ *  1단계 (100~66%): 왕좌에서 '투창 세례'. 영웅이 선 칸과 둘레 두 칸을 1턴 전에 표시하고 투창 세 자루를 던짐 (표시된 칸만 피하면 됨)
+ *  결집 (66%·33%): 가까운 전투 깃발로 달려가 깃발이 서 있는 동안 무적. 깃발과 대족장 사이에 붉은 빛줄기가 이어짐. 깃발을 부수면 풀림
+ *  2단계 (66~33%): 왕좌에서 내려와 드릴 도끼로 싸움.
+ *     돌진: 2턴 예고(가는 길 전체 표시) 뒤 직선 돌진, 벽·방책에 박히면 2턴 기절
+ *     회오리: 붙어서 2턴 넘게 싸우면 둘레 8칸을 1턴 전에 표시하고 드릴 도끼를 크게 돌림
+ *  3단계 (33% 아래): 최후의 함성. 방책에 불이 붙고 5턴마다 불길이 한 칸씩 좁혀 옴(최대 3칸, 1턴 전에 불씨로 예고). 대족장은 빨라짐
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.MetalShard;
@@ -83,7 +86,11 @@ public class GnollWarlord extends Mob {
 	public boolean awake = false;
 
 	private int javelinCooldown = 2;
-	private int javelinAim = -1;
+	private int[] volley = null;       //투창 세례로 표시해 둔 칸들
+	private int whirlCooldown = 4;
+	private boolean whirlAimed = false;
+	private int adjacentTurns = 0;
+	private boolean whirlWarned = false;
 	private int chargeCooldown = 3;
 	private int chargeAim = -1;
 
@@ -173,11 +180,13 @@ public class GnollWarlord extends Mob {
 		}
 
 		//예고해 둔 공격부터
-		if (javelinAim != -1) return throwJavelin();
+		if (volley != null) return throwVolley();
 		if (chargeAim != -1) return charge();
+		if (whirlAimed) return whirl();
 
 		if (javelinCooldown > 0) javelinCooldown--;
 		if (chargeCooldown > 0) chargeCooldown--;
+		if (whirlCooldown > 0) whirlCooldown--;
 
 		return super.act();
 	}
@@ -226,11 +235,22 @@ public class GnollWarlord extends Mob {
 						return doAttack( enemy );
 					}
 					if (javelinCooldown <= 0){
-						aimJavelin( enemy );
+						aimVolley( enemy );
 						return true;
 					}
 					spend( TICK );
 					return true;
+				}
+
+				//2·3단계: 붙어서 오래 버티면 회오리
+				if (Dungeon.level.adjacent( pos, enemy.pos )){
+					adjacentTurns++;
+					if (whirlCooldown <= 0 && adjacentTurns >= 2){
+						aimWhirl();
+						return true;
+					}
+				} else {
+					adjacentTurns = 0;
 				}
 
 				//2·3단계: 거리가 있으면 돌진
@@ -244,15 +264,35 @@ public class GnollWarlord extends Mob {
 		}
 	}
 
-	// ── 투창 ──
+	// ── 투창 세례: 영웅이 선 칸과 둘레 두 칸 ──
 
-	private void aimJavelin( Char target ){
-		Ballistica b = new Ballistica( pos, target.pos, Ballistica.PROJECTILE );
-		javelinAim = b.collisionPos;
-		for (int c : b.subPath( 1, b.dist )){
-			GameScene.targetedCell( c, 1f );
+	private void aimVolley( Char target ){
+		ArrayList<Integer> cells = new ArrayList<>();
+		cells.add( target.pos );
+		ArrayList<Integer> around = new ArrayList<>();
+		for (int n : PathFinder.NEIGHBOURS8){
+			int c = target.pos + n;
+			if (c != pos && Dungeon.level.passable[c]) around.add( c );
 		}
-		if (sprite != null) sprite.turnTo( pos, target.pos );
+		Random.shuffle( around );
+		for (int i = 0; i < Math.min( 2, around.size() ); i++) cells.add( around.get( i ) );
+
+		//실제로 창이 닿는 칸을 표시 (도중에 막히면 막힌 자리)
+		ArrayList<Integer> marks = new ArrayList<>();
+		for (int c : cells){
+			int hit = new Ballistica( pos, c, Ballistica.PROJECTILE ).collisionPos;
+			if (!marks.contains( hit )) marks.add( hit );
+		}
+		volley = new int[marks.size()];
+		for (int i = 0; i < volley.length; i++){
+			volley[i] = marks.get( i );
+			GameScene.targetedCell( volley[i], 1f );
+		}
+		if (sprite != null){
+			sprite.turnTo( pos, target.pos );
+			sprite.showStatus( CharSprite.WARNING, Messages.get( this, "volley" ) );
+			if (sprite instanceof GnollWarlordSprite) ((GnollWarlordSprite) sprite).aim();
+		}
 		if (!javelinWarned && Dungeon.level.heroFOV[pos]){
 			javelinWarned = true;
 			GLog.w( Messages.get( this, "javelin_warn" ) );
@@ -261,28 +301,34 @@ public class GnollWarlord extends Mob {
 		spend( 1f );
 	}
 
-	private boolean throwJavelin(){
-		final int aim = javelinAim;
-		javelinAim = -1;
+	private boolean throwVolley(){
+		final int[] cells = volley;
+		volley = null;
 		javelinCooldown = 3;
-		Ballistica b = new Ballistica( pos, aim, Ballistica.PROJECTILE );
-		final int hit = b.collisionPos;
 		spend( attackDelay() );
-		if (sprite instanceof GnollWarlordSprite && (sprite.visible || Dungeon.level.heroFOV[hit])){
-			((GnollWarlordSprite) sprite).throwJavelin( hit, new Callback() {
+
+		boolean seen = sprite != null && sprite.visible;
+		for (int c : cells) seen |= Dungeon.level.heroFOV[c];
+		if (sprite instanceof GnollWarlordSprite && seen){
+			final int[] left = { cells.length };
+			((GnollWarlordSprite) sprite).throwVolley( cells, new GnollWarlordSprite.Landing() {
 				@Override
-				public void call() {
-					javelinLands( hit );
-					next();
+				public void landed( int cell ) {
+					javelinLands( cell );
+					left[0]--;
+					if (left[0] == 0) next();
 				}
 			} );
 			return false;
 		}
-		javelinLands( hit );
+		for (int c : cells) javelinLands( c );
 		return true;
 	}
 
 	private void javelinLands( int cell ){
+		if (Dungeon.level instanceof GnollEmpireBossLevel){
+			((GnollEmpireBossLevel) Dungeon.level).stuckJavelin( cell );
+		}
 		Char ch = Actor.findChar( cell );
 		if (ch == null || ch == this || !ch.isAlive() || ch instanceof WarBanner) return;
 		if (ch.alignment == alignment) return; //아군 놀은 맞히지 않음
@@ -415,9 +461,64 @@ public class GnollWarlord extends Mob {
 				GameScene.updateMap( coll );
 				Dungeon.observe();
 			}
-			Buff.prolong( this, Paralysis.class, 1f );
+			Buff.prolong( this, Paralysis.class, 2f );
 			if (sprite != null) sprite.showStatus( CharSprite.NEUTRAL, Messages.get( this, "stunned" ) );
 		}
+	}
+
+	// ── 드릴 회오리: 둘레 8칸 ──
+
+	private void aimWhirl(){
+		whirlAimed = true;
+		for (int n : PathFinder.NEIGHBOURS8){
+			int c = pos + n;
+			if (!Dungeon.level.solid[c]) GameScene.targetedCell( c, 1f );
+		}
+		if (sprite != null){
+			sprite.showStatus( CharSprite.WARNING, Messages.get( this, "whirl" ) );
+			if (sprite instanceof GnollWarlordSprite) ((GnollWarlordSprite) sprite).rev();
+		}
+		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 1f, 1.2f );
+		if (!whirlWarned && Dungeon.level.heroFOV[pos]){
+			whirlWarned = true;
+			GLog.w( Messages.get( this, "whirl_warn" ) );
+		}
+		Dungeon.hero.interrupt();
+		spend( 1f );
+	}
+
+	private boolean whirl(){
+		whirlAimed = false;
+		whirlCooldown = finalStand ? 5 : 7;
+		adjacentTurns = 0;
+		spend( attackDelay() );
+		if (sprite instanceof GnollWarlordSprite) ((GnollWarlordSprite) sprite).spin();
+		Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG, 1f, 0.8f );
+		PixelScene.shake( 2, 0.4f );
+		for (int n : PathFinder.NEIGHBOURS8){
+			int c = pos + n;
+			if (Dungeon.level.heroFOV[c] && !Dungeon.level.solid[c]){
+				CellEmitter.center( c ).burst( SparkParticle.FACTORY, 3 );
+			}
+			Char ch = Actor.findChar( c );
+			if (ch == null || !ch.isAlive() || ch.alignment == alignment || ch instanceof WarBanner) continue;
+			if (hit( this, ch, Char.INFINITE_ACCURACY, false )){
+				int dmg = Random.NormalIntRange( 14, 24 ) - ch.drRoll();
+				ch.damage( Math.max( 1, dmg ), this );
+				if (ch.sprite != null) ch.sprite.flash();
+				if (ch == Dungeon.hero){
+					Statistics.qualifiedForBossChallengeBadge = false;
+					Statistics.bossScores[2] -= 100;
+					if (!ch.isAlive()){
+						Dungeon.fail( this );
+						GLog.n( Messages.get( this, "whirl_kill" ) );
+					}
+				}
+			} else if (ch.sprite != null){
+				ch.sprite.showStatus( CharSprite.NEUTRAL, ch.defenseVerb() );
+			}
+		}
+		return true;
 	}
 
 	// ── 결집 ──
@@ -476,7 +577,9 @@ public class GnollWarlord extends Mob {
 
 	private void startRally(){
 		ralliesDone++;
-		javelinAim = chargeAim = -1;
+		volley = null;
+		chargeAim = -1;
+		whirlAimed = false;
 
 		WarBanner best = null;
 		for (Mob m : Dungeon.level.mobs.toArray( new Mob[0] )){
@@ -552,22 +655,41 @@ public class GnollWarlord extends Mob {
 	private void tick(){
 		if (!isAlive() || !awake) return;
 
+		//결집 중: 깃발과 대족장 사이에 붉은 빛줄기 (깃발이 힘을 주고 있다는 표시)
+		if (rallying){
+			WarBanner b = banner();
+			if (b != null && sprite != null && b.sprite != null && sprite.parent != null
+					&& (sprite.visible || b.sprite.visible)){
+				com.shatteredpixel.shatteredpixeldungeon.effects.Beam beam =
+						new com.shatteredpixel.shatteredpixeldungeon.effects.Beam.LightRay( b.sprite.center(), sprite.center() );
+				beam.hardlight( 1f, 0.3f, 0.15f );
+				sprite.parent.add( beam );
+			}
+		}
+
 		if (finalStand){
-			if (ringLevel < 3 && ++ringTimer >= 5){
-				ringTimer = 0;
-				ringLevel++;
-				if (Dungeon.level instanceof GnollEmpireBossLevel){
-					((GnollEmpireBossLevel) Dungeon.level).spreadFlames( ringLevel );
+			if (ringLevel < 3){
+				ringTimer++;
+				if (ringTimer == 4 && Dungeon.level instanceof GnollEmpireBossLevel){
+					//한 턴 앞서 불씨로 다음 불길 자리를 알림
+					((GnollEmpireBossLevel) Dungeon.level).warnFlames( ringLevel + 1 );
+					GLog.w( Messages.get( this, "flames_warn" ) );
 				}
-				GLog.w( Messages.get( this, "flames_close" ) );
+				if (ringTimer >= 5){
+					ringTimer = 0;
+					ringLevel++;
+					if (Dungeon.level instanceof GnollEmpireBossLevel){
+						((GnollEmpireBossLevel) Dungeon.level).spreadFlames( ringLevel );
+					}
+					GLog.w( Messages.get( this, "flames_close" ) );
+				}
 			}
 			return;
 		}
 
 		if (--reinforceTimer <= 0){
-			boolean early = onThrone || rallying;
-			reinforceTimer = early ? 9 : 14;
-			reinforce( 1, early ? 2 : 1 );
+			reinforceTimer = rallying ? 7 : (onThrone ? 9 : 14);
+			reinforce( 1, (onThrone || rallying) ? 2 : 1 );
 		}
 	}
 
@@ -600,6 +722,10 @@ public class GnollWarlord extends Mob {
 			s.beckon( Dungeon.hero.pos );
 			if (Dungeon.level.heroFOV[g]){
 				CellEmitter.get( g ).burst( Speck.factory( Speck.DUST ), 6 );
+				if (sprite != null && sprite.parent != null){
+					new com.shatteredpixel.shatteredpixeldungeon.effects.Flare( 5, 12 ).color( 0xFF4422, true )
+							.show( sprite.parent, com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.tileCenterToWorld( g ), 0.8f );
+				}
 				shown = true;
 			}
 			n--;
@@ -687,7 +813,10 @@ public class GnollWarlord extends Mob {
 	private static final String FINAL = "final_stand";
 	private static final String AWAKE = "awake";
 	private static final String JAV_CD = "javelin_cd";
-	private static final String JAV_AIM = "javelin_aim";
+	private static final String VOLLEY = "volley";
+	private static final String WHIRL_CD = "whirl_cd";
+	private static final String WHIRL_AIM = "whirl_aim";
+	private static final String ADJ = "adjacent_turns";
 	private static final String CHG_CD = "charge_cd";
 	private static final String CHG_AIM = "charge_aim";
 	private static final String REINF = "reinforce";
@@ -704,7 +833,10 @@ public class GnollWarlord extends Mob {
 		bundle.put( FINAL, finalStand );
 		bundle.put( AWAKE, awake );
 		bundle.put( JAV_CD, javelinCooldown );
-		bundle.put( JAV_AIM, javelinAim );
+		if (volley != null) bundle.put( VOLLEY, volley );
+		bundle.put( WHIRL_CD, whirlCooldown );
+		bundle.put( WHIRL_AIM, whirlAimed );
+		bundle.put( ADJ, adjacentTurns );
 		bundle.put( CHG_CD, chargeCooldown );
 		bundle.put( CHG_AIM, chargeAim );
 		bundle.put( REINF, reinforceTimer );
@@ -722,7 +854,10 @@ public class GnollWarlord extends Mob {
 		finalStand = bundle.getBoolean( FINAL );
 		awake = bundle.getBoolean( AWAKE );
 		javelinCooldown = bundle.getInt( JAV_CD );
-		javelinAim = bundle.getInt( JAV_AIM );
+		volley = bundle.contains( VOLLEY ) ? bundle.getIntArray( VOLLEY ) : null;
+		whirlCooldown = bundle.getInt( WHIRL_CD );
+		whirlAimed = bundle.getBoolean( WHIRL_AIM );
+		adjacentTurns = bundle.getInt( ADJ );
 		chargeCooldown = bundle.getInt( CHG_CD );
 		chargeAim = bundle.getInt( CHG_AIM );
 		reinforceTimer = bundle.getInt( REINF );

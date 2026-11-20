@@ -69,21 +69,21 @@ public class GnollEmpireBossLevel extends Level {
 			"############..,...,..############",
 			"############%.......%############",
 			"###############SSS###############",
-			"##=============PPP=============##",
+			"##===========##PPP##===========##",
 			"##=...........__T__...........=##",
 			"##=....,......_____......,....=##",
 			"##=..B.....................B..=##",
 			"#Gg.........,.......,.........gG#",
 			"##=......f......,......f......=##",
 			"##=...........................=##",
-			"##=...,......%.....%......,...=##",
+			"##=...,...%...........%...,...=##",
 			"##=.,.......................,.=##",
 			"##=......f.............f......=##",
 			"#Gg.............,.............gG#",
 			"##=..B........,...,........B..=##",
 			"##=........,.........,........=##",
 			"##=...........................=##",
-			"##=============...=============##",
+			"##============#...#============##",
 			"################.################",
 			"################.################",
 			"##############.....##############",
@@ -344,6 +344,37 @@ public class GnollEmpireBossLevel extends Level {
 		PixelScene.shake( 1, 0.5f );
 	}
 
+	//다음 불길이 덮칠 자리에 불씨를 튀겨 한 턴 앞서 알림
+	public void warnFlames( int ring ){
+		for (int y = ARENA_T; y <= ARENA_B; y++){
+			for (int x = ARENA_L; x <= ARENA_R; x++){
+				int cell = x + y * width();
+				int d = Math.min( Math.min( x - ARENA_L, ARENA_R - x ), Math.min( y - ARENA_T, ARENA_B - y ) );
+				if (d == ring - 1 && !solid[cell] && heroFOV[cell]){
+					CellEmitter.get( cell ).burst( FlameParticle.FACTORY, 2 );
+					if (Random.Int( 3 ) == 0) GameScene.targetedCell( cell, 1f );
+				}
+			}
+		}
+	}
+
+	//투창이 꽂힌 자국: 바닥에 잠깐 남았다가 사라짐
+	public void stuckJavelin( int cell ){
+		if (visuals == null || cell < 0 || cell >= length() || solid[cell] || !heroFOV[cell]) return;
+		int S = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+		final com.watabou.noosa.Image img = arenaImage( Random.Int( 2 ) == 0 ? 128 : 144, 128, 16, 16,
+				(cell % width()) * S, (cell / width()) * S );
+		visuals.add( img );
+		visuals.add( new com.watabou.noosa.tweeners.AlphaTweener( img, 0, 4f ){
+			@Override
+			protected void onComplete() {
+				img.killAndErase();
+				killAndErase();
+			}
+		} );
+		CellEmitter.get( cell ).burst( Speck.factory( Speck.DUST ), 3 );
+	}
+
 	public void onBossDefeated(){
 		if (bossDefeated) return;
 		bossDefeated = true;
@@ -354,6 +385,7 @@ public class GnollEmpireBossLevel extends Level {
 		if (fire != null) fire.fullyClear();
 
 		unseal();
+		breakThrone();
 		PixelScene.shake( 3, 1.2f );
 		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 		GLog.h( Messages.get( this, "victory" ) );
@@ -423,14 +455,87 @@ public class GnollEmpireBossLevel extends Level {
 		super.destroy( pos );
 		if (palisade){
 			GnollEmpire.palisadeCollapsed( this, pos );
+			for (int anchor : new ArrayList<>( gatePosts.keySet() )){
+				if (anchor == pos || anchor - width() == pos){
+					com.watabou.noosa.Image post = gatePosts.remove( anchor );
+					if (post != null) post.killAndErase();
+					CellEmitter.get( anchor ).burst( Speck.factory( Speck.DUST ), 6 );
+				}
+			}
 		}
+	}
+
+	// ── 투기장 장식 그림 (gnoll_arena.png) ──
+	//  왕좌 단: 아래층(5칸x4줄, 6~9행)은 몹 아래, 위층(5행)은 벽 위에 그려 왕좌가 벽 너머로 솟아 보이게
+	//  가운데 전쟁 문장, 바닥 장식, 성문 해골 기둥, 입구 아치
+
+	private static final int THRONE_X = 13, THRONE_Y = 6;
+	private static final int[][] DECALS = {
+			{6,8,0}, {25,12,1}, {8,17,2}, {27,14,3}, {21,18,4}, {5,12,5}, {12,16,6}, {20,9,0}, {10,19,3}, {24,8,6}
+	};
+	//성문 틈 (x, y) : 해골 기둥은 그 위 방책 두 칸에 세움
+	private static final int[][] GATE_GAPS = { {2,10}, {2,16}, {30,10}, {30,16} };
+
+	private com.watabou.noosa.Image throneLow, throneUp;
+	private final java.util.HashMap<Integer, com.watabou.noosa.Image> gatePosts = new java.util.HashMap<>();
+
+	private static com.watabou.noosa.Image arenaImage( int tx, int ty, int w, int h, float x, float y ){
+		com.watabou.noosa.Image img = new com.watabou.noosa.Image( Assets.Environment.GNOLL_ARENA, tx, ty, w, h );
+		img.x = x;
+		img.y = y;
+		return img;
 	}
 
 	@Override
 	public Group addVisuals() {
 		super.addVisuals();
+		int S = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+
+		//바닥에 칠한 전쟁 문장과 흩어진 뼈·투창·핏자국
+		visuals.add( arenaImage( 0, 80, 112, 80, 13*S, 11*S ) );
+		for (int[] d : DECALS){
+			visuals.add( arenaImage( 112 + 16*d[2], 128, 16, 16, d[0]*S, d[1]*S ) );
+		}
+
+		//왕좌 단 (쓰러뜨린 뒤에는 부서진 왕좌)
+		throneLow = arenaImage( bossDefeated ? 112 : 0, 0, 112, 64, THRONE_X*S, THRONE_Y*S );
+		visuals.add( throneLow );
+
+		//성문 해골 기둥: 그 자리 방책이 타 버렸으면 세우지 않음
+		gatePosts.clear();
+		for (int[] g : GATE_GAPS){
+			int anchor = g[0] + (g[1]-1)*width();
+			if (map[anchor] != Terrain.BARRICADE) continue;
+			com.watabou.noosa.Image post = arenaImage( g[0] < W/2 ? 112 : 128, 80, 16, 32, g[0]*S, (g[1]-2)*S );
+			visuals.add( post );
+			gatePosts.put( anchor, post );
+		}
+
 		GnollEmpire.addFireVisuals( this, visuals );
 		return visuals;
+	}
+
+	@Override
+	public Group addWallVisuals() {
+		super.addWallVisuals();
+		int S = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+		//왕좌 위층: 해골 왕관·창끝·깃대 꼭대기가 뒤 바위벽 위로 솟음
+		throneUp = arenaImage( bossDefeated ? 112 : 0, 64, 112, 16, THRONE_X*S, (THRONE_Y-1)*S );
+		wallVisuals.add( throneUp );
+		//입구 아치 (지나갈 때 머리 위로 지나가게 벽 위 층)
+		wallVisuals.add( arenaImage( 144, 80, 80, 40, 14*S, 21*S - 40 ) );
+		return wallVisuals;
+	}
+
+	//대족장이 쓰러지면 왕좌가 무너짐
+	private void breakThrone(){
+		if (throneLow != null) throneLow.frame( 112, 0, 112, 64 );
+		if (throneUp != null)  throneUp.frame( 112, 64, 112, 16 );
+		for (int x = THRONE_X + 1; x <= THRONE_X + 5; x++){
+			int c = x + (THRONE_Y + 1) * width();
+			CellEmitter.get( c ).burst( Speck.factory( Speck.ROCK ), 4 );
+			CellEmitter.get( c - width() ).burst( Speck.factory( Speck.DUST ), 4 );
+		}
 	}
 
 	@Override

@@ -198,25 +198,30 @@ public class GnollEmpireSprites {
 		}
 	}
 
-	public static class Banner extends Prop {
+	//놀 대족장의 전투 깃발: 해골을 얹은 큰 깃대 (20x30)
+	public static class Banner extends MobSprite {
 
 		private Animation waving;
 
 		public Banner(){
 			super();
+			texture( com.shatteredpixel.shatteredpixeldungeon.Assets.Sprites.WAR_BANNER );
+			com.watabou.noosa.TextureFilm film = new com.watabou.noosa.TextureFilm( texture, 20, 30 );
 			idle = new Animation( 1, true );
-			idle.frames( frames, f(3,0) );
-			waving = new Animation( 6, true );
-			waving.frames( frames, f(3,1), f(3,2), f(3,3), f(3,2) );
+			idle.frames( film, 0 );
+			waving = new Animation( 7, true );
+			waving.frames( film, 1, 2, 3, 2 );
 			run = idle.clone();
 			attack = idle.clone();
-			die = new Animation( 10, false );
-			die.frames( frames, f(3,4), f(3,5), f(3,6) );
+			die = new Animation( 8, false );
+			die.frames( film, 4, 5, 6 );
 			play( idle );
 		}
 
 		public void activate(){
 			idle = waving;
+			run = waving.clone();
+			attack = waving.clone();
 			play( idle );
 		}
 	}
