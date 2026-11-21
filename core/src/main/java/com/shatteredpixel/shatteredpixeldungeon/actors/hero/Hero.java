@@ -371,6 +371,8 @@ public class Hero extends Char {
 		if (belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.class ) != null){
 			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpiritSwitch.attach( this );
 		}
+		//모드: 기사의 경례를 찍었으면 경례 버튼 (예전 저장 파일도)
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton.attach( this );
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {

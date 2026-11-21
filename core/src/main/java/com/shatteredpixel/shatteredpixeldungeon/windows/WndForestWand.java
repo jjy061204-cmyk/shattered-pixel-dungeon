@@ -9,6 +9,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.GreaterSpirit;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -174,7 +175,7 @@ public class WndForestWand extends Window {
 		add( info );
 
 		// ── 고른 칸에서 할 일: 한 줄에 같은 모양의 버튼만 ──
-		//  정령 칸: 부여 · 발현 · (실체화) · 풀어 주기  /  빈칸: 깃들이기 · 되돌리기 · (실체 거두기)
+		//  정령 칸: 부여 · 발현 · (실체화) · 풀어 주기  /  빈칸: 깃들이기 · 되돌리기
 		ArrayList<String> keys = new ArrayList<>();
 		if (s != null){
 			keys.add( "bestow" );
@@ -184,7 +185,6 @@ public class WndForestWand extends Window {
 		} else {
 			keys.add( "imbue" );
 			keys.add( "recall" );
-			if (!ForestWand.materializedSpirits().isEmpty()) keys.add( "unmaterialize" );
 		}
 		int perRow = keys.size() == 4 ? 2 : keys.size();
 		int rows = (keys.size() + perRow - 1) / perRow;
@@ -217,6 +217,42 @@ public class WndForestWand extends Window {
 			add( b );
 		}
 		y += rows * (BTN_H + GAP) - GAP;
+
+		// ── 실체화한 정령: 어느 칸을 골랐든 언제나 맨 아래에서 바로 거둠 (빈칸이 없으면 꺼짐) ──
+		ArrayList<GreaterSpirit> mats = ForestWand.materializedSpirits();
+		if (!mats.isEmpty()){
+			y += 6;
+			ColorBlock line = new ColorBlock( WIDTH, 1, 0xFF3A3830 );
+			line.x = 0; line.y = y - 4;
+			add( line );
+			boolean room = wand.freeSlot() >= 0;
+			ForestWand.Spirit first = mats.get( 0 ).spirit();
+			String label = mats.size() == 1
+					? Messages.get( this, "act_unmaterialize_one", first.title() )
+					: Messages.get( this, "act_unmaterialize_many", mats.size() );
+			UiButton um = new UiButton( label, 7, PAL_IMBUE ){
+				@Override
+				protected void onClick() {
+					act( "unmaterialize" );
+				}
+			};
+			Image si = new Image( Assets.Sprites.ITEM_ICONS );
+			si.frame( ItemSpriteSheet.Icons.film.get( first.icon() ) );
+			um.icon( si );
+			um.setRect( 0, y, WIDTH, BTN_H );
+			if (!room) um.enable( false );
+			add( um );
+			y += BTN_H;
+			if (!room){
+				RenderedTextBlock note = PixelScene.renderTextBlock( Messages.get( this, "unmaterialize_full" ), 6 );
+				note.hardlight( TEXT_DIM );
+				note.maxWidth( WIDTH );
+				note.align( RenderedTextBlock.CENTER_ALIGN );
+				note.setPos( (WIDTH - note.width()) / 2f, y + 3 );
+				add( note );
+				y = note.bottom() + 1;
+			}
+		}
 
 		resize( WIDTH, (int) Math.ceil( y ) );
 	}
@@ -438,6 +474,7 @@ public class WndForestWand extends Window {
 	private void showHelp(){
 		ForestWand.Spirit s = wand.slots[sel];
 		String body = Messages.get( this, "help" );
+		if (contractor()) body += "\n" + Messages.get( this, "help_contractor" );
 		Image icon;
 		String title;
 		if (s != null){
@@ -487,10 +524,13 @@ public class WndForestWand extends Window {
 				recall();
 				break;
 			case "unmaterialize":
+				if (Dungeon.hero == null || !Dungeon.hero.ready) return;
 				hide();
-				wand.preferredSlot = sel;
+				//고른 칸이 비어 있으면 그 칸으로, 아니면 아무 빈칸으로
+				wand.preferredSlot = wand.slots[sel] == null ? sel : -1;
 				wand.recallMaterialized( Dungeon.hero );
 				wand.preferredSlot = -1;
+				refreshSwitch();
 				break;
 			default:
 				doSlotAction( sel, key );

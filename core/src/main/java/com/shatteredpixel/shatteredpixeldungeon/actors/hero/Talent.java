@@ -550,6 +550,12 @@ public enum Talent {
 		if (talent == ETHER_TEMPERING){
 			com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay.onTemperingUpgraded(hero);
 		}
+		//기사의 경례: 찍으면 행동 버튼에 '경례'가 뜸
+		if (talent == KNIGHTS_SALUTE){
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton.attach(hero);
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton b = hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton.class);
+			if (b != null) b.refreshButton();
+		}
 		//for metamorphosis
 		if (talent == IRON_WILL && hero.heroClass != HeroClass.WARRIOR){
 			Buff.affect(hero, BrokenSeal.WarriorShield.class);
