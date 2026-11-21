@@ -1360,6 +1360,7 @@ public class Badges {
 
 		if (badge == Badge.BOSS_SLAIN_1_ALL_CLASSES){
 			for (HeroClass cls : HeroClass.values()){
+				if (!firstBossClassBadges.containsKey(cls)) continue; //모드 직업은 이 배지와 상관없음
 				result += "\n";
 				if (isUnlocked(firstBossClassBadges.get(cls)))  result += "_" + Messages.titleCase(cls.title()) + "_";
 				else                                            result += Messages.titleCase(cls.title());
@@ -1370,6 +1371,7 @@ public class Badges {
 		} else if (badge == Badge.VICTORY_ALL_CLASSES) {
 
 			for (HeroClass cls : HeroClass.values()){
+				if (!victoryClassBadges.containsKey(cls)) continue; //모드 직업은 이 배지와 상관없음
 				result += "\n";
 				if (isUnlocked(victoryClassBadges.get(cls)))    result += "_" + Messages.titleCase(cls.title()) + "_";
 				else                                            result += Messages.titleCase(cls.title());
@@ -1381,6 +1383,7 @@ public class Badges {
 
 			for (HeroSubClass cls : HeroSubClass.values()){
 				if (cls == HeroSubClass.NONE) continue;
+				if (!thirdBossSubclassBadges.containsKey(cls)) continue; //모드 전직은 이 배지와 상관없음
 				result += "\n";
 				if (isUnlocked(thirdBossSubclassBadges.get(cls)))   result += "_" + Messages.titleCase(cls.title()) + "_";
 				else                                                result += Messages.titleCase(cls.title()) ;

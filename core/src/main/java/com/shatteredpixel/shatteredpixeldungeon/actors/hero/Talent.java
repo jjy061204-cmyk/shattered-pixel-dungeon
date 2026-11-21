@@ -533,6 +533,11 @@ public enum Talent {
 	}
 
 	public String desc(boolean metamorphed){
+		//모드: 부러진 인장이 없는 마법 기사에게는 인장 대신 에테르 막에 작용하는 특성의 설명
+		if (this == LETHAL_DEFENSE && Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MAGIC_KNIGHT){
+			String mkDesc = Messages.get(this, name() + ".mk_desc");
+			if (!mkDesc.equals(Messages.NO_TEXT_FOUND)) return mkDesc;
+		}
 		if (metamorphed){
 			String metaDesc = Messages.get(this, name() + ".meta_desc");
 			if (!metaDesc.equals(Messages.NO_TEXT_FOUND)){
@@ -986,6 +991,23 @@ public enum Talent {
 	}
 
 	public static class EmergencyChargeCooldown extends FlavourBuff{}
+
+	//검투사의 '치명적인 방어': 필살기로 적을 쓰러뜨렸을 때.
+	//모드: 마법 기사는 부러진 인장이 없어서, 인장 대신 에테르 막의 대기 시간(50턴)이 같은 비율(1/3, 2/3, 전부)만큼 줄어듦
+	public static void lethalDefense( Hero hero ){
+		float frac = hero.pointsInTalent(LETHAL_DEFENSE)/3f;
+		if (frac <= 0) return;
+		if (hero.heroClass == HeroClass.MAGIC_KNIGHT && hero.buff(BrokenSeal.WarriorShield.class) == null){
+			EtherVeilCooldown cd = hero.buff(EtherVeilCooldown.class);
+			if (cd != null){
+				float left = cd.cooldown() - 50f * frac;
+				cd.detach();
+				if (left > 0.5f) Buff.affect(hero, EtherVeilCooldown.class, left);
+			}
+			return;
+		}
+		Buff.affect(hero, BrokenSeal.WarriorShield.class).reduceCooldown(frac);
+	}
 	//모드: 마법 기사
 	public static class EtherVeilCooldown extends FlavourBuff{}
 	//마력 식사·주문 응집: 다음 근접 공격 몇 번에 마력이 실림

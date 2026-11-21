@@ -283,7 +283,10 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 	@Override
 	public void doAction() {
 		WarriorShield shield = target.buff(WarriorShield.class);
-		if (shield != null && shield.maxShield() > 0) {
+		//모드: 마법 기사는 전사의 전직을 빌려 쓰지만 부러진 인장이 없음. 인장 없이도 광폭화할 수 있게 함
+		boolean noSealNeeded = target instanceof Hero
+				&& ((Hero) target).heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.MAGIC_KNIGHT;
+		if (noSealNeeded || (shield != null && shield.maxShield() > 0)) {
 			startBerserking();
 			ActionIndicator.clearAction(this);
 		} else {

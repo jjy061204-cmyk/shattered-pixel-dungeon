@@ -78,7 +78,7 @@ public class UndyingBlood extends ArmorAbility {
 		amount = Math.min( amount, hero.HT - hero.HP );
 		if (amount <= 0) return;
 		hero.HP += amount;
-		hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
+		if (hero.sprite != null) hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
 	}
 
 	//Hero.die에서 가장 먼저 부름. 능력이 이어지는 동안 쓰러지면 되살아나고 true

@@ -469,6 +469,11 @@ public enum HeroClass {
 		}
 	}
 
+	//모드: 세밀한 도트 영웅을 그릴 때 곱하는 크기. 마법 기사는 64칸 안에 그린 몸(49칸)이 뱀파이어(57칸)보다 작아서 키를 맞춰 키움
+	public float hdScale(){
+		return this == MAGIC_KNIGHT ? 57f / 49f : 1f;
+	}
+
 	public String splashArt(){
 		switch (this) {
 			case WARRIOR: default:

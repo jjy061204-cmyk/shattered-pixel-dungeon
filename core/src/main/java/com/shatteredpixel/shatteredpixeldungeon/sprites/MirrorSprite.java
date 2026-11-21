@@ -61,8 +61,9 @@ public class MirrorSprite extends MobSprite {
 		HeroClass cl = Dungeon.hero != null ? Dungeon.hero.heroClass : HeroClass.WARRIOR;
 		if (cl.hdSheet() != null){
 			film = new TextureFilm( texture, HeroSprite.HD_WIDTH, HeroSprite.HD_HEIGHT );
-			HeroSprite.smooth( texture );
-			scale.set( HeroSprite.HD_SCALE );
+			float s = HeroSprite.HD_SCALE * cl.hdScale();
+			HeroSprite.smooth( texture, s );
+			scale.set( s );
 		} else {
 			film = new TextureFilm( HeroSprite.tiers(), tier, FRAME_WIDTH, FRAME_HEIGHT );
 		}

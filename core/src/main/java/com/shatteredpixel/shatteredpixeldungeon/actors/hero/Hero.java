@@ -1783,8 +1783,10 @@ public class Hero extends Char {
 		if (src instanceof Hunger) preHP -= shielding();
 		int preShield = shielding();
 		super.damage( dmg, src );
+		//보호막이 막아 낸 양은 '피해를 받은 뒤' 특성(에테르 막·정령의 보호막)이 새 보호막을 씌우기 전에 셈
+		int absorbed = preShield - shielding();
 		Talent.onHeroDamaged( this );
-		if (!(src instanceof Hunger)) Talent.onShieldAbsorb( this, preShield - shielding(), src );
+		if (!(src instanceof Hunger)) Talent.onShieldAbsorb( this, absorbed, src );
 		int postHP = HP + shielding();
 		if (src instanceof Hunger) postHP -= shielding();
 		int effectiveDamage = preHP - postHP;

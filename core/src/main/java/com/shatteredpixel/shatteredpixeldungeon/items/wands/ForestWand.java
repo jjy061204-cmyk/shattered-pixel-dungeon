@@ -330,14 +330,19 @@ public class ForestWand extends Weapon {
 		return STRReq( 1, lvl );
 	}
 
+	//영웅이 없을 때(제목 화면의 기록 등)도 위력·설명 계산이 튕기지 않게
+	private static int heroLvl(){
+		return Dungeon.hero != null ? Dungeon.hero.lvl : 1;
+	}
+
 	@Override
 	public int min( int lvl ) {
-		return 1 + Dungeon.hero.lvl/5;
+		return 1 + heroLvl()/5;
 	}
 
 	@Override
 	public int max( int lvl ) {
-		return 6 + (int)(Dungeon.hero.lvl/2.5f);
+		return 6 + (int)(heroLvl()/2.5f);
 	}
 
 	@Override
@@ -1018,16 +1023,25 @@ public class ForestWand extends Weapon {
 	public boolean materialize( Hero hero, int slot ){
 		Spirit s = slots[slot];
 		if (s == null || !s.greater) return false;
+		GreaterSpirit ally = GreaterSpirit.create( s );
+		//날지 못하는 정령이 낭떠러지에 떨어지거나 함정을 밟지 않게, 안전한 칸부터 고름
 		ArrayList<Integer> spots = new ArrayList<>();
+		ArrayList<Integer> risky = new ArrayList<>();
 		for (int n : PathFinder.NEIGHBOURS8){
 			int p = hero.pos + n;
-			if (Actor.findChar( p ) == null && (Dungeon.level.passable[p] || Dungeon.level.avoid[p])) spots.add( p );
+			if (Actor.findChar( p ) != null) continue;
+			if (ally.flying){
+				if (Dungeon.level.passable[p] || Dungeon.level.avoid[p]) spots.add( p );
+			} else if (Dungeon.level.passable[p] && !Dungeon.level.pit[p]){
+				if (Dungeon.level.avoid[p]) risky.add( p );
+				else                        spots.add( p );
+			}
 		}
+		if (spots.isEmpty()) spots = risky;
 		if (spots.isEmpty()){
 			GLog.w( Messages.get( ForestWand.class, "no_space" ) );
 			return false;
 		}
-		GreaterSpirit ally = GreaterSpirit.create( s );
 		ally.pos = Random.element( spots );
 		GameScene.add( ally );
 		ScrollOfTeleportation.appear( ally, ally.pos );
@@ -1373,9 +1387,9 @@ public class ForestWand extends Weapon {
 		String info = desc();
 		info += "\n\n" + Messages.get( ForestWand.class, "stats",
 				Math.round( augment.damageFactor( min() ) ), Math.round( augment.damageFactor( max() ) ), STRReq() );
-		if (STRReq() > Dungeon.hero.STR()) {
+		if (Dungeon.hero != null && STRReq() > Dungeon.hero.STR()) {
 			info += " " + Messages.get( Weapon.class, "too_heavy" );
-		} else if (Dungeon.hero.STR() > STRReq()){
+		} else if (Dungeon.hero != null && Dungeon.hero.STR() > STRReq()){
 			info += " " + Messages.get( Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq() );
 		}
 		switch (augment) {

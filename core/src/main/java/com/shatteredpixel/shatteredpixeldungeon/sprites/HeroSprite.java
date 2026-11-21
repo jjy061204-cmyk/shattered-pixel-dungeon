@@ -52,7 +52,10 @@ public class HeroSprite extends CharSprite {
 
 	//화면에서 도트 한 칸이 화면 한 픽셀 이상이면 또렷하게, 그보다 작아지면 뭉개지지 않게 부드럽게 줄임
 	public static void smooth( com.watabou.gltextures.SmartTexture tx ){
-		float r = com.watabou.noosa.Camera.main != null ? com.watabou.noosa.Camera.main.zoom * HD_SCALE : 1f;
+		smooth( tx, HD_SCALE );
+	}
+	public static void smooth( com.watabou.gltextures.SmartTexture tx, float drawScale ){
+		float r = com.watabou.noosa.Camera.main != null ? com.watabou.noosa.Camera.main.zoom * drawScale : 1f;
 		int mode = r >= 0.95f ? com.watabou.glwrap.Texture.NEAREST : com.watabou.glwrap.Texture.LINEAR;
 		tx.filter( mode, mode );
 	}
@@ -208,8 +211,10 @@ public class HeroSprite extends CharSprite {
 		TextureFilm film;
 		if (look != null && look.hdSheet() != null){
 			film = new TextureFilm( texture, HD_WIDTH, HD_HEIGHT );
-			smooth( texture );
-			scale.set( HD_SCALE );
+			//칸 아래 가운데를 기준으로 커지므로 발은 그대로 땅에 붙음
+			float s = HD_SCALE * look.hdScale();
+			smooth( texture, s );
+			scale.set( s );
 		} else {
 			film = new TextureFilm( tiers(), Dungeon.hero.tier(), FRAME_WIDTH, FRAME_HEIGHT );
 			scale.set( 1f );
@@ -409,13 +414,23 @@ public class HeroSprite extends CharSprite {
 		}
 	}
 	
+	//모드: 세밀한 도트 영웅의 첫 프레임에서 몸이 있는 가운데 부분(48x64)을 잘라 height 높이로 줄인 그림.
+	//몸을 키워 그리는 영웅(마법 기사)은 그만큼 좁게 잘라서, 초상화에서도 다른 영웅과 키가 같아 보이게 함
+	public static Image hdPortrait( HeroClass cl, float height ){
+		float k = cl.hdScale();
+		int w = Math.round( 48f / k );
+		int h = Math.min( HD_HEIGHT, Math.round( HD_HEIGHT / k ) );
+		int x0 = Math.max( 0, Math.round( HD_WIDTH / 2f - w / 2f - 0.5f ) );
+		Image hd = new Image( cl.hdSheet(), x0, HD_HEIGHT - h, w, h );
+		smooth( hd.texture );
+		hd.scale.set( height / h );
+		return hd;
+	}
+
 	public static Image avatar( HeroClass cl, int armorTier ) {
 		//세밀한 도트 영웅: 첫 프레임에서 몸이 있는 가운데 부분만 잘라 원래 초상화 크기(약 15칸 높이)로 줄임
 		if (cl.hdSheet() != null){
-			Image hd = new Image( cl.hdSheet(), 8, 0, 48, HD_HEIGHT );
-			smooth( hd.texture );
-			hd.scale.set( 15f / HD_HEIGHT );
-			return hd;
+			return hdPortrait( cl, 15f );
 		}
 		
 		RectF patch = tiers().get( armorTier );

@@ -406,18 +406,28 @@ public class CrimsonGrail extends Artifact {
 		if (pts > 0) Buff.prolong( hero, Adrenaline.class, pts );
 	}
 
+	//물어서 실제로 빼앗은 피해를 돌려줌. 부서지지 않는 물건·무적인 대상처럼 피해가 들어가지 않으면 0이고, 아무것도 빨아들이지 못함
 	private int bite( Hero hero, Char ch, int cell, float mult ){
 		int dmg = strike( hero, ch, mult );
 		boolean living = isLiving( ch );
 		int healing = drainHeal( hero, ch );
 		VampireFX.on( ch.sprite, VampireFX.BITE, 0.55f, 0.42f );
-		bloodStream( hero, ch );
-		ch.damage( dmg, this );
+		int dealt = wound( ch, dmg );
 		if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 6 );
+		if (dealt <= 0) return 0;
+		bloodStream( hero, ch );
 		heal( hero, healing );
 		gainLife( hero, living ? 1f : 0.34f );
 		feed( hero, ch, DRAIN_FOOD );
-		return dmg;
+		return dealt;
+	}
+
+	//피해를 주고, 대상의 체력·보호막이 실제로 줄어든 만큼을 돌려줌
+	// (퀘스트 NPC·상점 주인·성의 촛대처럼 피해를 받지 않는 대상이면 0)
+	private int wound( Char ch, int dmg ){
+		int before = Math.max( 0, ch.HP ) + ch.shielding();
+		ch.damage( dmg, this );
+		return Math.max( 0, before - Math.max( 0, ch.HP ) - ch.shielding() );
 	}
 
 	//적에게서 뱀파이어에게로 빨려 오는 핏줄기
@@ -449,9 +459,11 @@ public class CrimsonGrail extends Artifact {
 								//기본 공격 피해의 80% (진조는 100%), 생명력 소모 없음. 살아 있는 적에게는 약한 출혈
 								if (ch.isAlive()){
 									int dmg = bite( hero, ch, cell, hero.subClass == HeroSubClass.TRUE_ANCESTOR ? 1f : 0.8f );
-									if (ch.isAlive() && isLiving( ch )) Buff.affect( ch, Bleeding.class ).set( Math.max( 1f, dmg * 0.25f ) );
-									Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
-									frenzy( hero );
+									if (dmg > 0){
+										if (ch.isAlive() && isLiving( ch )) Buff.affect( ch, Bleeding.class ).set( Math.max( 1f, dmg * 0.25f ) );
+										Sample.INSTANCE.play( Assets.Sounds.DRINK, 0.6f, 0.8f );
+										frenzy( hero );
+									}
 								}
 								finish( hero, hero.attackDelay() );
 							}
@@ -635,10 +647,10 @@ public class CrimsonGrail extends Artifact {
 									int pts = hero.pointsInTalent( Talent.BLOOD_LANCE );
 									int dmg = Math.round( Random.NormalIntRange( 3 + lvl / 2, 6 + lvl ) * (0.8f + 0.2f * pts) );
 									boolean living = isLiving( ch );
-									ch.damage( dmg, CrimsonGrail.this );
+									int dealt = wound( ch, dmg );
 									if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 8 );
 									//살아 있는 적이면 준 피해의 20%만큼 회복
-									if (living) heal( hero, Math.max( 1, Math.round( dmg * 0.2f ) ) );
+									if (living && dealt > 0) heal( hero, Math.max( 1, Math.round( dmg * 0.2f ) ) );
 								}
 								finish( hero, 1f );
 							}
@@ -689,9 +701,9 @@ public class CrimsonGrail extends Artifact {
 					if (mob.alignment != Char.Alignment.ALLY && PathFinder.distance[mob.pos] < Integer.MAX_VALUE){
 						int dmg = Math.round( Random.NormalIntRange( 4 + lvl / 2, 8 + lvl ) * (0.75f + 0.25f * pts) );
 						boolean living = isLiving( mob );
-						mob.damage( dmg, this );
+						int dealt = wound( mob, dmg );
 						if (mob.sprite != null) mob.sprite.emitter().burst( BloodParticle.BURST, 8 );
-						if (living) healed += 1 + pts;
+						if (living && dealt > 0) healed += 1 + pts;
 					}
 				}
 				VampireFX.at( hero.pos, VampireFX.NOVA, 1.6f, 0.5f ).grow( 1.75f );
@@ -719,14 +731,17 @@ public class CrimsonGrail extends Artifact {
 									int dmg = strike( hero, ch, 1.5f );
 									boolean living = isLiving( ch );
 									VampireFX.on( ch.sprite, VampireFX.JAWS, 0.75f, 0.45f );
-									bloodStream( hero, ch );
-									ch.damage( dmg, CrimsonGrail.this );
+									int dealt = wound( ch, dmg );
 									if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 12 );
-									if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
-									heal( hero, Math.max( 1, Math.round( dmg * (living ? 0.5f : 0.2f) ) ) );
-									feed( hero, ch, FEAST_FOOD );
 									Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG, 1f, 0.8f );
-									frenzy( hero );
+									//피해가 들어가지 않는 대상에게서는 아무것도 빨아들이지 못함
+									if (dealt > 0){
+										bloodStream( hero, ch );
+										if (ch.isAlive() && living) Buff.affect( ch, Bleeding.class ).set( Math.max( 1, dmg / 3f ) );
+										heal( hero, Math.max( 1, Math.round( dmg * (living ? 0.5f : 0.2f) ) ) );
+										feed( hero, ch, FEAST_FOOD );
+										frenzy( hero );
+									}
 								}
 								finish( hero, hero.attackDelay() );
 							}
@@ -743,8 +758,7 @@ public class CrimsonGrail extends Artifact {
 				for (int n : PathFinder.NEIGHBOURS8){
 					Char ch = Actor.findChar( hero.pos + n );
 					if (ch != null && ch.alignment != Char.Alignment.ALLY){
-						bite( hero, ch, hero.pos + n, mult );
-						any = true;
+						if (bite( hero, ch, hero.pos + n, mult ) > 0) any = true;
 					}
 				}
 				Invisibility.dispel();
@@ -823,7 +837,7 @@ public class CrimsonGrail extends Artifact {
 		amount = Math.min( amount, hero.HT - hero.HP );
 		if (amount <= 0) return;
 		hero.HP += amount;
-		hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
+		if (hero.sprite != null) hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
 	}
 
 	//생명력을 쓰고, 쓴 만큼 성배가 자람 (24를 쓸 때마다 한 단계, 최대치 +3)

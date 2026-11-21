@@ -73,6 +73,8 @@ public class ScrollOfTransmutation extends InventoryScroll {
 		if (item instanceof MeleeWeapon){
 			//모드: 6티어 엑스칼리버는 바꿀 수 없음
 			if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur) return false;
+			//모드: 마법 기사의 에테르 점토는 영웅과 함께 자라는 하나뿐인 무기라 다른 무기로 바뀌면 안 됨
+			if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) return false;
 			return !(item instanceof Pickaxe && Dungeon.level instanceof MiningLevel);
 
 		//all missile weapons except untipped darts
