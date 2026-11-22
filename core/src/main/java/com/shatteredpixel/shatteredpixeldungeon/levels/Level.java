@@ -528,6 +528,11 @@ public abstract class Level implements Bundlable {
 	public String waterTex() {
 		return null;
 	}
+
+	//모드: 물 그림 텍셀이 칸 단위(16분의 1칸) 하나에 몇 개인지. 원작 물은 1, 촘촘히 찍은 물(흡혈귀의 성 핏물)은 2
+	public int waterTexScale() {
+		return 1;
+	}
 	
 	abstract protected boolean build();
 	

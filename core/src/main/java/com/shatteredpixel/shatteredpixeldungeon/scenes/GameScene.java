@@ -164,6 +164,7 @@ public class GameScene extends PixelScene {
 	static GameScene scene;
 
 	private SkinnedBlock water;
+	private int waterK = 1;
 	private DungeonTerrainTilemap tiles;
 	private GridTileMap visualGrid;
 	private WallOcclusionTilemap occlusion;
@@ -273,6 +274,9 @@ public class GameScene extends PixelScene {
 			}
 		};
 		water.autoAdjust = true;
+		//모드: 촘촘히 찍은 물 그림은 그만큼 줄여 깔고, 흐르는 빠르기는 원작과 같게
+		waterK = Dungeon.level.waterTexScale();
+		if (waterK > 1) water.scale( 1f / waterK, 1f / waterK );
 		terrain.add( water );
 
 		ripples = new Group();
@@ -899,7 +903,7 @@ public class GameScene extends PixelScene {
 		if (notifyDelay > 0) notifyDelay -= Game.elapsed;
 
 		if (!Emitter.freezeEmitters) {
-			waterOfs -= 5 * Game.elapsed;
+			waterOfs -= 5 * waterK * Game.elapsed;
 			water.offsetTo( 0, waterOfs );
 			waterOfs = water.offsetY(); //re-assign to account for auto adjust
 		}

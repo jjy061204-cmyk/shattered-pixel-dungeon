@@ -102,6 +102,7 @@ public class AlchemyScene extends PixelScene {
 	
 	private Emitter lowerBubbles;
 	private SkinnedBlock water;
+	private int waterK = 1;
 
 	private Image energyIcon;
 	private RenderedTextBlock energyLeft;
@@ -144,6 +145,9 @@ public class AlchemyScene extends PixelScene {
 			}
 		};
 		water.autoAdjust = true;
+		//모드: 촘촘히 찍은 물 그림은 그만큼 줄여 깜
+		waterK = Dungeon.level.waterTexScale();
+		if (waterK > 1) water.scale( 1f / waterK, 1f / waterK );
 		add(water);
 		
 		Image im = new Image(TextureCache.createGradient(0x66000000, 0x88000000, 0xAA000000, 0xCC000000, 0xFF000000));
@@ -553,7 +557,7 @@ public class AlchemyScene extends PixelScene {
 	@Override
 	public void update() {
 		super.update();
-		water.offset( 0, -5 * Game.elapsed );
+		water.offset( 0, -5 * waterK * Game.elapsed );
 	}
 	
 	@Override

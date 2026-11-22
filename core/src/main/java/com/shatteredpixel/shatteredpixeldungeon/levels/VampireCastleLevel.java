@@ -56,6 +56,12 @@ public class VampireCastleLevel extends CavesLevel {
 		return Assets.Environment.WATER_BLOOD;
 	}
 
+	//핏물은 타일과 같은 32x32 밀도로 찍음
+	@Override
+	public int waterTexScale() {
+		return 2;
+	}
+
 	@Override
 	protected boolean veinSparkles() {
 		return false;

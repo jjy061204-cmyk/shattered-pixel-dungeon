@@ -101,6 +101,11 @@ public class VampireCastleBossLevel extends Level {
 	}
 
 	@Override
+	public int waterTexScale() {
+		return 2;
+	}
+
+	@Override
 	public String entryText() {
 		return bossDefeated ? null : Messages.get( this, "entry" );
 	}
