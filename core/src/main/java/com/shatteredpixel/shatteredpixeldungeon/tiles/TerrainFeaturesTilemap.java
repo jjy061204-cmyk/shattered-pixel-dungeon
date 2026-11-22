@@ -79,6 +79,12 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 			return -1;
 		}
 
+		//모드: 흡혈귀의 성·지하 묘지는 장미 덤불·거미줄·이끼·석상·성수반·돌관·솥·바리케이드·그을음까지
+		// 32x32 자체 타일에 그려 두었으므로 동굴 장식을 겹치지 않음 (함정·식물은 위에서 이미 그림)
+		if (com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isCastleLevel( Dungeon.level )){
+			return -1;
+		}
+
 		//모드: 놀 제국은 방책·토템·모닥불·고철 더미·천막을 자체 타일에 그려 두었으므로 동굴 장식을 겹치지 않음 (풀은 그대로)
 		if (com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isEmpireLevel(Dungeon.level)){
 			if (tile == Terrain.BARRICADE || tile == Terrain.STATUE || tile == Terrain.STATUE_SP

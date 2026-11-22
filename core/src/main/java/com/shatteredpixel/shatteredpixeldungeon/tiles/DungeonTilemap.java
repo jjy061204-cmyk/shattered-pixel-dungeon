@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.watabou.gltextures.TextureCache;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.Tilemap;
@@ -38,7 +39,15 @@ public abstract class DungeonTilemap extends Tilemap {
 	protected int[] map;
 
 	public DungeonTilemap(String tex) {
-		super(tex, new TextureFilm( tex, SIZE, SIZE ) );
+		super(tex, new TextureFilm( tex, SIZE * texScale( tex ), SIZE * texScale( tex ) ) );
+		//모드: 칸 하나를 더 촘촘한 도트(32x32 등)로 그린 시트는 그만큼 줄여서 16 크기 칸에 그림
+		int k = texScale( tex );
+		if (k > 1) scale.set( 1f / k );
+	}
+
+	//타일 시트는 가로 16칸. 시트 폭이 256의 몇 배인지 (256 → 1, 512 → 2)
+	public static int texScale( String tex ){
+		return Math.max( 1, TextureCache.get( tex ).width / (SIZE * 16) );
 	}
 
 	@Override
@@ -138,6 +147,7 @@ public abstract class DungeonTilemap extends Tilemap {
 		
 		final Image tile = new Image( texture );
 		tile.frame( tileset.get( getTileVisual( pos, oldValue, false)));
+		tile.scale.set( scale.x, scale.y );
 		tile.point( tileToWorld( pos ) );
 
 		parent.add( tile );

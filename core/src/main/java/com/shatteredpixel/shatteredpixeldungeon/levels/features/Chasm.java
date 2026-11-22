@@ -53,6 +53,14 @@ public class Chasm implements Hero.Doom {
 
 	public static boolean jumpConfirmed = false;
 	private static int heroPos;
+
+	//낭떠러지 벽 칸 그림 (세밀한 타일 시트면 그만큼 크게 잘라 16 크기로 줄임)
+	private static Image chasmIcon(){
+		int k = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.texScale( Dungeon.level.tilesTex() );
+		Image icon = new Image( Dungeon.level.tilesTex(), 176 * k, 16 * k, 16 * k, 16 * k );
+		icon.scale.set( 1f / k );
+		return icon;
+	}
 	
 	public static void heroJump( final Hero hero ) {
 		heroPos = hero.pos;
@@ -60,7 +68,7 @@ public class Chasm implements Hero.Doom {
 			@Override
 			public void call() {
 				GameScene.show(
-						new WndOptions( new Image(Dungeon.level.tilesTex(), 176, 16, 16, 16),
+						new WndOptions( chasmIcon(),
 								Messages.get(Chasm.class, "chasm"),
 								Messages.get(Chasm.class, "jump"),
 								Messages.get(Chasm.class, "yes"),

@@ -46,6 +46,11 @@ public class RaisedTerrainTilemap extends DungeonTilemap {
 			return -1;
 		}
 
+		//모드: 흡혈귀의 성·지하 묘지는 장미 덤불·거미줄을 자체 타일에 그려 두었으므로 동굴 풀잎을 덧그리지 않음
+		if (com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isCastleLevel( Dungeon.level )){
+			return -1;
+		}
+
 		int region = (Dungeon.depth-1)/5;
 		int regionOffset = region*4;
 

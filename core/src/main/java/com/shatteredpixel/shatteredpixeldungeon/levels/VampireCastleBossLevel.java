@@ -386,18 +386,19 @@ public class VampireCastleBossLevel extends Level {
 	public Group addWallVisuals() {
 		super.addWallVisuals();
 		for (int wx : WINDOWS){
-			Image win = new Image( VampireCastleSprites.tile( 18 ) ){
+			//32x32로 촘촘히 찍은 창 (벽 타일과 같은 해상도), 핏빛 달이 뜨면 붉은 창으로
+			Image win = new Image( Assets.Sprites.VC_WINDOW_HD, 0, 0, 32, 32 ){
 				private boolean red = false;
 				@Override
 				public void update() {
 					super.update();
 					if (red != bloodMoon){
 						red = bloodMoon;
-						Image t = VampireCastleSprites.tile( red ? 19 : 18 );
-						frame( t.frame() );
+						frame( red ? 32 : 0, 0, 32, 32 );
 					}
 				}
 			};
+			win.scale.set( 0.5f );
 			wallVisuals.add( place( win, wx + width() ) );
 		}
 		return wallVisuals;

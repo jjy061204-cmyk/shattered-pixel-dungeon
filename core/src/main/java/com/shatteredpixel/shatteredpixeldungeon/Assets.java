@@ -314,6 +314,7 @@ public class Assets {
 		public static final String VC_BLOOD_THRALL    = "sprites/vc_blood_thrall.png";
 		public static final String VC_VAMPIRE_LORD    = "sprites/vc_vampire_lord.png";
 		public static final String VC_PROPS           = "sprites/vc_props.png";
+		public static final String VC_WINDOW_HD       = "sprites/vc_window_hd.png";
 		public static final String RUNE_AEGIS_HERO = "sprites/rune_aegis_hero.png";
 		public static final String RUNE_AEGIS_PARTS = "sprites/rune_aegis_parts.png";
 		//모드: 현대 세계 가게 화면, 자판기 화면 그림

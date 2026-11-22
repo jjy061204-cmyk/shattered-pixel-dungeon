@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -31,8 +32,12 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 
 	static DungeonTerrainTilemap instance;
 
+	//모드: 흡혈귀의 성 시트는 카펫 가장자리에 테두리를 그림
+	private final boolean carpetEdges;
+
 	public DungeonTerrainTilemap(){
 		super(Dungeon.level.tilesTex());
+		carpetEdges = Assets.Environment.TILES_VAMPIRE_CASTLE.equals( Dungeon.level.tilesTex() );
 
 		map( Dungeon.level.map, Dungeon.level.width() );
 
@@ -42,6 +47,10 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat) {
 		int visual = DungeonTileSheet.directVisuals.get(tile, -1);
+		if (visual != -1 && carpetEdges && !flat && tile == Terrain.EMPTY_SP) {
+			int edge = carpetEdge( pos );
+			if (edge != -1) return edge;
+		}
 		if (visual != -1) {
 			if (visual == DungeonTileSheet.FLOOR_DECO && Dungeon.level instanceof MiningLevel) {
 				for (int i : PathFinder.NEIGHBOURS4) {
@@ -121,9 +130,22 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 
 	}
 
+	//위·오른쪽·아래·왼쪽 중 카펫이 아닌 쪽 (1·2·4·8). 시트 132~143, 244~246 칸
+	private int carpetEdge( int pos ){
+		int bits = 0;
+		if (pos < mapWidth || map[pos - mapWidth] != Terrain.EMPTY_SP)                  bits |= 1;
+		if ((pos + 1) % mapWidth == 0 || map[pos + 1] != Terrain.EMPTY_SP)             bits |= 2;
+		if (pos + mapWidth >= size || map[pos + mapWidth] != Terrain.EMPTY_SP)          bits |= 4;
+		if (pos % mapWidth == 0 || map[pos - 1] != Terrain.EMPTY_SP)                    bits |= 8;
+		if (bits == 0) return -1;
+		return bits <= 12 ? 131 + bits : 231 + bits;
+	}
+
 	public static Image tile(int pos, int tile ) {
 		Image img = new Image( instance.texture );
 		img.frame( instance.tileset.get( instance.getTileVisual( pos, tile, true ) ) );
+		//세밀한 타일 시트도 정보 창에서 16 크기로 보이게
+		img.scale.set( instance.scale.x, instance.scale.y );
 		return img;
 	}
 
