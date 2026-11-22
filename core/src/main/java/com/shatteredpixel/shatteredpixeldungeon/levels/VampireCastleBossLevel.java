@@ -101,8 +101,8 @@ public class VampireCastleBossLevel extends Level {
 	}
 
 	@Override
-	public int waterTexScale() {
-		return 2;
+	public float waterTexScale() {
+		return 1.5f;
 	}
 
 	@Override
@@ -391,19 +391,19 @@ public class VampireCastleBossLevel extends Level {
 	public Group addWallVisuals() {
 		super.addWallVisuals();
 		for (int wx : WINDOWS){
-			//32x32로 촘촘히 찍은 창 (벽 타일과 같은 해상도), 핏빛 달이 뜨면 붉은 창으로
-			Image win = new Image( Assets.Sprites.VC_WINDOW_HD, 0, 0, 32, 32 ){
+			//24x24로 찍은 창 (벽 타일과 같은 해상도), 핏빛 달이 뜨면 붉은 창으로
+			Image win = new Image( Assets.Sprites.VC_WINDOW_HD, 0, 0, 24, 24 ){
 				private boolean red = false;
 				@Override
 				public void update() {
 					super.update();
 					if (red != bloodMoon){
 						red = bloodMoon;
-						frame( red ? 32 : 0, 0, 32, 32 );
+						frame( red ? 24 : 0, 0, 24, 24 );
 					}
 				}
 			};
-			win.scale.set( 0.5f );
+			win.scale.set( 16f / 24f );
 			wallVisuals.add( place( win, wx + width() ) );
 		}
 		return wallVisuals;

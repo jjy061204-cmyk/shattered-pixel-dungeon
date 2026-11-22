@@ -75,9 +75,10 @@ public class WndInfoCell extends Window {
 
 			if (tile == Terrain.WATER) {
 				Image water = new Image(Dungeon.level.waterTex());
-				int k = Dungeon.level.waterTexScale();
-				water.frame(0, 0, DungeonTilemap.SIZE * k, DungeonTilemap.SIZE * k);
-				water.scale.set( 1f / k );
+				float k = Dungeon.level.waterTexScale();
+				int wpx = Math.round( DungeonTilemap.SIZE * k );
+				water.frame(0, 0, wpx, wpx);
+				water.scale.set( DungeonTilemap.SIZE / (float)wpx );
 				return water;
 			} else {
 				return DungeonTerrainTilemap.tile(cell, tile);

@@ -56,9 +56,9 @@ public class Chasm implements Hero.Doom {
 
 	//낭떠러지 벽 칸 그림 (세밀한 타일 시트면 그만큼 크게 잘라 16 크기로 줄임)
 	private static Image chasmIcon(){
-		int k = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.texScale( Dungeon.level.tilesTex() );
-		Image icon = new Image( Dungeon.level.tilesTex(), 176 * k, 16 * k, 16 * k, 16 * k );
-		icon.scale.set( 1f / k );
+		int px = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.tilePixels( Dungeon.level.tilesTex() );
+		Image icon = new Image( Dungeon.level.tilesTex(), 11 * px, px, px, px );
+		icon.scale.set( 16f / px );
 		return icon;
 	}
 	

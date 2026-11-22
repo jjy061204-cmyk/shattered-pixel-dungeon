@@ -164,7 +164,7 @@ public class GameScene extends PixelScene {
 	static GameScene scene;
 
 	private SkinnedBlock water;
-	private int waterK = 1;
+	private float waterK = 1f;
 	private DungeonTerrainTilemap tiles;
 	private GridTileMap visualGrid;
 	private WallOcclusionTilemap occlusion;
@@ -276,7 +276,7 @@ public class GameScene extends PixelScene {
 		water.autoAdjust = true;
 		//모드: 촘촘히 찍은 물 그림은 그만큼 줄여 깔고, 흐르는 빠르기는 원작과 같게
 		waterK = Dungeon.level.waterTexScale();
-		if (waterK > 1) water.scale( 1f / waterK, 1f / waterK );
+		if (waterK != 1f) water.scale( 1f / waterK, 1f / waterK );
 		terrain.add( water );
 
 		ripples = new Group();

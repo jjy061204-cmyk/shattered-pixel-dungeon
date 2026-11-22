@@ -39,15 +39,15 @@ public abstract class DungeonTilemap extends Tilemap {
 	protected int[] map;
 
 	public DungeonTilemap(String tex) {
-		super(tex, new TextureFilm( tex, SIZE * texScale( tex ), SIZE * texScale( tex ) ) );
-		//모드: 칸 하나를 더 촘촘한 도트(32x32 등)로 그린 시트는 그만큼 줄여서 16 크기 칸에 그림
-		int k = texScale( tex );
-		if (k > 1) scale.set( 1f / k );
+		super(tex, new TextureFilm( tex, tilePixels( tex ), tilePixels( tex ) ) );
+		//모드: 칸 하나를 더 촘촘한 도트(24x24 등)로 그린 시트는 그만큼 줄여서 16 크기 칸에 그림
+		int px = tilePixels( tex );
+		if (px != SIZE) scale.set( SIZE / (float)px );
 	}
 
-	//타일 시트는 가로 16칸. 시트 폭이 256의 몇 배인지 (256 → 1, 512 → 2)
-	public static int texScale( String tex ){
-		return Math.max( 1, TextureCache.get( tex ).width / (SIZE * 16) );
+	//타일 시트는 가로 16칸. 칸 하나의 픽셀 수 (256 폭 → 16, 384 폭 → 24)
+	public static int tilePixels( String tex ){
+		return Math.max( SIZE, TextureCache.get( tex ).width / 16 );
 	}
 
 	@Override
