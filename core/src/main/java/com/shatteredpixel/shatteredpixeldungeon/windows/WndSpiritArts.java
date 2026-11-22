@@ -84,7 +84,7 @@ public class WndSpiritArts extends Window {
 		msg.setPos( 0, title.bottom() + 4 );
 		add( msg );
 
-		float top = msg.bottom() + 6;
+		float top = msg.bottom() + 5;
 
 		// ── 줄 1: 깃든 정령 3칸 (왼쪽·가운데(발현)·오른쪽). 누르면 그 정령을 바로 발현, 빈칸은 깃들이기 ──
 		top = header( Messages.get( this, "section_spirits" ), top );
@@ -97,20 +97,18 @@ public class WndSpiritArts extends Window {
 			add( b );
 			x += SLOT_STEP;
 		}
-		top += BTN + 12;
+		top += BTN + 11;
 
-		// ── 줄 2: 정령술 ──
+		// ── 정령술 (정령 탄은 퀵슬롯의 완드로 쏘므로 뺌): 두 줄, 제목은 하나 ──
 		ArrayList<String> arts = new ArrayList<>();
-		arts.add( SWITCH ); arts.add( SHOOT ); arts.add( IMBUE ); arts.add( BESTOW ); arts.add( RELEASE );
+		arts.add( SWITCH ); arts.add( IMBUE ); arts.add( BESTOW ); arts.add( RELEASE );
 		top = row( Messages.get( this, "section_arts" ), arts, top );
-
-		// ── 줄 3: 장비·계약·관리 ──
 		ArrayList<String> more = new ArrayList<>();
 		more.add( RECALL );
 		if (contractor()) more.add( CONTRACT );
 		if (contractor() || !ForestWand.materializedSpirits().isEmpty()) more.add( UNMATERIALIZE );
 		more.add( MANAGE );
-		top = row( Messages.get( this, "section_more" ), more, top );
+		top = row( null, more, top - 3 );
 
 		resize( WIDTH, (int) top );
 
@@ -137,7 +135,7 @@ public class WndSpiritArts extends Window {
 	}
 
 	private float row( String head, ArrayList<String> keys, float top ){
-		top = header( head, top );
+		if (head != null) top = header( head, top );
 		float x = (WIDTH - (keys.size() - 1) * STEP - BTN) / 2f;
 		for (String k : keys){
 			ArtButton b = new ArtButton( k );
