@@ -70,6 +70,24 @@ public class WndForestWand extends Window {
 
 	private final ForestWand wand;
 	private final int sel;     //고른 칸
+	private boolean quickRun = false;
+	private boolean hidden = false;
+
+	@Override
+	public void hide() {
+		if (hidden) return;
+		hidden = true;
+		super.hide();
+	}
+
+	//모드: 정령술 창·행동 버튼에서 관리 창을 열지 않고 바로 씀 (되돌리기·실체 거두기·부여·풀어 주기)
+	// 고른 칸은 발현 중인 가운데 정령
+	public static void runArt( ForestWand wand, String key ){
+		WndForestWand w = new WndForestWand( wand, ForestWand.CENTER );
+		w.quickRun = true;
+		w.act( key );
+		w.hide();
+	}
 
 	//발현 칸 테두리가 천천히 숨 쉬듯 빛남
 	private ColorBlock activeGlow;
@@ -491,7 +509,7 @@ public class WndForestWand extends Window {
 	}
 
 	//장비 가운데 정령이 깃든 것이 있는지 (되돌리기 버튼)
-	private static boolean hasBestowed(){
+	public static boolean hasBestowed(){
 		if (Dungeon.hero == null) return false;
 		for (Item i : Dungeon.hero.belongings){
 			if (spiritsOn( i ) > 0) return true;
@@ -558,6 +576,7 @@ public class WndForestWand extends Window {
 
 	private void reopen( int slot ){
 		hide();
+		if (quickRun) return;    //정령술 창·행동 버튼에서 바로 쓴 경우엔 관리 창을 다시 열지 않음
 		if (wand.slots[slot] == null) slot = defaultSel( wand );
 		GameScene.show( new WndForestWand( wand, slot ) );
 	}

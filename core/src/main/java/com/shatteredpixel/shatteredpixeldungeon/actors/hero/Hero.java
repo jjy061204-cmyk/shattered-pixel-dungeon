@@ -2206,7 +2206,8 @@ public class Hero extends Char {
 			
 			if (sprite != null) {
 				GLog.newLine();
-				GLog.p( Messages.get(this, "new_level") );
+				//모드: 뱀파이어는 레벨마다 최대 체력이 2 더 늘어나므로 알림도 +7
+				GLog.p( Messages.get(this, heroClass == HeroClass.VAMPIRE ? "new_level_vampire" : "new_level") );
 				sprite.showStatus( CharSprite.POSITIVE, Messages.get(Hero.class, "level_up") );
 				Sample.INSTANCE.play( Assets.Sounds.LEVELUP );
 				if (lvl < Talent.tierLevelThresholds[Talent.MAX_TALENT_TIERS+1]){

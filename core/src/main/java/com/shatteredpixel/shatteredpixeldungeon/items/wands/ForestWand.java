@@ -217,6 +217,9 @@ public class ForestWand extends Weapon {
 	//한 번 쓰면 -1로 돌아가며 저장하지 않음
 	public int preferredSlot = -1;
 
+	//모드: 행동 버튼(퀵슬롯 옆)을 누르면 쓰는 정령술 (정령술 창에서 길게 눌러 바꿈)
+	public String quickArt = "switch";
+
 	public int freeSlot(){
 		if (preferredSlot >= 0 && preferredSlot < SLOTS && slots[preferredSlot] == null) return preferredSlot;
 		if (slots[CENTER] == null) return CENTER;
@@ -1429,6 +1432,7 @@ public class ForestWand extends Weapon {
 		for (int i = 0; i < SLOTS; i++){
 			if (slots[i] != null) bundle.put( SLOT + i, slots[i].name() );
 		}
+		bundle.put( "quick_art", quickArt );
 	}
 
 	@Override
@@ -1440,6 +1444,7 @@ public class ForestWand extends Weapon {
 				try { slots[i] = Spirit.valueOf( bundle.getString( SLOT + i ) ); } catch (Exception e) { slots[i] = null; }
 			}
 		}
+		quickArt = bundle.contains( "quick_art" ) ? bundle.getString( "quick_art" ) : "switch";
 		//예전 저장(정령 하나만 담던 완드)에서 넘어온 경우
 		if (spiritCount() == 0 && bundle.contains( "spirit" )){
 			try { slots[CENTER] = Spirit.valueOf( bundle.getString( "spirit" ) ); } catch (Exception e) { slots[CENTER] = null; }
