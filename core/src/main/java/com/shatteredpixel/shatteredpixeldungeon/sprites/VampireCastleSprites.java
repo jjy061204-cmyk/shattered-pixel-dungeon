@@ -41,6 +41,9 @@ public class VampireCastleSprites {
 			TextureFilm frames = new TextureFilm( texture, 12, 15 );
 			crumple = new Animation( 12, false );
 			crumple.frames( frames, 8, 9, 10 );
+			//texture()가 그림 전체를 한 장으로 되돌려 놓으므로 첫 프레임을 다시 잡음
+			// (안 하면 몹 정보 창에서 그림 판 전체가 잠깐 보였다 사라지고, 이름·체력 줄이 밀려남)
+			play( idle, true );
 		}
 
 		//쓰러졌지만 아직 죽지 않음 (사라지지 않고 바닥에 남음)
@@ -62,6 +65,7 @@ public class VampireCastleSprites {
 		public BloodPriest(){
 			super();
 			texture( Assets.Sprites.VC_BLOOD_PRIEST );
+			play( idle, true );
 		}
 	}
 
@@ -69,6 +73,7 @@ public class VampireCastleSprites {
 		public BloodSpider(){
 			super();
 			texture( Assets.Sprites.VC_BLOOD_SPIDER );
+			play( idle, true );
 		}
 	}
 
