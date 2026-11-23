@@ -1,6 +1,6 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 별빛 기사의 오로라 참격 이펙트: 영웅을 축으로 오로라빛 초승달 참격이 부채꼴로 크게 휘둘러지고,
+ * 에테르 기사의 오로라 참격 이펙트: 영웅을 축으로 오로라빛 초승달 참격이 부채꼴로 크게 휘둘러지고,
  * 초록·하늘·보랏빛 잔상이 뒤따른 뒤 커튼처럼 일렁이며 사라짐. 부채꼴 안에 별가루가 흩날림
  *
  * This program is free software: you can redistribute it and/or modify

@@ -1677,9 +1677,6 @@ public class Hero extends Char {
 	public int defenseProc( Char enemy, int damage ) {
 		Talent.onHeroDefended( this, enemy );
 
-		//모드: 환검 기사 - 환검 하나가 부서지며 피해를 절반 막음
-		damage = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhantomBlades.onHeroDefend( this, enemy, damage );
-
 		//모드: 수호의 반지 - 융합한 속성의 반격
 		
 		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
@@ -2498,10 +2495,9 @@ public class Hero extends Char {
 			Buff.affect( this, Combo.class ).hit(attackTarget);
 		}
 
-		//모드: 별빛 기사는 에테르가 쌓이고, 환검 기사는 떠 있는 환검이 따라 벰
+		//모드: 에테르 기사는 적을 맞히면 에테르가 쌓임
 		if (hit && wasEnemy){
 			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarEther.onHeroHit( this, attackTarget );
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhantomBlades.onHeroHit( this, attackTarget );
 		}
 
 		if (hit && heroClass == HeroClass.DUELIST && wasEnemy){

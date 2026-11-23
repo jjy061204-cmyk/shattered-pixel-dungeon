@@ -65,7 +65,7 @@ public enum HeroSubClass {
 	//모드: 마법 기사의 전직
 	STARLIGHT_KNIGHT(HeroIcon.STARLIGHT_KNIGHT),
 	FORM_KNIGHT(HeroIcon.FORM_KNIGHT),
-	PHANTOM_BLADE(HeroIcon.PHANTOM_BLADE);
+	FLYING_BLADE(HeroIcon.FLYING_BLADE);
 
 	int icon;
 

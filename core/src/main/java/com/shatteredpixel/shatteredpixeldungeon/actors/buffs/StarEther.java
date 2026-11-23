@@ -1,6 +1,6 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 별빛 기사의 '에테르 기운': 적을 치거나 시간이 지나면 몸에 쌓이는 에테르 (최대 150%, 에테르 저장고로 220%까지).
+ * 에테르 기사의 '에테르 기운': 적을 치거나 시간이 지나면 몸에 쌓이는 에테르 (최대 150%, 에테르 저장고로 220%까지).
  * 모인 에테르로 네 가지 에테르 기술을 씀
  *  - 에테르 탄(10%): 직선으로 에테르 탄을 쏨
  *  - 섬광 도약(25%): 4칸 안의 적에게 뛰어들어 벰
@@ -23,7 +23,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.AuroraSlash;
-import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.effects.EtherBolt;
+import com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.RiftSlash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.StarlightParticle;
@@ -60,13 +61,13 @@ public class StarEther extends Buff implements ActionIndicator.Action {
 	}
 
 	public enum Art {
-		SPARK   (10,  0xB8E0FF),
-		FLASH   (25,  0x9CF0D8),
-		NOVA    (50,  0xC8A8FF),
-		AURORA  (100, 0xFFF0A0);
+		SPARK   (10,  0xB8E0FF, HeroIcon.ART_SPARK),
+		FLASH   (25,  0x9CF0D8, HeroIcon.ART_FLASH),
+		NOVA    (50,  0xC8A8FF, HeroIcon.ART_NOVA),
+		AURORA  (100, 0xFFF0A0, HeroIcon.ART_AURORA);
 
-		public final int cost, color;
-		Art( int cost, int color ){ this.cost = cost; this.color = color; }
+		public final int cost, color, icon;
+		Art( int cost, int color, int icon ){ this.cost = cost; this.color = color; this.icon = icon; }
 
 		public String title(){
 			return Messages.get( StarEther.class, name().toLowerCase() + "_name" );
@@ -313,19 +314,15 @@ public class StarEther extends Buff implements ActionIndicator.Action {
 		spendEnergy( Art.SPARK );
 		hero.busy();
 		hero.sprite.zap( bolt.collisionPos );
-		Sample.INSTANCE.play( Assets.Sounds.ZAP );
-		((MagicMissile) hero.sprite.parent.recycle( MagicMissile.class )).reset(
-				MagicMissile.MAGIC_MISSILE, hero.sprite, bolt.collisionPos, new Callback() {
+		Sample.INSTANCE.play( Assets.Sounds.ZAP, 1, 1.25f );
+		EtherBolt.shoot( hero.sprite, bolt.collisionPos, new Callback() {
 					@Override
 					public void call() {
 						Char ch = Actor.findChar( bolt.collisionPos );
 						if (ch != null && ch != hero){
 							int dmg = roll( hero, SPARK_DMG );
 							ch.damage( dmg, StarEther.this );
-							if (ch.sprite != null){
-								ch.sprite.burst( 0xFFB8E0FF, 5 );
-								ch.sprite.flash();
-							}
+							if (ch.sprite != null) ch.sprite.flash();
 							Sample.INSTANCE.play( Assets.Sounds.HIT_MAGIC, 1, 1.15f );
 						}
 						afterArt( hero );
@@ -374,6 +371,10 @@ public class StarEther extends Buff implements ActionIndicator.Action {
 		hero.busy();
 		hero.sprite.emitter().burst( StarlightParticle.BURST, 6 );
 		Sample.INSTANCE.play( Assets.Sounds.MISS, 1, 0.8f );
+		//지나가는 길에 남는 섬광 자취
+		for (int p : c.subPath( 0, c.dist - 1 )){
+			if (Dungeon.level.heroFOV[p]) com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.center( p ).burst( StarlightParticle.BURST, 3 );
+		}
 		hero.sprite.jump( hero.pos, leapPos, new Callback() {
 			@Override
 			public void call() {
@@ -392,8 +393,10 @@ public class StarEther extends Buff implements ActionIndicator.Action {
 	private void flashStrike( Hero hero, Char enemy ){
 		if (hero.sprite != null) hero.sprite.idle();
 		AttackIndicator.target( enemy );
+		if (hero.sprite != null && hero.sprite.parent != null){
+			GameScene.effect( new HeroAttackFX( hero.sprite, enemy.pos, HeroAttackFX.ART_FX, 1, 0f, true, 0.66f, 0.32f ) );
+		}
 		if (hero.attack( enemy, FLASH_DMG, 0, Char.INFINITE_ACCURACY )){
-			if (enemy.sprite != null) RiftSlash.at( enemy.sprite, 0.9f );
 			Sample.INSTANCE.play( Assets.Sounds.HIT_STRONG );
 		}
 		afterArt( hero );
@@ -404,7 +407,7 @@ public class StarEther extends Buff implements ActionIndicator.Action {
 	private void nova( Hero hero ){
 		spendEnergy( Art.NOVA );
 		hero.sprite.operate( hero.pos );
-		WandOfBlastWave.BlastWave.blast( hero.pos, 2, 0xC8A8FF );
+		GameScene.effect( new HeroAttackFX( null, hero.pos, HeroAttackFX.ART_FX, 2, 0f, false, 1.45f, 0.45f ) );
 		hero.sprite.emitter().burst( StarlightParticle.BURST, 12 );
 		Sample.INSTANCE.play( Assets.Sounds.BLAST, 1, 1.2f );
 		ArrayList<Char> targets = new ArrayList<>();

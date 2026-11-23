@@ -369,11 +369,23 @@ public class HeroSprite extends CharSprite {
 		}
 	}
 
-	//모드: 영웅 고유 공격 이펙트 (뱀파이어: 은빛 장검 참격, 유물수집가: 보랏빛 연금 폭발)
+	//모드: 영웅 고유 공격 이펙트 (뱀파이어: 은빛 장검 참격, 정령사: 정령빛, 마법 기사: 에테르 참격·형상 기사는 무기별). 영웅 → 대상 방향으로 돌려 그림
 	@Override
 	public synchronized void attack( int cell, Callback callback ) {
 		super.attack( cell, callback );
 		if (look != null && look.hdSheet() != null && parent != null && ch != null && cell != ch.pos){
+			//형상 기사: 빚은 무기 종류마다 다른 기본 공격 이펙트
+			if (look == HeroClass.MAGIC_KNIGHT && ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero
+					&& ((com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) ch).subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass.FORM_KNIGHT){
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero h = (com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) ch;
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon form =
+						h.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay
+						? ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) h.belongings.weapon).currentForm() : null;
+				int row = com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherForms.typeOf( form ).ordinal();
+				parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX( this, cell,
+						com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.FORM_FX, row, 0.15f, true, 0.6f, 0.3f ) );
+				return;
+			}
 			parent.add( new com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX( this, cell,
 					look == HeroClass.VAMPIRE ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.SLASH
 							: look == HeroClass.ELEMENTALIST ? com.shatteredpixel.shatteredpixeldungeon.effects.HeroAttackFX.LEAF

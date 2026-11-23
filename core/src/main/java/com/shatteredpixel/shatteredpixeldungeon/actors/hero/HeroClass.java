@@ -104,7 +104,7 @@ public enum HeroClass {
 	//모드: 정령사 - 숲의 완드에 지형지물의 정령을 깃들여 정령 마법을 씀 (전직·특성·갑옷 기술은 아직 전사의 것을 빌림)
 	ELEMENTALIST( HeroSubClass.SPIRIT_ENCHANTER, HeroSubClass.SPIRIT_CONTRACTOR ),
 	//모드: 마법 기사 - 레벨에 따라 자라는 에테르 점토를 같은 티어의 무기 모양으로 빚어 싸움 (전직·특성·갑옷 기술은 아직 전사의 것을 빌림)
-	MAGIC_KNIGHT( HeroSubClass.STARLIGHT_KNIGHT, HeroSubClass.FORM_KNIGHT, HeroSubClass.PHANTOM_BLADE );
+	MAGIC_KNIGHT( HeroSubClass.STARLIGHT_KNIGHT, HeroSubClass.FORM_KNIGHT, HeroSubClass.FLYING_BLADE );
 
 	private HeroSubClass[] subClasses;
 

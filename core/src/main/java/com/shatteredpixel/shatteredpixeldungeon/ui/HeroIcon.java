@@ -60,7 +60,7 @@ public class HeroIcon extends Image {
 	//모드: 마법 기사의 전직
 	public static final int STARLIGHT_KNIGHT  = 67;
 	public static final int FORM_KNIGHT       = 68;
-	public static final int PHANTOM_BLADE     = 69;
+	public static final int FLYING_BLADE      = 69;
 
 	//abilities
 	public static final int HEROIC_LEAP     = 16;
@@ -126,7 +126,24 @@ public class HeroIcon extends Image {
 	public static final int SNIPERS_MARK    = 108;
 	public static final int WEAPON_SWAP     = 109;
 	public static final int MONK_ABILITIES  = 110;
-	public static final int ETHER_ARTS      = 111;   //모드: 별빛 기사의 에테르 기술
+	public static final int ETHER_ARTS      = 111;   //모드: 에테르 기사의 에테르 기술
+	public static final int CLAY_THROW      = 112;   //모드: 비검 기사의 투척
+	public static final int CLAY_RECALL     = 113;   //모드: 비검 기사의 회수
+
+	//모드: 에테르 기사의 기술 (배경 있는 아이콘)
+	public static final int ART_SPARK       = 144;
+	public static final int ART_FLASH       = 145;
+	public static final int ART_NOVA        = 146;
+	public static final int ART_AURORA      = 147;
+
+	//모드: 번호로 바로 고르는 아이콘
+	public HeroIcon(int icon){
+		super( Assets.Interfaces.HERO_ICONS );
+		if (film == null){
+			film = new TextureFilm(texture, SIZE, SIZE);
+		}
+		frame(film.get(icon));
+	}
 
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );

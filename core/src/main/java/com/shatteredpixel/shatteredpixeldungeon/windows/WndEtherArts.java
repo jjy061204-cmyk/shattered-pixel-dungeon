@@ -1,6 +1,6 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 별빛 기사의 에테르 기술 창: 지금 모인 에테르와 네 가지 기술 (모자라면 흐리게)
+ * 에테르 기사의 에테르 기술 창: 지금 모인 에테르와 네 가지 기술 (모자라면 흐리게)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarEther;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
@@ -23,6 +24,7 @@ public class WndEtherArts extends Window {
 	private static final int WIDTH_P = 124;
 	private static final int WIDTH_L = 180;
 	private static final int MARGIN  = 2;
+	private static final int ICON    = 16;
 
 	public WndEtherArts( final StarEther ether ){
 		super();
@@ -57,10 +59,19 @@ public class WndEtherArts extends Window {
 			};
 			btn.leftJustify = true;
 			btn.multiline = true;
-			btn.setSize( width, btn.reqHeight() );
-			btn.setRect( 0, pos, width, btn.reqHeight() );
-			btn.enable( ether.canUse( art ) && Dungeon.hero.ready );
+			btn.setSize( width - ICON - MARGIN, btn.reqHeight() );
+			float h = Math.max( ICON, btn.reqHeight() );
+			btn.setRect( ICON + MARGIN, pos, width - ICON - MARGIN, h );
+			boolean ok = ether.canUse( art ) && Dungeon.hero.ready;
+			btn.enable( ok );
 			add( btn );
+
+			HeroIcon ic = new HeroIcon( art.icon );
+			ic.x = 0;
+			ic.y = pos + (h - ICON) / 2f;
+			if (!ok) ic.alpha( 0.4f );
+			add( ic );
+
 			pos = btn.bottom() + MARGIN;
 		}
 

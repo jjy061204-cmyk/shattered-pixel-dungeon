@@ -109,8 +109,8 @@ public class TengusMask extends Item {
 		if (way == HeroSubClass.STARLIGHT_KNIGHT){
 			Buff.affect(curUser, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarEther.class).gain(0);
 		}
-		if (way == HeroSubClass.PHANTOM_BLADE){
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhantomBlades.onSubclassChosen(curUser);
+		if (way == HeroSubClass.FLYING_BLADE){
+			Buff.affect(curUser, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlyingClay.class).refreshButton();
 		}
 		
 		curUser.sprite.operate( curUser.pos );
