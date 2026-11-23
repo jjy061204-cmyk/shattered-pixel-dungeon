@@ -2,7 +2,8 @@
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
  * 정령왕(불·물·바람·땅) 도트: spirit_kings.png 한 줄에 24칸 (64x64). 로브를 두른 얼굴 없는 형체로, 두건 속엔 속성 구체나 룬만 빛남
  *  영웅보다 한층 크게 그려지도록 배율을 키움
- *  대기 0-5, 이동 6-11, 공격 12-17, 사라짐 18-23. 물의 정령왕은 공격 장면으로 물의 창을 던짐
+ *  대기 0-5(떠 있는 채로 속성 빛이 은은하게 웅웅 맥동), 이동 6-11(로브 자락이 뒤로 끌림), 공격 12-17, 사라짐 18-23
+ *  물의 정령왕은 공격 장면으로 물의 창을 던짐
  *  곁에 늘 그 속성의 입자가 은은하게 피어오름
  */
 
@@ -43,10 +44,12 @@ public abstract class SpiritKingSprite extends MobSprite {
 		scale.set( SCALE );
 		int o = row() * PER_ROW;
 
-		idle = new Animation( 8, true );
+		//천천히 떠오르내리며 웅웅 빛이 차오르는 대기 동작
+		idle = new Animation( 6, true );
 		idle.frames( frames, o, o+1, o+2, o+3, o+4, o+5 );
 
-		run = new Animation( 12, true );
+		//로브 자락을 끌며 미끄러지듯 이동
+		run = new Animation( 10, true );
 		run.frames( frames, o+6, o+7, o+8, o+9, o+10, o+11 );
 
 		attack = new Animation( 15, false );
