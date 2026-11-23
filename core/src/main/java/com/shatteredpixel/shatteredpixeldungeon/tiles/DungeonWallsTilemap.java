@@ -36,10 +36,29 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 		map( Dungeon.level.map, Dungeon.level.width() );
 	}
 
+	private int heroPos = -1;
+
+	@Override
+	public void update() {
+		super.update();
+		if (Dungeon.hero != null && Dungeon.hero.pos != heroPos){
+			int old = heroPos;
+			heroPos = Dungeon.hero.pos;
+			if (old >= mapWidth && old < size) updateMapCell( old - mapWidth );
+			if (heroPos >= mapWidth && heroPos < size) updateMapCell( heroPos - mapWidth );
+		}
+	}
+
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat){
 
 		if (flat) return -1;
+
+		//모드: 영웅 그림이 한 칸보다 커서, 영웅 바로 위 칸에 그려지는 풀·문틀 윗부분(덮개)이
+		// 영웅 머리를 가리던 문제. 영웅이 있는 칸 바로 위의 (벽이 아닌) 덮개는 그리지 않음
+		if (Dungeon.hero != null && pos + mapWidth == Dungeon.hero.pos && !DungeonTileSheet.wallStitcheable(tile)){
+			return -1;
+		}
 
 		if (DungeonTileSheet.wallStitcheable(tile)) {
 			if (pos + mapWidth < size && !DungeonTileSheet.wallStitcheable(map[pos + mapWidth])){
