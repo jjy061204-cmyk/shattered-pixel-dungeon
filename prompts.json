@@ -1,92 +1,130 @@
 {
  "undine": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1girl, water spirit undine, beautiful girl made of translucent water, very long flowing wavy blue hair, beautiful face, gentle smile, blue eyes, elegant flowing water dress, water ripples at her feet, floating bubbles, looking at viewer",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1girl, water spirit undine, beautiful girl, translucent light blue skin, very long flowing wavy aqua hair reaching her feet, gentle smile, blue eyes, elegant blue and white dress made of flowing water, barefoot, hands clasped",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  },
  "salamander": {
-  "prompt": "masterpiece, best quality, highly detailed, fantasy creature art, no humans, solo, full body, salamander, fire lizard, glossy red and orange scales, flames burning along its back and tail tip, glowing embers, golden eyes, four legs, side view, simple background, white background",
-  "w": 768,
-  "h": 512,
+  "prompt": "masterpiece, best quality, no humans, solo, full body, cute chibi fire salamander, small lizard, glossy crimson red scales, orange belly, burning flames along its back, flame on the tail tip, golden eyes, four short legs, side view, white background, simple background",
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, wings, dragon, wyvern, horns",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512
  },
  "gnome": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, earth spirit gnome, very short old man, long white beard, big nose, pointed brown hood, earthy brown robe with belt, leather boots, holding small pickaxe, moss and small rocks, looking at viewer",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, old gnome, dwarf, very short and stout, chubby, long fluffy white beard, big round nose, tall pointed brown hood, earthy brown tunic, leather belt, big boots, holding a small pickaxe",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  },
  "sylph": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1girl, wind spirit sylph, fairy girl, large translucent butterfly wings, short green hair, pointy ears, green leaf dress, floating in the air, wind swirls, small leaves, cheerful smile, looking at viewer",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1girl, wind fairy sylph, large translucent green butterfly wings, short green hair, pointy ears, green leaf dress, barefoot, floating, cheerful smile",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  },
  "king_fire": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, king of fire spirits, ifrit, muscular, red skin, hair made of flames, burning golden crown, golden armor, flowing fire cape, flames around him, glowing eyes, regal",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, fire spirit king, ifrit, flaming red hair, burning golden crown, golden armor, red cape, arms crossed, proud expression, glowing eyes",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  },
  "king_water": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, king of water spirits, regal sea king, long flowing blue hair, coral crown, holding golden trident, flowing robe made of water, pearl jewelry, bubbles, calm expression",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, water spirit king, long flowing aqua hair, golden crown, holding a golden trident, flowing white and blue robe, calm expression",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  },
  "king_wind": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, king of wind spirits, djinn, large white feathered wings, white and green robe, silver crown, long cape blowing in the wind, wind swirls, floating, confident smile",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, wind spirit king, large white feathered wings, silver hair, silver crown, white and green robe, long cape, confident smile",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  },
  "king_earth": {
-  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, king of earth spirits, stone golem king, body made of rocks, crystal crown, moss, glowing amber eyes, massive shoulders, stone armor, holding stone hammer, no humans",
+  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, stone golem king, golem made of rocks, glowing amber eyes, golden crown with crystals, moss on shoulders, massive arms, stone armor, no humans",
   "seeds": [
-   11,
-   23,
-   37,
-   41,
-   59,
-   73
-  ]
+   5,
+   17,
+   29,
+   31,
+   47,
+   53,
+   67,
+   83
+  ],
+  "w": 512,
+  "h": 512,
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
  }
 }
