@@ -461,7 +461,6 @@ public enum HeroClass {
 	//모드: 64x64칸의 세밀한 도트(꼬마 비율)를 쓰는 영웅 (게임에서는 한 칸 크기로 줄여 그림). 없으면 null
 	public String hdSheet(){
 		switch (this){
-			case COLLECTOR: return Assets.Sprites.COLLECTOR;
 			case VAMPIRE:   return Assets.Sprites.VAMPIRE;
 			case ELEMENTALIST: return Assets.Sprites.ELEMENTALIST;
 			case MAGIC_KNIGHT: return Assets.Sprites.MAGIC_KNIGHT;

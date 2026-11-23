@@ -54,7 +54,7 @@ public class AegisShell extends Image {
 		return target;
 	}
 
-	//영웅의 모습에 맞는 껍데기: 세밀한 도트 영웅(유물수집가·뱀파이어)은 각자 맞춤 껍데기
+	//영웅의 모습에 맞는 껍데기: 세밀한 도트 영웅(뱀파이어)은 맞춤 껍데기
 	public static AegisShell forSprite( CharSprite sprite ){
 		return forSprite( sprite, false );
 	}
@@ -66,9 +66,7 @@ public class AegisShell extends Image {
 			look = ((com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) sprite.ch).heroClass;
 		}
 		String kind = undying ? "_undying.png" : "_aegis.png";
-		if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.COLLECTOR){
-			return new AegisShell( sprite, "sprites/collector" + kind, true );
-		} else if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE){
+		if (look == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE){
 			return new AegisShell( sprite, "sprites/vampire" + kind, true );
 		}
 		AegisShell s = new AegisShell( sprite, "sprites/rune_aegis_shell.png" );

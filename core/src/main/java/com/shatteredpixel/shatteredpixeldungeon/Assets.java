@@ -329,7 +329,7 @@ public class Assets {
 		public static final String DUELIST  = "sprites/duelist.png";
 		public static final String CLERIC   = "sprites/cleric.png";
 		public static final String TESTER   = "sprites/tester.png";
-		public static final String COLLECTOR = "sprites/collector_hd.png";
+		public static final String COLLECTOR = "sprites/collector.png";
 		public static final String VAMPIRE   = "sprites/vampire_hd.png";
 		public static final String ELEMENTALIST = "sprites/elementalist_hd.png";
 		public static final String MAGIC_KNIGHT = "sprites/magic_knight_hd.png";
