@@ -248,6 +248,10 @@ public enum Talent {
 	FORM_RESONANCE(319, 3), SHIFTING_STRIKE(320, 3), ETHER_CIRCULATION(321, 3),
 	//비검 기사 T3
 	PINNING_THROW(322, 3), WHIRLING_RECALL(323, 3), FLASH_RETURN(324, 3),
+	//정령사 갑옷 능력 T4: 정령 투사 / 정령 에너지 활성화 / 정령왕 소환
+	SPIRIT_LEGION(325, 4), SPIRIT_CHAIN(326, 4), SPIRIT_BIND(327, 4),
+	SURGE_DURATION(328, 4), SURGE_RESONANCE(329, 4), SURGE_FRENZY(330, 4),
+	KING_MAJESTY(331, 4), KING_REIGN(332, 4), ROYAL_AEGIS(333, 4),
 
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one

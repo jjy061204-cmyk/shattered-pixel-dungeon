@@ -71,6 +71,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SnowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.WindParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritSurge;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Embers;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
@@ -370,7 +371,17 @@ public class ForestWand extends Weapon {
 			int exStr = ((Hero)owner).STR() - STRReq();
 			if (exStr > 0) damage += Hero.heroDamageIntRange( 0, exStr );
 		}
+		//정령 에너지 활성화: 탄 피해 +25%
+		if (SpiritSurge.active( owner )) damage = Math.round( damage * SpiritSurge.DMG );
 		return damage;
+	}
+
+	//정령 에너지 활성화: 정령 탄을 두 배 빠르게 쏨
+	@Override
+	public float delayFactor( Char owner ) {
+		float f = super.delayFactor( owner );
+		if (SpiritSurge.active( owner )) f /= SpiritSurge.SPEED;
+		return f;
 	}
 
 	@Override
@@ -383,7 +394,18 @@ public class ForestWand extends Weapon {
 			mul *= 1.5f;
 			meal.use();
 		}
+		//정령 에너지 활성화: 정령 능력 +50%
+		boolean surge = SpiritSurge.active( attacker );
+		if (surge) mul *= SpiritSurge.SPIRIT;
 		if (s != null) damage = spiritHit( s, attacker, defender, damage, mul );
+		//전 칸 공명: 넘쳐흐르는 동안 양옆 칸 정령도 25/50/75/100% 확률로 절반의 힘을 보탬
+		if (surge && attacker instanceof Hero && ((Hero) attacker).hasTalent( Talent.SURGE_RESONANCE )){
+			float chance = 0.25f * ((Hero) attacker).pointsInTalent( Talent.SURGE_RESONANCE );
+			for (int i = 0; i < SLOTS; i++){
+				if (i == CENTER || slots[i] == null || !defender.isAlive()) continue;
+				if (Random.Float() < chance) damage = spiritHit( slots[i], attacker, defender, damage, mul*0.5f );
+			}
+		}
 		//정령 전이: 정령 탄이 맞으면 손에 든 무기의 정령도 15/30/45% 확률로 발동
 		if (attacker instanceof Hero && ((Hero) attacker).hasTalent( Talent.SPIRIT_CONDUIT )
 				&& ((Hero) attacker).belongings.weapon() instanceof Weapon
@@ -536,6 +558,7 @@ public class ForestWand extends Weapon {
 				parent = null;
 			} else {
 				curUser.shoot( enemy, this );
+				if (!enemy.isAlive()) SpiritSurge.onKill( curUser );
 			}
 		}
 

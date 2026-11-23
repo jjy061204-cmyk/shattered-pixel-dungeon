@@ -130,6 +130,11 @@ public class HeroIcon extends Image {
 	public static final int CLAY_THROW      = 112;   //모드: 비검 기사의 투척
 	public static final int CLAY_RECALL     = 113;   //모드: 비검 기사의 회수
 
+	//모드: 정령사의 갑옷 능력
+	public static final int SPIRIT_VOLLEY   = 148;
+	public static final int SPIRIT_SURGE    = 149;
+	public static final int SPIRIT_KING     = 150;
+
 	//모드: 에테르 기사의 기술 (배경 있는 아이콘)
 	public static final int ART_SPARK       = 144;
 	public static final int ART_FLASH       = 145;

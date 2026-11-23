@@ -424,6 +424,10 @@ public enum HeroClass {
 				return new ArmorAbility[]{new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.HeartPierce(),
 						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown(),
 						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood()};
+			case ELEMENTALIST:
+				return new ArmorAbility[]{new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritVolley(),
+						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritSurge(),
+						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritKingCall()};
 			case HUNTRESS:
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
 			case DUELIST:

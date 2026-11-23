@@ -1,7 +1,7 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 상급 정령(운디네·샐러맨더·노움·실피드) 도트: greater_spirits.png 한 줄에 14칸 (32x32, 화면에는 절반 크기)
- *  대기 0-3, 이동 4-7, 공격 8-10, 사라짐 11-13
+ * 상급 정령(운디네·샐러맨더·노움·실피드) 도트: greater_spirits.png 한 줄에 24칸 (64x64, 영웅 고해상도 도트와 같은 밀도)
+ *  대기 0-5, 이동 6-11, 공격 12-17, 사라짐 18-23
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
@@ -17,7 +17,9 @@ import com.watabou.noosa.particles.Emitter;
 
 public abstract class GreaterSpiritSprite extends MobSprite {
 
-	private static final int PER_ROW = 14;
+	public static final int SIZE = 64;
+	public static final int PER_ROW = 24;
+	public static final float SCALE = HeroSprite.HD_SCALE;
 
 	protected abstract int row();
 	protected abstract Emitter.Factory particle();
@@ -27,23 +29,23 @@ public abstract class GreaterSpiritSprite extends MobSprite {
 		super();
 
 		texture( Assets.Sprites.GREATER_SPIRITS );
-		//32칸 세밀한 도트를 절반 크기로 그림 (영웅의 세밀한 도트와 같은 방식)
-		TextureFilm frames = new TextureFilm( texture, 32, 32 );
-		HeroSprite.smooth( texture );
-		scale.set( 0.5f );
+		//64칸 세밀한 도트를 줄여 그림 (영웅의 세밀한 도트와 같은 방식)
+		TextureFilm frames = new TextureFilm( texture, SIZE, SIZE );
+		HeroSprite.smooth( texture, SCALE );
+		scale.set( SCALE );
 		int o = row() * PER_ROW;
 
-		idle = new Animation( 6, true );
-		idle.frames( frames, o, o+1, o+2, o+3 );
+		idle = new Animation( 8, true );
+		idle.frames( frames, o, o+1, o+2, o+3, o+4, o+5 );
 
-		run = new Animation( 10, true );
-		run.frames( frames, o+4, o+5, o+6, o+7 );
+		run = new Animation( 12, true );
+		run.frames( frames, o+6, o+7, o+8, o+9, o+10, o+11 );
 
-		attack = new Animation( 14, false );
-		attack.frames( frames, o+8, o+9, o+10, o );
+		attack = new Animation( 16, false );
+		attack.frames( frames, o+12, o+13, o+14, o+15, o+16, o+17 );
 
 		die = new Animation( 10, false );
-		die.frames( frames, o+11, o+12, o+13 );
+		die.frames( frames, o+18, o+19, o+20, o+21, o+22, o+23 );
 
 		play( idle );
 	}
