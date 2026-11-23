@@ -1,7 +1,7 @@
 name: spirit-art
 on:
   push:
-    branches: [spirit-art]
+    branches: [spirit-art2]
     paths: [prompts.json, gen.py, .github/workflows/gen.yml]
 permissions:
   contents: write
@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [undine, salamander, gnome, sylph, king_fire, king_water, king_wind, king_earth]
+        name: [king_fire, king_water, king_wind, king_earth]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,4 +32,4 @@ jobs:
       - run: |
           mkdir -p out4 && cp dl/*.png out4/ || true
           git config user.name "spirit-art-bot"; git config user.email "actions@users.noreply.github.com"
-          git add out4 && git commit -m "generated art [skip ci]" && git push || echo nothing
+          git add out4 && git commit -m "generated art [skip ci]" && git pull --rebase origin spirit-art2 && git push || echo nothing

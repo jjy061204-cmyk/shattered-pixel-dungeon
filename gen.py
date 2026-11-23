@@ -5,7 +5,7 @@ name = sys.argv[1]
 P = json.load(open('prompts.json'))[name]
 model = P.get('model', 'gsdf/Counterfeit-V2.5')
 pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float32, safety_checker=None, requires_safety_checker=False)
-pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config, use_karras_sigmas=True)
+pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config, algorithm_type='dpmsolver++', solver_type='midpoint', use_karras_sigmas=True, final_sigmas_type='zero')
 NEG = ("nsfw, nude, naked, nipples, cleavage, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, "
        "fewer digits, cropped, out of frame, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, "
        "username, blurry, multiple views, reference sheet, 2girls, 2boys, border, frame")
