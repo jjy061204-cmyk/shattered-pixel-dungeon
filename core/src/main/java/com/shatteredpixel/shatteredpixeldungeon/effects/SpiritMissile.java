@@ -69,6 +69,7 @@ public class SpiritMissile extends ItemSprite {
 		if (t < 0) return;
 		if (!visible){
 			visible = true;
+			SpiritRite.emerge( start, spirit.color );
 			//땅에서 정령이 솟아남
 			Emitter e = new Emitter();
 			e.pos( start.x - 4, start.y - 2, 8, 4 );

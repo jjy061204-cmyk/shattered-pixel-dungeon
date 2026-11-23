@@ -12,6 +12,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist;
 
+import com.shatteredpixel.shatteredpixeldungeon.effects.SpiritRite;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -173,6 +174,7 @@ public class SpiritKingCall extends ArmorAbility {
 		king.HP = king.HT;
 		king.setLifetime( SpiritKing.lifetime( hero ) );
 		king.pos = Random.element( spots );
+		SpiritRite.kingDescends( king.pos, e.spirit.color );
 		GameScene.add( king );
 		ScrollOfTeleportation.appear( king, king.pos );
 		if (king.sprite != null){

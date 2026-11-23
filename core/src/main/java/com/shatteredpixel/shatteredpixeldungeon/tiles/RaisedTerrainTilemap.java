@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -37,25 +40,49 @@ public class RaisedTerrainTilemap extends DungeonTilemap {
 
 	public static HashSet<Integer> skipCells = new HashSet<>();
 
-	//모드: 세밀한 도트 영웅은 한 칸보다 커서 머리가 바로 위 칸에 걸침. 그 칸의 키 큰 풀이
-	// 영웅 뒤로 기둥처럼 솟아 보이던 문제 → 영웅 바로 위 칸의 풀잎(과 그 위로 뻗는 끝)을 그리지 않음
+	//모드: 세밀한 도트 영웅·정령·정령왕처럼 한 칸보다 큰 그림은 머리가 바로 위 칸에 걸침. 그 칸의 키 큰 풀이
+	// 그림을 덮거나 뒤로 기둥처럼 솟아 보이던 문제 → 큰 그림이 서 있는 칸 바로 위 칸의 풀잎(과 그 위로 뻗는 끝)을 그리지 않음
+	public static final HashSet<Integer> tallCells = new HashSet<>();
+
+	public static boolean isTall( Char ch ){
+		if (ch == null || ch.sprite == null) return false;
+		if (ch instanceof Hero) return ((Hero) ch).heroClass.hdSheet() != null;
+		if (Dungeon.level == null || ch.pos < 0 || ch.pos >= Dungeon.level.length() || !Dungeon.level.heroFOV[ch.pos]) return false;
+		return ch.sprite.height() > DungeonTilemap.SIZE + 2;
+	}
+
+	//지금 큰 그림이 서 있는 칸 모음을 새로 셈. 바뀐 칸 목록을 돌려줌
+	public static HashSet<Integer> collectTall(){
+		HashSet<Integer> now = new HashSet<>();
+		if (Dungeon.level == null) return now;
+		for (Char ch : Actor.chars()){
+			if (isTall( ch )) now.add( ch.pos );
+		}
+		return now;
+	}
+
 	public static boolean hidesGrassAbove( int pos ){
-		if (Dungeon.hero == null || Dungeon.level == null || Dungeon.hero.heroClass.hdSheet() == null) return false;
-		if (pos < 0 || pos >= Dungeon.level.length() || pos + Dungeon.level.width() != Dungeon.hero.pos) return false;
+		if (Dungeon.level == null) return false;
+		if (pos < 0 || pos >= Dungeon.level.length() || !tallCells.contains( pos + Dungeon.level.width() )) return false;
 		int t = Dungeon.level.map[pos];
 		return t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS;
 	}
 
-	private int heroPos = -1;
+	private final HashSet<Integer> shown = new HashSet<>();
 
 	@Override
 	public void update() {
 		super.update();
-		if (Dungeon.hero != null && Dungeon.hero.pos != heroPos){
-			int old = heroPos;
-			heroPos = Dungeon.hero.pos;
-			if (old >= mapWidth && old < size) updateMapCell( old - mapWidth );
-			if (heroPos >= mapWidth && heroPos < size) updateMapCell( heroPos - mapWidth );
+		HashSet<Integer> now = collectTall();
+		if (!now.equals( shown )){
+			HashSet<Integer> changed = new HashSet<>( shown );
+			changed.addAll( now );
+			for (Integer c : now) if (shown.contains( c )) changed.remove( c );
+			tallCells.clear(); tallCells.addAll( now );
+			shown.clear(); shown.addAll( now );
+			for (int c : changed){
+				if (c >= mapWidth && c < size) updateMapCell( c - mapWidth );
+			}
 		}
 	}
 

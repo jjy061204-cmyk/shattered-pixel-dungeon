@@ -13,6 +13,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist;
 
+import com.shatteredpixel.shatteredpixeldungeon.effects.SpiritRite;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -106,6 +107,7 @@ public class SpiritVolley extends ArmorAbility {
 		hero.sprite.zap( enemy.pos );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 1f, 1.1f );
 		new Flare( 6, 20 ).color( 0x9CFFC8, true ).show( hero.sprite, 0.6f );
+		SpiritRite.volleyCast( hero.sprite );
 
 		pending = n;
 		mainTarget = enemy;
@@ -159,10 +161,15 @@ public class SpiritVolley extends ArmorAbility {
 		}
 	}
 
+	private static com.watabou.utils.PointF lastHit, lastGround;
+
 	private static void impact( ForestWand.Spirit s, Char ch ){
 		if (ch.sprite == null) return;
 		ch.sprite.centerEmitter().burst( s.particle(), s.strong ? 7 : 5 );
 		Splash.at( ch.sprite.center(), 0xCC000000 | s.color, 4 );
+		SpiritRite.hit( ch.sprite, s.color );
+		lastHit = ch.sprite.center();
+		lastGround = SpiritRite.feet( ch.sprite );
 		Sample.INSTANCE.play( Assets.Sounds.HIT_MAGIC, 0.5f, Random.Float( 0.9f, 1.3f ) );
 	}
 
@@ -170,6 +177,13 @@ public class SpiritVolley extends ArmorAbility {
 		Char main = mainTarget;
 		pending--;
 		if (pending > 0) return;
+		//마지막 정령까지 닿음: 수렴 폭발
+		if (main != null && main.sprite != null && main.isAlive()){
+			SpiritRite.volleyFinale( main.sprite.center(), SpiritRite.feet( main.sprite ) );
+		} else if (lastHit != null){
+			SpiritRite.volleyFinale( lastHit, lastGround );
+		}
+		lastHit = lastGround = null;
 		//정령의 속박: 남은 대상을 1/2/3/4턴 동안 묶고 느리게
 		int bind = hero.pointsInTalent( Talent.SPIRIT_BIND );
 		if (bind > 0 && main != null && main.isAlive()){

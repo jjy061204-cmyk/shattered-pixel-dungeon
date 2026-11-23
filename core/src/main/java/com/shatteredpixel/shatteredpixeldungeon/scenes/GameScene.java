@@ -1243,6 +1243,11 @@ public class GameScene extends PixelScene {
 		if (scene != null) scene.effects.add( effect );
 	}
 
+	//모드: 땅에 눕혀 그리는 이펙트(마법진 등). 캐릭터 아래 층에 올림
+	public static void groundEffect( Visual effect ) {
+		if (scene != null) scene.ripples.add( effect );
+	}
+
 	public static void effectOverFog( Visual effect ) {
 		if (scene != null) scene.overFogEffects.add( effect );
 	}

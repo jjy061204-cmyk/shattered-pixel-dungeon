@@ -11,6 +11,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist;
 
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SpiritRite;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -59,6 +61,9 @@ public class SpiritSurge extends ArmorAbility {
 		hero.sprite.operate( hero.pos );
 		hero.sprite.centerEmitter().burst( RainbowParticle.BURST, 20 );
 		new Flare( 8, 26 ).color( 0x9CFFC8, true ).show( hero.sprite, 0.9f );
+		ForestWand fw = hero.belongings.getItem( ForestWand.class );
+		ForestWand.Spirit act = fw != null ? fw.active() : null;
+		SpiritRite.surge( hero.sprite, act != null ? act.color : SpiritRite.MINT );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 		GLog.p( Messages.get( this, "activated" ) );
 		hero.spendAndNext( Actor.TICK );
@@ -85,6 +90,7 @@ public class SpiritSurge extends ArmorAbility {
 		}
 
 		private Emitter aura;
+		private SpiritRite.SurgeSigil sigil;
 
 		@Override
 		public int icon() {
@@ -111,9 +117,13 @@ public class SpiritSurge extends ArmorAbility {
 				ForestWand w = Dungeon.hero != null ? Dungeon.hero.belongings.getItem( ForestWand.class ) : null;
 				ForestWand.Spirit s = w != null ? w.active() : null;
 				aura.pour( s != null ? s.particle() : RainbowParticle.BURST, 0.12f );
+				if (sigil != null) sigil.stop();
+				sigil = new SpiritRite.SurgeSigil( target.sprite, s != null ? s.color : SpiritRite.MINT, 26 );
+				GameScene.groundEffect( sigil );
 			} else if (!on && aura != null){
 				aura.on = false;
 				aura = null;
+				if (sigil != null){ sigil.stop(); sigil = null; }
 			}
 		}
 

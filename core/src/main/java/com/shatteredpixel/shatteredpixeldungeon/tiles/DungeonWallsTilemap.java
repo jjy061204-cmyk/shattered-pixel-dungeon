@@ -36,18 +36,22 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 		map( Dungeon.level.map, Dungeon.level.width() );
 	}
 
-	private int heroPos = -1;
+	//모드: 큰 그림(세밀한 도트 영웅·정령·정령왕)이 선 칸이 바뀌면 그 위 두 칸을 다시 그림
+	private final java.util.HashSet<Integer> shown = new java.util.HashSet<>();
 
 	@Override
 	public void update() {
 		super.update();
-		if (Dungeon.hero != null && Dungeon.hero.pos != heroPos){
-			int old = heroPos;
-			heroPos = Dungeon.hero.pos;
-			if (old >= mapWidth && old < size) updateMapCell( old - mapWidth );
-			if (heroPos >= mapWidth && heroPos < size) updateMapCell( heroPos - mapWidth );
-			if (old >= 2*mapWidth && old < size) updateMapCell( old - 2*mapWidth );
-			if (heroPos >= 2*mapWidth && heroPos < size) updateMapCell( heroPos - 2*mapWidth );
+		java.util.HashSet<Integer> now = RaisedTerrainTilemap.collectTall();
+		if (!now.equals( shown )){
+			java.util.HashSet<Integer> changed = new java.util.HashSet<>( shown );
+			changed.addAll( now );
+			for (Integer c : now) if (shown.contains( c )) changed.remove( c );
+			shown.clear(); shown.addAll( now );
+			for (int c : changed){
+				if (c >= mapWidth && c < size) updateMapCell( c - mapWidth );
+				if (c >= 2*mapWidth && c < size) updateMapCell( c - 2*mapWidth );
+			}
 		}
 	}
 
@@ -56,9 +60,9 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 
 		if (flat) return -1;
 
-		//모드: 영웅 그림이 한 칸보다 커서, 영웅 바로 위 칸에 그려지는 풀·문틀 윗부분(덮개)이
-		// 영웅 머리를 가리던 문제. 영웅이 있는 칸 바로 위의 (벽이 아닌) 덮개는 그리지 않음
-		if (Dungeon.hero != null && pos + mapWidth == Dungeon.hero.pos && !DungeonTileSheet.wallStitcheable(tile)){
+		//모드: 큰 그림(영웅·정령·정령왕)이 한 칸보다 커서, 바로 위 칸에 그려지는 풀·문틀 윗부분(덮개)이
+		// 머리를 가리던 문제. 큰 그림이 선 칸 바로 위의 (벽이 아닌) 덮개는 그리지 않음
+		if (shown.contains( pos + mapWidth ) && !DungeonTileSheet.wallStitcheable(tile)){
 			return -1;
 		}
 		//영웅 바로 위 칸의 풀은 숨기므로(RaisedTerrainTilemap), 그 풀이 한 칸 더 위로 뻗는 풀잎 끝도 함께 숨김
