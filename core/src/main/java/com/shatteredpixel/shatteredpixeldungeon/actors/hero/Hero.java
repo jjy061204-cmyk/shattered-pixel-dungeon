@@ -1619,6 +1619,7 @@ public class Hero extends Char {
 		}
 
 		damage = Talent.onAttackProc( this, enemy, damage );
+		damage = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarEther.onAttackProc( this, enemy, damage );
 		damage = CollectorBonus.onAttack( this, enemy, damage );
 		damage = com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.onHeroAttack( this, enemy, damage );
 		damage = com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.onAttack( this, enemy, damage );
@@ -1675,6 +1676,9 @@ public class Hero extends Char {
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 		Talent.onHeroDefended( this, enemy );
+
+		//모드: 환검 기사 - 환검 하나가 부서지며 피해를 절반 막음
+		damage = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhantomBlades.onHeroDefend( this, enemy, damage );
 
 		//모드: 수호의 반지 - 융합한 속성의 반격
 		
@@ -2492,6 +2496,12 @@ public class Hero extends Char {
 
 		if (hit && subClass == HeroSubClass.GLADIATOR && wasEnemy){
 			Buff.affect( this, Combo.class ).hit(attackTarget);
+		}
+
+		//모드: 별빛 기사는 에테르가 쌓이고, 환검 기사는 떠 있는 환검이 따라 벰
+		if (hit && wasEnemy){
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarEther.onHeroHit( this, attackTarget );
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhantomBlades.onHeroHit( this, attackTarget );
 		}
 
 		if (hit && heroClass == HeroClass.DUELIST && wasEnemy){

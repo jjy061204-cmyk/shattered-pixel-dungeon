@@ -242,6 +242,12 @@ public enum Talent {
 	WEAPON_ABSORB(309), SPELL_CONDENSE(310), FORM_ADAPTATION(311), GLOWING_CLAY(312), KNIGHTS_SALUTE(313),
 	//마법 기사 T3
 	ETHER_TEMPERING(314, 3), LIGHT_FORM(315, 3),
+	//별빛 기사 T3
+	ETHER_RESERVOIR(316, 3), STARLIGHT_FLOW(317, 3), AFTERGLOW(318, 3),
+	//형상 기사 T3
+	FORM_RESONANCE(319, 3), SHIFTING_STRIKE(320, 3), ETHER_CIRCULATION(321, 3),
+	//환검 기사 T3
+	BLADE_GENESIS(322, 3), KEEN_PHANTOMS(323, 3), SHATTER_COUNTER(324, 3),
 
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
@@ -1580,6 +1586,15 @@ public enum Talent {
 				break;
 			case SPIRIT_CONTRACTOR:
 				Collections.addAll(tierTalents, GREATER_VITALITY, SPIRIT_GATE, SPIRIT_LINK);
+				break;
+			case STARLIGHT_KNIGHT:
+				Collections.addAll(tierTalents, ETHER_RESERVOIR, STARLIGHT_FLOW, AFTERGLOW);
+				break;
+			case FORM_KNIGHT:
+				Collections.addAll(tierTalents, FORM_RESONANCE, SHIFTING_STRIKE, ETHER_CIRCULATION);
+				break;
+			case PHANTOM_BLADE:
+				Collections.addAll(tierTalents, BLADE_GENESIS, KEEN_PHANTOMS, SHATTER_COUNTER);
 				break;
 			case BATTLEMAGE:
 				Collections.addAll(tierTalents, EMPOWERED_STRIKE, MYSTICAL_CHARGE, EXCESS_CHARGE);

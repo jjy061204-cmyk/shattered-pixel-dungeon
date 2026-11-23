@@ -31,6 +31,7 @@ public class Assets {
 		public static final String TEXT_ICONS   = "effects/text_icons.png";
 		public static final String RIFT_SLASH   = "effects/rift_slash.png";
 		public static final String SWORD_SLASH  = "effects/sword_slash.png";
+		public static final String AURORA_SLASH = "effects/aurora_slash.png";   //모드: 별빛 기사의 오로라 참격
 	}
 
 	public static class Environment {

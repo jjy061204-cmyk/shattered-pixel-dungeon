@@ -105,6 +105,13 @@ public class TengusMask extends Item {
 		if (way == HeroSubClass.ASSASSIN && curUser.invisible > 0){
 			Buff.affect(curUser, Preparation.class);
 		}
+		//모드: 마법 기사의 전직
+		if (way == HeroSubClass.STARLIGHT_KNIGHT){
+			Buff.affect(curUser, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.StarEther.class).gain(0);
+		}
+		if (way == HeroSubClass.PHANTOM_BLADE){
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhantomBlades.onSubclassChosen(curUser);
+		}
 		
 		curUser.sprite.operate( curUser.pos );
 		Sample.INSTANCE.play( Assets.Sounds.MASTERY );

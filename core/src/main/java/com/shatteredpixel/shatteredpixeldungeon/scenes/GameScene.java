@@ -1238,6 +1238,11 @@ public class GameScene extends PixelScene {
 		if (scene != null) scene.effects.add( effect );
 	}
 
+	//모드: 여러 그림을 묶은 이펙트(Group·Emitter)도 이펙트 층에 올림
+	public static void effectGizmo( com.watabou.noosa.Gizmo effect ) {
+		if (scene != null) scene.effects.add( effect );
+	}
+
 	public static void effectOverFog( Visual effect ) {
 		if (scene != null) scene.overFogEffects.add( effect );
 	}

@@ -57,6 +57,10 @@ public class HeroIcon extends Image {
 	//모드: 정령사의 전직
 	public static final int SPIRIT_ENCHANTER  = 38;
 	public static final int SPIRIT_CONTRACTOR = 39;
+	//모드: 마법 기사의 전직
+	public static final int STARLIGHT_KNIGHT  = 67;
+	public static final int FORM_KNIGHT       = 68;
+	public static final int PHANTOM_BLADE     = 69;
 
 	//abilities
 	public static final int HEROIC_LEAP     = 16;
@@ -122,6 +126,7 @@ public class HeroIcon extends Image {
 	public static final int SNIPERS_MARK    = 108;
 	public static final int WEAPON_SWAP     = 109;
 	public static final int MONK_ABILITIES  = 110;
+	public static final int ETHER_ARTS      = 111;   //모드: 별빛 기사의 에테르 기술
 
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );

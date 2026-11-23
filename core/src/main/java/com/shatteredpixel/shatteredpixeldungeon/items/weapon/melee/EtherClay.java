@@ -195,6 +195,10 @@ public class EtherClay extends MeleeWeapon {
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 		MeleeWeapon f = currentForm();
+		//형상 기사: 빚은 무기 종류마다 다른 타격 효과
+		if (attacker instanceof Hero){
+			damage = EtherForms.proc( (Hero) attacker, defender, damage, f, tier );
+		}
 		if (f instanceof KnightLongsword){
 			damage = ((KnightLongsword) f).comboHit( attacker, defender, damage, false );
 		} else if (f instanceof RiftDagger && defender.sprite != null && defender.sprite.visible){
@@ -435,6 +439,7 @@ public class EtherClay extends MeleeWeapon {
 				if (hero.hasTalent( Talent.FORM_ADAPTATION )){
 					Buff.prolong( hero, Talent.FormAdaptation.class, 2 + 2*hero.pointsInTalent( Talent.FORM_ADAPTATION ) );
 				}
+				EtherForms.onReshape( hero );
 				hero.spendAndNext( shapeTime( hero ) );
 			}
 		} );
@@ -479,6 +484,9 @@ public class EtherClay extends MeleeWeapon {
 		else info += " " + Messages.get( this, "current_form", Messages.titleCase( form().trueName() ), tier );
 		String tr = formTraits();
 		if (!tr.isEmpty()) info += "\n\n" + tr;
+		if (Dungeon.hero != null && Dungeon.hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass.FORM_KNIGHT){
+			info += "\n\n" + EtherForms.describe( Dungeon.hero, currentForm() );
+		}
 		return info;
 	}
 
