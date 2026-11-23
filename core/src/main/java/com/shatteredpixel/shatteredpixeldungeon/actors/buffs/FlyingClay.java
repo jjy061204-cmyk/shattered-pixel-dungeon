@@ -315,11 +315,7 @@ public class FlyingClay extends Buff implements ActionIndicator.Action {
 		Hero hero = hero();
 		if (hero == null || hero != Dungeon.hero || !hero.isAlive() || hero.subClass != HeroSubClass.FLYING_BLADE) return false;
 		if (clay != null) return true;
-		if (held( hero ) == null) return false;
-		if (hero.visibleEnemies() > 0) return true;
-		boolean saluteReady = hero.pointsInTalent( Talent.KNIGHTS_SALUTE ) > 0
-				&& hero.buff( Talent.KnightsSaluteBuff.class ) == null;
-		return !saluteReady;
+		return held( hero ) != null;
 	}
 
 	public void refreshButton(){

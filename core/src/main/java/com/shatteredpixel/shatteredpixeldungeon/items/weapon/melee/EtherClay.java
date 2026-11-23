@@ -38,7 +38,6 @@ public class EtherClay extends MeleeWeapon {
 
 	public static final String AC_SHAPE = "SHAPE";
 	public static final String AC_ABSORB = "ABSORB";
-	public static final String AC_SALUTE = "SALUTE";
 
 	public static final int MAX_TIER = 5;
 
@@ -93,6 +92,14 @@ public class EtherClay extends MeleeWeapon {
 	public static final int[] FORM_IMAGES = {
 			ItemSpriteSheet.WORN_SHORTSWORD, ItemSpriteSheet.DAGGER, ItemSpriteSheet.GLOVES, ItemSpriteSheet.RAPIER, ItemSpriteSheet.CUDGEL, ItemSpriteSheet.SHORTSWORD, ItemSpriteSheet.HAND_AXE, ItemSpriteSheet.SPEAR, ItemSpriteSheet.QUARTERSTAFF, ItemSpriteSheet.DIRK, ItemSpriteSheet.SICKLE, ItemSpriteSheet.SWORD, ItemSpriteSheet.MACE, ItemSpriteSheet.SCIMITAR, ItemSpriteSheet.ROUND_SHIELD, ItemSpriteSheet.SAI, ItemSpriteSheet.WHIP, ItemSpriteSheet.LONGSWORD, ItemSpriteSheet.BATTLE_AXE, ItemSpriteSheet.FLAIL, ItemSpriteSheet.RUNIC_BLADE, ItemSpriteSheet.ASSASSINS_BLADE, ItemSpriteSheet.CROSSBOW, ItemSpriteSheet.KATANA, ItemSpriteSheet.GREATSWORD, ItemSpriteSheet.WAR_HAMMER, ItemSpriteSheet.GLAIVE, ItemSpriteSheet.GREATAXE, ItemSpriteSheet.GREATSHIELD, ItemSpriteSheet.GAUNTLETS, ItemSpriteSheet.WAR_SCYTHE, ItemSpriteSheet.RIFT_DAGGER, ItemSpriteSheet.KNIGHT_LONGSWORD
 	};
+
+	//무기 모양에 점토 빛깔을 입힌 그림 번호
+	public static int formImage( MeleeWeapon w ){
+		for (int i = 0; i < FORM_IMAGES.length; i++){
+			if (FORM_IMAGES[i] == w.image) return ItemSpriteSheet.ETHER_FORM_FIRST + i;
+		}
+		return w.image;
+	}
 
 	@Override
 	public int image() {
@@ -242,7 +249,6 @@ public class EtherClay extends MeleeWeapon {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_SHAPE );
 		if (hero.hasTalent( Talent.WEAPON_ABSORB )) actions.add( AC_ABSORB );
-		if (hero.hasTalent( Talent.KNIGHTS_SALUTE )) actions.add( AC_SALUTE );
 		return actions;
 	}
 
@@ -250,7 +256,6 @@ public class EtherClay extends MeleeWeapon {
 	public String actionName( String action, Hero hero ) {
 		if (action.equals( AC_SHAPE )) return Messages.get( this, "ac_shape" );
 		if (action.equals( AC_ABSORB )) return Messages.get( this, "ac_absorb" );
-		if (action.equals( AC_SALUTE )) return Messages.get( this, "ac_salute" );
 		return super.actionName( action, hero );
 	}
 
@@ -261,8 +266,6 @@ public class EtherClay extends MeleeWeapon {
 			chooseTier( hero );
 		} else if (action.equals( AC_ABSORB )){
 			absorb( hero );
-		} else if (action.equals( AC_SALUTE )){
-			salute( hero );
 		}
 	}
 
@@ -371,21 +374,6 @@ public class EtherClay extends MeleeWeapon {
 		hero.spendAndNext( 1f );
 	}
 
-	//기사의 경례: 적이 보이지 않을 때만. 다음 첫 공격이 강해짐
-	private void salute( Hero hero ){
-		if (hero.visibleEnemies() > 0){
-			GLog.w( Messages.get( EtherClay.class, "salute_enemies" ) );
-			return;
-		}
-		Buff.affect( hero, Talent.KnightsSaluteBuff.class );
-		if (hero.sprite instanceof HeroSprite){
-			((HeroSprite) hero.sprite).playSpecial( 1 );
-		}
-		hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
-		GLog.p( Messages.get( EtherClay.class, "saluted" ) );
-		hero.spendAndNext( 1f );
-	}
-
 	//능숙한 손놀림: 1 / 0.5 / 0턴
 	public static float shapeTime( Hero hero ){
 		switch (hero.pointsInTalent( Talent.DEFT_HANDS )){
@@ -395,25 +383,39 @@ public class EtherClay extends MeleeWeapon {
 		}
 	}
 
+	//빚을 모양을 고르면 부르는 콜백
+	public interface FormPicked {
+		void picked( Class<? extends MeleeWeapon> cls );
+	}
+
 	private void chooseTier( final Hero hero ){
+		pickForm( hero, Messages.get( this, "shape_title" ), new FormPicked() {
+			@Override
+			public void picked( Class<? extends MeleeWeapon> cls ) {
+				doShape( hero, cls );
+			}
+		} );
+	}
+
+	//티어 → 모양 순서로 고름 (형상 단축 등록에도 씀)
+	public void pickForm( final Hero hero, final String title, final FormPicked cb ){
 		final int max = maxTier( hero );
 		if (max <= 1){
-			chooseForm( hero, 1 );
+			pickFormOfTier( hero, 1, title, cb );
 			return;
 		}
 		String[] opts = new String[max];
 		for (int t = 1; t <= max; t++) opts[max - t] = Messages.get( this, "tier", t );
 		GameScene.show( new WndOptions( new ItemSprite( this ),
-				Messages.get( this, "shape_title" ),
-				Messages.get( this, "shape_tier", max ), opts ){
+				title, Messages.get( this, "shape_tier", max ), opts ){
 			@Override
 			protected void onSelect( int index ) {
-				chooseForm( hero, max - index );
+				pickFormOfTier( hero, max - index, title, cb );
 			}
 		} );
 	}
 
-	private void chooseForm( final Hero hero, final int tier ){
+	private void pickFormOfTier( final Hero hero, final int tier, String title, final FormPicked cb ){
 		final ArrayList<Class<? extends MeleeWeapon>> forms = formsOf( tier );
 		String[] opts = new String[forms.size()];
 		for (int i = 0; i < forms.size(); i++){
@@ -421,28 +423,53 @@ public class EtherClay extends MeleeWeapon {
 			opts[i] = Messages.titleCase( w.trueName() ) + (forms.get( i ) == formClass ? " " + Messages.get( EtherClay.class, "current" ) : "");
 		}
 		GameScene.show( new WndOptions( new ItemSprite( this ),
-				Messages.get( this, "shape_title" ),
-				Messages.get( this, "shape_form", tier ), opts ){
+				title, Messages.get( this, "shape_form", tier ), opts ){
 			@Override
 			protected void onSelect( int index ) {
-				Class<? extends MeleeWeapon> cls = forms.get( index );
-				if (cls == formClass) return;
-				shape( cls );
-				MeleeWeapon w = Reflection.newInstance( cls );
-				GLog.p( Messages.get( EtherClay.class, "shaped", Messages.titleCase( w.trueName() ) ) );
-				if (hero.sprite != null){
-					hero.sprite.operate( hero.pos );
-					hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 6 );
-				}
-				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				//형태 적응: 4/6턴 동안 정확도·회피 상승
-				if (hero.hasTalent( Talent.FORM_ADAPTATION )){
-					Buff.prolong( hero, Talent.FormAdaptation.class, 2 + 2*hero.pointsInTalent( Talent.FORM_ADAPTATION ) );
-				}
-				EtherForms.onReshape( hero );
-				hero.spendAndNext( shapeTime( hero ) );
+				cb.picked( forms.get( index ) );
 			}
 		} );
+	}
+
+	public Class<? extends MeleeWeapon> formClass(){
+		return formClass;
+	}
+
+	//고른 모양으로 빚음 (이미 그 모양이면 아무것도 안 함)
+	public boolean doShape( Hero hero, Class<? extends MeleeWeapon> cls ){
+		if (cls == null || cls == formClass) return false;
+		shape( cls );
+		MeleeWeapon w = Reflection.newInstance( cls );
+		GLog.p( Messages.get( EtherClay.class, "shaped", Messages.titleCase( w.trueName() ) ) );
+		if (hero.sprite != null){
+			hero.sprite.operate( hero.pos );
+			hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 6 );
+		}
+		Sample.INSTANCE.play( Assets.Sounds.MELD );
+		//형태 적응: 4/6턴 동안 정확도·회피 상승
+		if (hero.hasTalent( Talent.FORM_ADAPTATION )){
+			Buff.prolong( hero, Talent.FormAdaptation.class, 2 + 2*hero.pointsInTalent( Talent.FORM_ADAPTATION ) );
+		}
+		EtherForms.onReshape( hero );
+		hero.spendAndNext( shapeTime( hero ) );
+		return true;
+	}
+
+	//형상 기사의 형상 단축: 자주 쓰는 모양 4개
+	public static final int QUICK_SLOTS = 4;
+	private final Class<? extends MeleeWeapon>[] quickForms = new Class[QUICK_SLOTS];
+
+	public Class<? extends MeleeWeapon> quickForm( int i ){
+		return quickForms[i];
+	}
+
+	public void setQuickForm( int i, Class<? extends MeleeWeapon> cls ){
+		quickForms[i] = cls;
+	}
+
+	public static int tierOf( Class<? extends MeleeWeapon> cls ){
+		for (int t = 1; t <= MAX_TIER; t++) if (formsOf( t ).contains( cls )) return t;
+		return MAX_TIER;
 	}
 
 	//영웅이 레벨업할 때: 새 티어에 닿으면 알림
@@ -502,11 +529,15 @@ public class EtherClay extends MeleeWeapon {
 	}
 
 	private static final String FORM = "form";
+	private static final String QUICK = "quick_form";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		if (formClass != null) bundle.put( FORM, formClass );
+		for (int i = 0; i < QUICK_SLOTS; i++){
+			if (quickForms[i] != null) bundle.put( QUICK + i, quickForms[i] );
+		}
 	}
 
 	@Override
@@ -518,6 +549,15 @@ public class EtherClay extends MeleeWeapon {
 				Class<?> c = bundle.getClass( FORM );
 				if (c != null && MeleeWeapon.class.isAssignableFrom( c )) formClass = (Class<? extends MeleeWeapon>) c;
 			} catch (Exception ignored) {}
+		}
+		for (int i = 0; i < QUICK_SLOTS; i++){
+			quickForms[i] = null;
+			if (bundle.contains( QUICK + i )){
+				try {
+					Class<?> c = bundle.getClass( QUICK + i );
+					if (c != null && MeleeWeapon.class.isAssignableFrom( c )) quickForms[i] = (Class<? extends MeleeWeapon>) c;
+				} catch (Exception ignored) {}
+			}
 		}
 		applyForm();
 	}

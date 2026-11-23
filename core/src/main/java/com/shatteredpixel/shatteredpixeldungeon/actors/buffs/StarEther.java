@@ -164,15 +164,11 @@ public class StarEther extends Buff implements ActionIndicator.Action {
 		return true;
 	}
 
-	//행동 버튼: 적이 보이면 에테르 기술을 띄움. 적이 없을 때는 기사의 경례에 자리를 내줌
+	//행동 버튼: 에테르 기사가 되면 늘 띄움
 	private boolean wantsButton(){
 		Hero hero = hero();
-		if (hero == null || hero != Dungeon.hero || !hero.isAlive()) return false;
-		if (energy < Art.SPARK.cost) return false;
-		if (hero.visibleEnemies() > 0) return true;
-		boolean saluteReady = hero.pointsInTalent( Talent.KNIGHTS_SALUTE ) > 0
-				&& hero.buff( Talent.KnightsSaluteBuff.class ) == null;
-		return !saluteReady;
+		//전직한 뒤로는 늘 떠 있음 (모자란 기술은 창에서 흐리게)
+		return hero != null && hero == Dungeon.hero && hero.isAlive() && hero.subClass == HeroSubClass.STARLIGHT_KNIGHT;
 	}
 
 	public void refreshButton(){

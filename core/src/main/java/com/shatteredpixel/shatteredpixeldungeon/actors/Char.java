@@ -601,6 +601,11 @@ public abstract class Char extends Actor {
 			
 		} else if (!Char.hasProp(enemy, Property.OBJECT)) {
 
+			//모드: 마법 기사 '반격의 점토'
+			if (enemy instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero){
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.onHeroDodged( (com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) enemy, this );
+			}
+
 			if (enemy.sprite != null){
 				if (hitMissIcon != -1){
 					//dooking is a playful sound Ferrets can make, like low pitched chirping

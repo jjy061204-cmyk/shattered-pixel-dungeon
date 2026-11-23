@@ -239,7 +239,7 @@ public enum Talent {
 	//모드: 마법 기사 T1
 	ETHER_MEAL(305), WEAPON_SENSE(306), DEFT_HANDS(307), ETHER_VEIL(308),
 	//마법 기사 T2
-	WEAPON_ABSORB(309), SPELL_CONDENSE(310), FORM_ADAPTATION(311), GLOWING_CLAY(312), KNIGHTS_SALUTE(313),
+	WEAPON_ABSORB(309), SPELL_CONDENSE(310), FORM_ADAPTATION(311), GLOWING_CLAY(312), CLAY_RIPOSTE(313),
 	//마법 기사 T3
 	ETHER_TEMPERING(314, 3), LIGHT_FORM(315, 3),
 	//에테르 기사 T3
@@ -560,12 +560,6 @@ public enum Talent {
 		}
 		if (talent == ETHER_TEMPERING){
 			com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay.onTemperingUpgraded(hero);
-		}
-		//기사의 경례: 찍으면 행동 버튼에 '경례'가 뜸
-		if (talent == KNIGHTS_SALUTE){
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton.attach(hero);
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton b = hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SaluteButton.class);
-			if (b != null) b.refreshButton();
 		}
 		//for metamorphosis
 		if (talent == IRON_WILL && hero.heroClass != HeroClass.WARRIOR){
@@ -1043,14 +1037,19 @@ public enum Talent {
 		@Override public float iconFadePercent() { return Math.max(0, 1f - visualcooldown() / 6f); }
 		@Override public String desc() { return Messages.get( this, "desc", dispTurns() ); }
 	}
-	//기사의 경례: 다음 근접 공격이 강해짐 (+2면 반드시 명중)
-	public static class KnightsSaluteBuff extends Buff {
-		{ type = buffType.POSITIVE; }
-		@Override public int icon() { return BuffIndicator.WEAPON; }
-		@Override public void tintIcon( Image icon ) { icon.hardlight( 1f, 0.9f, 0.5f ); }
-		@Override public String desc() {
-			return Messages.get( this, Dungeon.hero != null && Dungeon.hero.pointsInTalent(KNIGHTS_SALUTE) >= 2 ? "desc2" : "desc" );
+	//반격의 점토: 적의 근접 공격을 피하면 점토가 반사적으로 그 적을 벰 (기본 공격의 30% / 50%, 방어 무시)
+	public static void onHeroDodged( Hero hero, Char enemy ){
+		if (enemy == null || !enemy.isAlive() || !hero.hasTalent(CLAY_RIPOSTE)) return;
+		if (!(hero.belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay)) return;
+		if (!Dungeon.level.adjacent(hero.pos, enemy.pos)) return;
+		float mult = hero.pointsInTalent(CLAY_RIPOSTE) >= 2 ? 0.5f : 0.3f;
+		int dmg = Math.max(1, Math.round(hero.damageRoll() * mult));
+		enemy.damage(dmg, hero);
+		if (enemy.sprite != null){
+			com.shatteredpixel.shatteredpixeldungeon.effects.RiftSlash.at(enemy.sprite, 0.7f);
+			enemy.sprite.flash();
 		}
+		com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.HIT_SLASH, 0.8f, 1.3f);
 	}
 
 	//모드: 정령사
@@ -1253,13 +1252,6 @@ public enum Talent {
 
 		//---- 모드: 마법 기사 ----
 		if (!(hero.belongings.attackingWeapon() instanceof MissileWeapon)){
-			KnightsSaluteBuff salute = hero.buff(KnightsSaluteBuff.class);
-			if (salute != null){
-				//기사의 경례: 피해 1.3/1.5배
-				dmg = Math.round(dmg * (hero.pointsInTalent(KNIGHTS_SALUTE) >= 2 ? 1.5f : 1.3f));
-				salute.detach();
-				if (enemy.sprite != null) new Flare( 5, 20 ).color(0xFFF0C0, true).show( enemy.sprite, 0.8f );
-			}
 			EtherCharge charge = hero.buff(EtherCharge.class);
 			if (charge != null){
 				//마력이 실린 공격: 점토 티어에 따라 2~5 ~ 6~13 추가 피해
@@ -1492,7 +1484,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, SPIRIT_FEAST, ELEMENTAL_RESONANCE, INSCRIBED_SPIRITS, SPIRIT_RESONANCE, SPIRIT_RELEASE);
 				break;
 			case MAGIC_KNIGHT:
-				Collections.addAll(tierTalents, WEAPON_ABSORB, SPELL_CONDENSE, FORM_ADAPTATION, GLOWING_CLAY, KNIGHTS_SALUTE);
+				Collections.addAll(tierTalents, WEAPON_ABSORB, SPELL_CONDENSE, FORM_ADAPTATION, GLOWING_CLAY, CLAY_RIPOSTE);
 				break;
 		}
 		for (Talent talent : tierTalents){

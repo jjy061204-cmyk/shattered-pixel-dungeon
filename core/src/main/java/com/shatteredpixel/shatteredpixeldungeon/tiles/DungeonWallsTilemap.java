@@ -46,6 +46,8 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 			heroPos = Dungeon.hero.pos;
 			if (old >= mapWidth && old < size) updateMapCell( old - mapWidth );
 			if (heroPos >= mapWidth && heroPos < size) updateMapCell( heroPos - mapWidth );
+			if (old >= 2*mapWidth && old < size) updateMapCell( old - 2*mapWidth );
+			if (heroPos >= 2*mapWidth && heroPos < size) updateMapCell( heroPos - 2*mapWidth );
 		}
 	}
 
@@ -57,6 +59,10 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 		//모드: 영웅 그림이 한 칸보다 커서, 영웅 바로 위 칸에 그려지는 풀·문틀 윗부분(덮개)이
 		// 영웅 머리를 가리던 문제. 영웅이 있는 칸 바로 위의 (벽이 아닌) 덮개는 그리지 않음
 		if (Dungeon.hero != null && pos + mapWidth == Dungeon.hero.pos && !DungeonTileSheet.wallStitcheable(tile)){
+			return -1;
+		}
+		//영웅 바로 위 칸의 풀은 숨기므로(RaisedTerrainTilemap), 그 풀이 한 칸 더 위로 뻗는 풀잎 끝도 함께 숨김
+		if (RaisedTerrainTilemap.hidesGrassAbove( pos + mapWidth ) && !DungeonTileSheet.wallStitcheable(tile)){
 			return -1;
 		}
 

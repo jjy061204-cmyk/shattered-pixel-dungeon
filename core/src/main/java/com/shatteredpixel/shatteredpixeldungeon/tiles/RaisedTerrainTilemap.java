@@ -37,12 +37,34 @@ public class RaisedTerrainTilemap extends DungeonTilemap {
 
 	public static HashSet<Integer> skipCells = new HashSet<>();
 
+	//모드: 세밀한 도트 영웅은 한 칸보다 커서 머리가 바로 위 칸에 걸침. 그 칸의 키 큰 풀이
+	// 영웅 뒤로 기둥처럼 솟아 보이던 문제 → 영웅 바로 위 칸의 풀잎(과 그 위로 뻗는 끝)을 그리지 않음
+	public static boolean hidesGrassAbove( int pos ){
+		if (Dungeon.hero == null || Dungeon.level == null || Dungeon.hero.heroClass.hdSheet() == null) return false;
+		if (pos < 0 || pos >= Dungeon.level.length() || pos + Dungeon.level.width() != Dungeon.hero.pos) return false;
+		int t = Dungeon.level.map[pos];
+		return t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS;
+	}
+
+	private int heroPos = -1;
+
+	@Override
+	public void update() {
+		super.update();
+		if (Dungeon.hero != null && Dungeon.hero.pos != heroPos){
+			int old = heroPos;
+			heroPos = Dungeon.hero.pos;
+			if (old >= mapWidth && old < size) updateMapCell( old - mapWidth );
+			if (heroPos >= mapWidth && heroPos < size) updateMapCell( heroPos - mapWidth );
+		}
+	}
+
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat) {
 		
 		if (flat) return -1;
 
-		if (skipCells.contains(pos)){
+		if (skipCells.contains(pos) || hidesGrassAbove(pos)){
 			return -1;
 		}
 
