@@ -1,6 +1,7 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 정령왕(불·물·바람·땅) 도트: spirit_kings.png 한 줄에 24칸 (80x80, 영웅보다 한층 큰 몸집)
+ * 정령왕(불·물·바람·땅) 도트: spirit_kings.png 한 줄에 24칸 (64x64). 로브를 두른 얼굴 없는 형체로, 두건 속엔 속성 구체나 룬만 빛남
+ *  영웅보다 한층 크게 그려지도록 배율을 키움
  *  대기 0-5, 이동 6-11, 공격 12-17, 사라짐 18-23. 물의 정령왕은 공격 장면으로 물의 창을 던짐
  *  곁에 늘 그 속성의 입자가 은은하게 피어오름
  */
@@ -23,9 +24,9 @@ import com.watabou.utils.Callback;
 
 public abstract class SpiritKingSprite extends MobSprite {
 
-	public static final int SIZE = 80;
+	public static final int SIZE = 64;
 	public static final int PER_ROW = 24;
-	public static final float SCALE = HeroSprite.HD_SCALE;
+	public static final float SCALE = 0.4f;
 
 	protected abstract int row();
 	protected abstract Emitter.Factory particle();
