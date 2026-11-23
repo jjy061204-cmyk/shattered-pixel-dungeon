@@ -1,7 +1,7 @@
 {
  "undine": {
-  "prompt": "masterpiece, best quality, chibi, solo, full body, standing, front view, simple design, flat colors, cel shading, thick outlines, bold shapes, clean lineart, white background, simple background, 1girl, water spirit undine, beautiful face, very long straight aqua hair flowing down to her feet, translucent blue water dress, white frills, sparkling water droplets, calm smile, hands together",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, tall, long legs",
+  "prompt": "masterpiece, best quality, chibi, solo, full body, flat colors, thick outlines, white background, water spirit undine, 1girl, beautiful face, very long straight aqua hair to her feet, translucent blue water dress, white frills, water droplets, calm smile",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, tall",
   "seeds": [
    2,
    9,
@@ -16,8 +16,8 @@
   "h": 512
  },
  "salamander": {
-  "prompt": "masterpiece, best quality, no humans, solo, full body, cute fire salamander, chubby red lizard, side view, facing right, standing on four short legs, bright flames burning on its back, flame on the tail tip, big golden eyes, simple design, flat colors, cel shading, thick outlines, bold shapes, white background, simple background",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, wings, dragon, wyvern, horns, standing upright",
+  "prompt": "masterpiece, best quality, no humans, cute fire salamander, chubby red lizard, side view, four short legs, flames burning on its back, flame on tail tip, big golden eyes, flat colors, thick outlines, white background",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, wings, dragon, wyvern, horns",
   "seeds": [
    2,
    9,
@@ -32,8 +32,8 @@
   "h": 512
  },
  "gnome": {
-  "prompt": "masterpiece, best quality, chibi, solo, full body, standing, front view, simple design, flat colors, cel shading, thick outlines, bold shapes, clean lineart, white background, simple background, 1boy, old gnome, very short stout old man, long fluffy white beard, big round red nose, rosy cheeks, tall pointed red hat, brown tunic, leather belt, big boots, holding a small pickaxe, cheerful",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, tall, long legs, spear, polearm",
+  "prompt": "masterpiece, best quality, chibi, solo, full body, flat colors, thick outlines, white background, old gnome, 1boy, very short stout old man, long white beard, big red nose, tall pointed red hat, brown tunic, belt, boots, holding small pickaxe, cheerful",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, tall, spear",
   "seeds": [
    2,
    9,
@@ -48,8 +48,8 @@
   "h": 512
  },
  "sylph": {
-  "prompt": "masterpiece, best quality, chibi, solo, full body, standing, front view, simple design, flat colors, cel shading, thick outlines, bold shapes, clean lineart, white background, simple background, 1girl, wind fairy sylph, large glowing green butterfly wings, short green hair, pointy ears, white and green leaf dress, barefoot, floating, cheerful smile, small wind swirls",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, tall, long legs",
+  "prompt": "masterpiece, best quality, chibi, solo, full body, flat colors, thick outlines, white background, wind fairy sylph, 1girl, large glowing green butterfly wings, short green hair, pointy ears, white and green leaf dress, barefoot, floating, smile",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, tall",
   "seeds": [
    2,
    9,
@@ -64,8 +64,8 @@
   "h": 512
  },
  "king_fire": {
-  "prompt": "masterpiece, best quality, highly detailed, dark fantasy character art, solo, full body, front view, mysterious faceless spirit king, tall hooded black robe, no face, pitch black darkness inside the hood, a single glowing orb floating inside the hood where the face should be, glowing runes embroidered on the robe, long flowing sleeves, robe hem floating above the ground, white background, simple background, black and crimson robe with red and orange glowing trim, fiery orange orb, flames rising from the shoulders and hands, embers, crown of fire above the hood",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, face, eyes, mouth, nose, skin, human face, hair, girl, boy, woman, man, multiple characters",
+  "prompt": "masterpiece, best quality, faceless spirit king, crimson and black hooded robe, glowing orange fire orb inside the dark hood, flames on shoulders and hands, embers, no face, glowing runes on robe, long sleeves, full body, front view, solo, white background",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, face, eyes, mouth, nose, skin, hair, girl, boy, man, woman",
   "model": "Lykon/dreamshaper-8",
   "w": 448,
   "h": 640,
@@ -81,8 +81,8 @@
   ]
  },
  "king_water": {
-  "prompt": "masterpiece, best quality, highly detailed, dark fantasy character art, solo, full body, front view, mysterious faceless spirit king, tall hooded black robe, no face, pitch black darkness inside the hood, a single glowing orb floating inside the hood where the face should be, glowing runes embroidered on the robe, long flowing sleeves, robe hem floating above the ground, white background, simple background, black and deep blue robe with cyan glowing trim, glowing aqua orb, flowing water ribbons around the robe, water droplets",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, face, eyes, mouth, nose, skin, human face, hair, girl, boy, woman, man, multiple characters",
+  "prompt": "masterpiece, best quality, faceless spirit king, deep blue and black hooded robe, glowing aqua water orb inside the dark hood, flowing water ribbons, droplets, no face, glowing runes on robe, long sleeves, full body, front view, solo, white background",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, face, eyes, mouth, nose, skin, hair, girl, boy, man, woman",
   "model": "Lykon/dreamshaper-8",
   "w": 448,
   "h": 640,
@@ -98,8 +98,8 @@
   ]
  },
  "king_wind": {
-  "prompt": "masterpiece, best quality, highly detailed, dark fantasy character art, solo, full body, front view, mysterious faceless spirit king, tall hooded black robe, no face, pitch black darkness inside the hood, a single glowing orb floating inside the hood where the face should be, glowing runes embroidered on the robe, long flowing sleeves, robe hem floating above the ground, white background, simple background, black and emerald robe with pale green glowing trim, glowing green orb, tattered robe edges blowing in the wind, swirling wind ribbons, feathers",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, face, eyes, mouth, nose, skin, human face, hair, girl, boy, woman, man, multiple characters",
+  "prompt": "masterpiece, best quality, faceless spirit king, emerald green and black hooded robe, glowing green orb inside the dark hood, tattered edges blowing in wind, wind ribbons, no face, glowing runes on robe, long sleeves, full body, front view, solo, white background",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, face, eyes, mouth, nose, skin, hair, girl, boy, man, woman",
   "model": "Lykon/dreamshaper-8",
   "w": 448,
   "h": 640,
@@ -115,8 +115,8 @@
   ]
  },
  "king_earth": {
-  "prompt": "masterpiece, best quality, highly detailed, dark fantasy character art, solo, full body, front view, mysterious faceless spirit king, tall hooded black robe, no face, pitch black darkness inside the hood, a single glowing orb floating inside the hood where the face should be, glowing runes embroidered on the robe, long flowing sleeves, robe hem floating above the ground, white background, simple background, black and amber brown robe with golden glowing trim, glowing amber orb, stone shoulder plates, floating rocks and crystals around",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, base, water surface, reflection, cropped, out of frame, face, eyes, mouth, nose, skin, human face, hair, girl, boy, woman, man, multiple characters",
+  "prompt": "masterpiece, best quality, faceless spirit king, amber brown and black hooded robe, glowing amber orb inside the dark hood, stone shoulder plates, floating rocks and crystals, no face, glowing runes on robe, long sleeves, full body, front view, solo, white background",
+  "neg": "scenery, landscape, detailed background, ground, floor, shadow, pedestal, platform, reflection, cropped, face, eyes, mouth, nose, skin, hair, girl, boy, man, woman",
   "model": "Lykon/dreamshaper-8",
   "w": 448,
   "h": 640,
