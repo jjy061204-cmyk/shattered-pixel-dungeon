@@ -1,0 +1,35 @@
+name: spirit-art
+on:
+  push:
+    branches: [spirit-art]
+    paths: [prompts.json, gen.py, .github/workflows/gen.yml]
+permissions:
+  contents: write
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [undine, salamander, gnome, sylph, king_fire, king_water, king_wind, king_earth]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1 && pip install diffusers==0.30.3 transformers==4.44.2 accelerate safetensors
+      - run: python gen.py ${{ matrix.name }}
+      - uses: actions/upload-artifact@v4
+        with: { name: 'img-${{ matrix.name }}', path: out/ }
+  collect:
+    needs: gen
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dl, pattern: 'img-*', merge-multiple: true }
+      - run: |
+          mkdir -p out && cp dl/*.png out/ || true
+          git config user.name "spirit-art-bot"; git config user.email "actions@users.noreply.github.com"
+          git add out && git commit -m "generated art [skip ci]" && git push || echo nothing

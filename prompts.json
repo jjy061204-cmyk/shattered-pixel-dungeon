@@ -1,0 +1,92 @@
+{
+ "undine": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1girl, water spirit undine, beautiful girl made of translucent water, very long flowing wavy blue hair, beautiful face, gentle smile, blue eyes, elegant flowing water dress, water ripples at her feet, floating bubbles, looking at viewer",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "salamander": {
+  "prompt": "masterpiece, best quality, highly detailed, fantasy creature art, no humans, solo, full body, salamander, fire lizard, glossy red and orange scales, flames burning along its back and tail tip, glowing embers, golden eyes, four legs, side view, simple background, white background",
+  "w": 768,
+  "h": 512,
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "gnome": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, earth spirit gnome, very short old man, long white beard, big nose, pointed brown hood, earthy brown robe with belt, leather boots, holding small pickaxe, moss and small rocks, looking at viewer",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "sylph": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1girl, wind spirit sylph, fairy girl, large translucent butterfly wings, short green hair, pointy ears, green leaf dress, floating in the air, wind swirls, small leaves, cheerful smile, looking at viewer",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "king_fire": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, king of fire spirits, ifrit, muscular, red skin, hair made of flames, burning golden crown, golden armor, flowing fire cape, flames around him, glowing eyes, regal",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "king_water": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, king of water spirits, regal sea king, long flowing blue hair, coral crown, holding golden trident, flowing robe made of water, pearl jewelry, bubbles, calm expression",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "king_wind": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, 1boy, king of wind spirits, djinn, large white feathered wings, white and green robe, silver crown, long cape blowing in the wind, wind swirls, floating, confident smile",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ },
+ "king_earth": {
+  "prompt": "masterpiece, best quality, highly detailed, game character sprite art, chibi, solo, full body, standing, simple background, white background, king of earth spirits, stone golem king, body made of rocks, crystal crown, moss, glowing amber eyes, massive shoulders, stone armor, holding stone hammer, no humans",
+  "seeds": [
+   11,
+   23,
+   37,
+   41,
+   59,
+   73
+  ]
+ }
+}
