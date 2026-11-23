@@ -1,5 +1,7 @@
 name: Build APK
 on: [push, workflow_dispatch]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,3 +17,19 @@ jobs:
         with:
           name: apk
           path: android/build/outputs/apk/debug/*.apk
+      # master 빌드는 "latest" 릴리스에 apk 파일 그대로 올려, 압축 없이 바로 받을 수 있게 함
+      - name: Publish APK to the latest release
+        if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/build/outputs/apk/debug/*.apk MirrorPixelDungeon.apk
+          git tag -f latest
+          git push -f origin latest
+          NOTES="$(git log -1 --pretty=%B | head -n 1)"
+          if gh release view latest >/dev/null 2>&1; then
+            gh release edit latest --notes "$NOTES"
+          else
+            gh release create latest --title "최신 빌드" --notes "$NOTES"
+          fi
+          gh release upload latest MirrorPixelDungeon.apk --clobber
