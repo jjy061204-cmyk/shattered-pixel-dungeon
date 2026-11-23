@@ -1,130 +1,34 @@
 {
- "undine": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1girl, water spirit undine, beautiful girl, translucent light blue skin, very long flowing wavy aqua hair reaching her feet, gentle smile, blue eyes, elegant blue and white dress made of flowing water, barefoot, hands clasped",
+ "king_earth": {
+  "prompt": "masterpiece, best quality, chibi, solo, full body, standing, white background, simple background, rock golem king, monster, no humans, stocky body made of brown stone blocks, glowing amber cracks, glowing amber eyes, golden crown on its head, moss and small green crystals on shoulders, huge stone fists, short legs",
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock platform, base, water surface, reflection, splash, tall, realistic proportions, long legs, human, girl, boy, armor, knight",
   "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
-  ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
- },
- "salamander": {
-  "prompt": "masterpiece, best quality, no humans, solo, full body, cute chibi fire salamander, small lizard, glossy crimson red scales, orange belly, burning flames along its back, flame on the tail tip, golden eyes, four short legs, side view, white background, simple background",
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, wings, dragon, wyvern, horns",
-  "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
+   3,
+   7,
+   13,
+   19,
+   23,
+   37,
+   43,
+   61
   ],
   "w": 512,
   "h": 512
  },
- "gnome": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, old gnome, dwarf, very short and stout, chubby, long fluffy white beard, big round nose, tall pointed brown hood, earthy brown tunic, leather belt, big boots, holding a small pickaxe",
+ "salamander": {
+  "prompt": "masterpiece, best quality, no humans, solo, full body, cute fire salamander, small red lizard walking on four legs, side view, facing right, glossy crimson scales, yellow belly, bright flames burning along its back, flame on the tail tip, golden eyes, white background, simple background",
+  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock platform, base, water surface, reflection, splash, tall, realistic proportions, long legs, wings, dragon, wyvern, horns, standing upright",
   "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
+   3,
+   7,
+   13,
+   19,
+   23,
+   37,
+   43,
+   61
   ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
- },
- "sylph": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1girl, wind fairy sylph, large translucent green butterfly wings, short green hair, pointy ears, green leaf dress, barefoot, floating, cheerful smile",
-  "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
-  ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
- },
- "king_fire": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, fire spirit king, ifrit, flaming red hair, burning golden crown, golden armor, red cape, arms crossed, proud expression, glowing eyes",
-  "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
-  ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
- },
- "king_water": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, water spirit king, long flowing aqua hair, golden crown, holding a golden trident, flowing white and blue robe, calm expression",
-  "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
-  ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
- },
- "king_wind": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, 1boy, wind spirit king, large white feathered wings, silver hair, silver crown, white and green robe, long cape, confident smile",
-  "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
-  ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
- },
- "king_earth": {
-  "prompt": "masterpiece, best quality, chibi, super deformed, big head, small body, solo, full body, standing, white background, simple background, stone golem king, golem made of rocks, glowing amber eyes, golden crown with crystals, moss on shoulders, massive arms, stone armor, no humans",
-  "seeds": [
-   5,
-   17,
-   29,
-   31,
-   47,
-   53,
-   67,
-   83
-  ],
-  "w": 512,
-  "h": 512,
-  "neg": "scenery, landscape, outdoors, indoors, detailed background, ground, floor, shadow, pedestal, platform, rock, water surface, reflection, splash, tall, realistic proportions, long legs, "
+  "w": 640,
+  "h": 448
  }
 }

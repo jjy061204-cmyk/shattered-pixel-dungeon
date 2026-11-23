@@ -9,13 +9,13 @@ pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config, 
 NEG = ("nsfw, nude, naked, nipples, cleavage, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, "
        "fewer digits, cropped, out of frame, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, "
        "username, blurry, multiple views, reference sheet, 2girls, 2boys, border, frame")
-os.makedirs('out2', exist_ok=True)
+os.makedirs('out3', exist_ok=True)
 from rembg import remove, new_session
 sess = new_session('isnet-anime')
 for seed in P['seeds']:
     g = torch.Generator().manual_seed(seed)
     im = pipe(P['prompt'], negative_prompt=NEG + ', ' + P.get('neg', ''), width=P.get('w', 512), height=P.get('h', 768),
               num_inference_steps=P.get('steps', 24), guidance_scale=7.5, generator=g).images[0]
-    im.save(f'out2/{name}_{seed}.png')
-    remove(im, session=sess).save(f'out2/{name}_{seed}_cut.png')
+    im.save(f'out3/{name}_{seed}.png')
+    remove(im, session=sess).save(f'out3/{name}_{seed}_cut.png')
     print('saved', name, seed, flush=True)

@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [undine, salamander, gnome, sylph, king_fire, king_water, king_wind, king_earth]
+        name: [salamander, king_earth]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,7 +20,7 @@ jobs:
       - run: pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1 && pip install diffusers==0.30.3 transformers==4.44.2 accelerate safetensors "rembg[cpu]"
       - run: python gen.py ${{ matrix.name }}
       - uses: actions/upload-artifact@v4
-        with: { name: 'img-${{ matrix.name }}', path: out2/ }
+        with: { name: 'img-${{ matrix.name }}', path: out3/ }
   collect:
     needs: gen
     if: always()
@@ -30,6 +30,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { path: dl, pattern: 'img-*', merge-multiple: true }
       - run: |
-          mkdir -p out2 && cp dl/*.png out2/ || true
+          mkdir -p out3 && cp dl/*.png out3/ || true
           git config user.name "spirit-art-bot"; git config user.email "actions@users.noreply.github.com"
-          git add out2 && git commit -m "generated art [skip ci]" && git push || echo nothing
+          git add out3 && git commit -m "generated art [skip ci]" && git push || echo nothing
