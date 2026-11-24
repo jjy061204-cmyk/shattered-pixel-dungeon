@@ -36,34 +36,26 @@ import com.watabou.utils.Random;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 
-//뱀파이어 갑옷 능력 2: 진조의 왕관
-// 핏빛 왕관을 쓰고 짧은 시간 동안 여러 강력한 힘을 한꺼번에 얻음
-//  공격 피해 +30%, 준 피해의 20%만큼 회복, 받는 피해 -25%, 이동 속도 1.5배, 성배 기술 생명력 소모 절반
+//뱀파이어 갑옷 능력 2: 진조의 왕관 (성직자의 승천자의 형상처럼)
+// 핏빛 왕관을 쓰고 15턴 동안 진조의 힘을 깨움
+//  공격 피해 +30%, 준 피해의 20%만큼 회복, 받는 피해 -25%, 이동 속도 1.5배, 성배 기술 생명력 소모 절반,
+//  맞힐 때마다 성배에 생명력 0.5
+//  왕관을 쓰는 동안 핏빛 성배에 '왕관 기술'이 열림: 진조의 칙령(기본) + 특성으로 권속 소환·핏빛 낙창·피의 옥좌
 public class CrimsonCrown extends ArmorAbility {
 
 	{
 		baseChargeUse = 50f;
 	}
 
-	public static final float DURATION = 10f;
+	public static final float DURATION = 15f;
 
 	@Override
 	protected void activate( ClassArmor armor, Hero hero, Integer target ) {
-		float dur = DURATION + 2f * hero.pointsInTalent( Talent.ENDLESS_REIGN );
+		float dur = DURATION;
 		Crown c = Buff.affect( hero, Crown.class, dur );
 		c.total = dur;
-
-		//왕의 위엄: 4칸 안의 보이는 적이 2/4/6/8턴 동안 약화
-		int pts = hero.pointsInTalent( Talent.ROYAL_PRESENCE );
-		if (pts > 0){
-			for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
-				if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
-						&& Dungeon.level.distance( hero.pos, mob.pos ) <= 4){
-					Buff.prolong( mob, Weakness.class, 2f * pts );
-					VampireFX.on( mob.sprite, VampireFX.DREAD, 0.36f, 0.5f ).offset( 0, -11f ).delay( 0.2f );
-				}
-			}
-		}
+		c.extended = false;
+		GLog.p( Messages.get( this, "awaken" ) );
 
 		hero.sprite.operate( hero.pos );
 		//은빛 왕관이 위에서 내려와 머리에 얹히며 둘레에 은빛 별이 반짝임
@@ -82,7 +74,7 @@ public class CrimsonCrown extends ArmorAbility {
 		return ch != null && ch.buff( Crown.class ) != null;
 	}
 
-	//공격 피해 +30%, 준 피해의 20%만큼 회복. 피의 공물: 맞힐 때마다 성배에 생명력 0.25/0.5/0.75/1
+	//공격 피해 +30%, 준 피해의 20%만큼 회복
 	public static int onAttack( Hero hero, Char enemy, int damage ){
 		if (!active( hero ) || damage <= 0) return damage;
 		damage = Math.round( damage * 1.3f );
@@ -91,8 +83,8 @@ public class CrimsonCrown extends ArmorAbility {
 			hero.HP += heal;
 			hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( heal ), FloatingText.HEALING );
 		}
-		int pts = hero.pointsInTalent( Talent.BLOOD_TRIBUTE );
-		if (pts > 0) CrimsonGrail.gainLife( hero, 0.25f * pts );
+		//맞힐 때마다 성배에 생명력 0.5 (왕관 기술의 밑천)
+		CrimsonGrail.gainLife( hero, 0.5f );
 		return damage;
 	}
 
@@ -100,6 +92,16 @@ public class CrimsonCrown extends ArmorAbility {
 	public static int reduceDamage( Char ch, int dmg ){
 		if (!active( ch ) || dmg <= 0) return dmg;
 		return Math.max( 1, Math.round( dmg * 0.75f ) );
+	}
+
+	//피의 옥좌: 왕관을 한 번 쓸 때마다 한 번만 지속 시간을 늘림
+	public static boolean extend( Char ch, float turns ){
+		Crown c = ch.buff( Crown.class );
+		if (c == null || c.extended) return false;
+		c.extended = true;
+		c.total += turns;
+		Buff.prolong( ch, Crown.class, c.cooldown() + turns );
+		return true;
 	}
 
 	public static float speedMultiplier( Char ch ){
@@ -118,7 +120,7 @@ public class CrimsonCrown extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{ Talent.ROYAL_PRESENCE, Talent.ENDLESS_REIGN, Talent.BLOOD_TRIBUTE, Talent.HEROIC_ENERGY };
+		return new Talent[]{ Talent.CROWN_RETINUE, Talent.CROWN_CATACLYSM, Talent.CROWN_THRONE, Talent.HEROIC_ENERGY };
 	}
 
 	public static class Crown extends com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff {
@@ -128,6 +130,7 @@ public class CrimsonCrown extends ArmorAbility {
 		}
 
 		public float total = DURATION;
+		public boolean extended = false;
 
 		private VampireFX.CrownImage image;
 
@@ -179,17 +182,20 @@ public class CrimsonCrown extends ArmorAbility {
 		}
 
 		private static final String TOTAL = "total";
+		private static final String EXTENDED = "extended";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( TOTAL, total );
+			bundle.put( EXTENDED, extended );
 		}
 
 		@Override
 		public void restoreFromBundle( Bundle bundle ) {
 			super.restoreFromBundle( bundle );
 			if (bundle.contains( TOTAL )) total = bundle.getFloat( TOTAL );
+			extended = bundle.getBoolean( EXTENDED );
 		}
 	}
 }

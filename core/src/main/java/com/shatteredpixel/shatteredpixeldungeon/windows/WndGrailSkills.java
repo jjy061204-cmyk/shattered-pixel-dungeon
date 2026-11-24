@@ -94,7 +94,8 @@ public class WndGrailSkills extends Window {
 
 		//줄 0: 처음부터 있는 기술, 줄 1~3: 특성 단계별로 얻은 기술과 전직 기술 (성서처럼 줄 사이에 구분선)
 		boolean first = true;
-		for (int row = 0; row <= 3; row++){
+		//줄 4: 진조의 왕관을 쓰는 동안만 쓰는 왕관 기술 (왕관이 없으면 흐리게)
+		for (int row = 0; row <= 4; row++){
 			java.util.ArrayList<CrimsonGrail.Skill> skills = CrimsonGrail.skillList( hero, row );
 			if (skills.isEmpty()) continue;
 
@@ -103,7 +104,7 @@ public class WndGrailSkills extends Window {
 
 			//줄 제목: ── 기본 기술 ── 처럼 양옆에 붉은 선
 			RenderedTextBlock head = PixelScene.renderTextBlock( Messages.get( WndGrailSkills.class, "section_" + row ), 6 );
-			head.hardlight( 0xD86A7C );
+			head.hardlight( row == 4 ? 0xFFD870 : 0xD86A7C );
 			head.setPos( (WIDTH - head.width()) / 2f, top );
 			PixelScene.align( head );
 			add( head );
@@ -203,11 +204,8 @@ public class WndGrailSkills extends Window {
 
 		private void useNow(){
 			hide();
-			if (!grail.canUse( Dungeon.hero, skill )){
-				GLog.w( Messages.get( CrimsonGrail.class, "no_skill" ) );
-			} else {
-				grail.use( skill );
-			}
+			//쓸 수 없으면 성배가 까닭을 알려 줌 (왕관 기술은 '왕관을 써야' 등)
+			grail.use( skill );
 		}
 
 		private void showInfo(){

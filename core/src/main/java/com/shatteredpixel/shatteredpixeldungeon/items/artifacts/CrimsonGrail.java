@@ -9,6 +9,10 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.CrownBat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -116,7 +120,12 @@ public class CrimsonGrail extends Artifact {
 		//피의 지배자
 		BLADE( 5, 3, null, HeroSubClass.BLOOD_LORD ),
 		INFUSE( 6, 3, null, HeroSubClass.BLOOD_LORD ),
-		CHAINS( 6, 3, Talent.BLOOD_CHAINS, null );
+		CHAINS( 6, 3, Talent.BLOOD_CHAINS, null ),
+		//진조의 왕관 (갑옷 능력): 왕관을 쓰는 동안만. 칙령은 능력을 고르면, 나머지는 왕관 특성을 찍으면
+		EDICT( 6, 4, null, null ),
+		RETINUE( 8, 4, Talent.CROWN_RETINUE, null ),
+		CATACLYSM( 8, 4, Talent.CROWN_CATACLYSM, null ),
+		THRONE( 10, 4, Talent.CROWN_THRONE, null );
 
 		public final int baseCost;
 		public final int row;
@@ -128,9 +137,16 @@ public class CrimsonGrail extends Artifact {
 		}
 
 		//hero_icons 칸 번호 (+ICON_ACTION_OFFSET: 배경 없는 행동 표시용)
-		public int icon(){ return ICON_BASE + ordinal(); }
+		public int icon(){
+			//왕관 기술은 hero_icons의 다른 빈칸(151~)에 그려 둠
+			if (ordinal() >= EDICT.ordinal()) return CROWN_ICON_BASE + ordinal() - EDICT.ordinal();
+			return ICON_BASE + ordinal();
+		}
+
+		public boolean crown(){ return row == 4; }
 
 		public boolean available( Hero hero ){
+			if (row == 4 && !(hero.armorAbility instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown)) return false;
 			if (talent != null) return hero.hasTalent( talent );
 			if (subClass != null) return hero.subClass == subClass;
 			return true;
@@ -150,6 +166,7 @@ public class CrimsonGrail extends Artifact {
 	}
 
 	public static final int ICON_BASE = 128;
+	public static final int CROWN_ICON_BASE = 151;
 	public static final int ICON_ACTION_OFFSET = 32;
 
 	public static ArrayList<Skill> skillList( Hero hero, int row ){
@@ -185,7 +202,8 @@ public class CrimsonGrail extends Artifact {
 
 	public boolean canUse( Hero hero, Skill skill ){
 		return isEquipped( hero ) && !cursed && hero.buff( MagicImmune.class ) == null
-				&& skill.available( hero ) && charge >= skill.cost( hero );
+				&& skill.available( hero ) && charge >= skill.cost( hero )
+				&& (!skill.crown() || com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.active( hero ));
 	}
 
 	//빠른 사용: 기술 창에서 길게 눌러 등록하면 화면의 행동 버튼으로 바로 씀 (같은 기술을 다시 등록하면 해제)
@@ -440,11 +458,153 @@ public class CrimsonGrail extends Artifact {
 	public void use( final Skill skill ){
 		final Hero hero = Dungeon.hero;
 		if (!canUse( hero, skill )){
-			GLog.w( Messages.get( this, "no_skill" ) );
+			//왕관 기술을 왕관 없이 쓰려 하면 따로 알려 줌
+			if (skill.crown() && skill.available( hero ) && !CrimsonCrown.active( hero )){
+				GLog.w( Messages.get( this, "crown_only" ) );
+			} else {
+				GLog.w( Messages.get( this, "no_skill" ) );
+			}
 			return;
 		}
 		final int lvl = hero.lvl;
 		switch (skill){
+
+			//--------------------------------------------- 진조의 왕관 (왕관을 쓰는 동안만)
+			case EDICT: {
+				//진조의 칙령: 4칸 안의 보이는 적이 무릎 꿇음. 피해 + 6턴 약화, 보스가 아니면 2턴 마비
+				spend( hero, skill );
+				Invisibility.dispel();
+				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
+					if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]
+							&& Dungeon.level.distance( hero.pos, mob.pos ) <= 4){
+						boolean boss = Char.hasProp( mob, Char.Property.BOSS ) || Char.hasProp( mob, Char.Property.MINIBOSS );
+						mob.damage( Random.NormalIntRange( 1 + lvl / 4, 3 + lvl / 2 ), this );
+						if (!mob.isAlive()) continue;
+						Buff.prolong( mob, Weakness.class, 6f );
+						if (!boss) Buff.prolong( mob, Paralysis.class, 2f );
+						VampireFX.on( mob.sprite, VampireFX.DREAD, 0.4f, 0.6f ).offset( 0, -11f ).delay( 0.12f );
+						VampireFX.on( mob.sprite, VampireFX.SHACKLE, 0.45f, 0.55f ).delay( 0.2f );
+						if (mob.sprite != null) mob.sprite.emitter().burst( BloodParticle.BURST, 8 );
+					}
+				}
+				//왕관에서 핏빛 파동이 퍼지며 땅이 울림
+				VampireFX.onBig( hero.sprite, VampireFX.B_AURA, 0.62f, 0.8f );
+				VampireFX.at( hero.pos, VampireFX.NOVA, 1.2f, 0.55f ).grow( 2.6f );
+				VampireFX.on( hero.sprite, VampireFX.DREAD, 0.9f, 0.7f ).offset( 0, -16f );
+				GameScene.flash( 0x50AA1028 );
+				com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.shake( 1.6f, 0.35f );
+				Sample.INSTANCE.play( Assets.Sounds.CURSED, 1f, 0.6f );
+				Sample.INSTANCE.play( Assets.Sounds.BLAST, 0.7f, 0.7f );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+			}
+
+			case RETINUE: {
+				//권속 소환: 곁의 빈칸에 핏빛 박쥐 2/3/4/5마리
+				int pts = hero.pointsInTalent( Talent.CROWN_RETINUE );
+				ArrayList<Integer> spots = new ArrayList<>();
+				for (int n : PathFinder.NEIGHBOURS8){
+					int c = hero.pos + n;
+					if (!Dungeon.level.solid[c] && Actor.findChar( c ) == null) spots.add( c );
+				}
+				if (spots.isEmpty()){
+					GLog.w( Messages.get( this, "no_space" ) );
+					return;
+				}
+				spend( hero, skill );
+				Invisibility.dispel();
+				java.util.Collections.shuffle( spots );
+				int n = Math.min( spots.size(), 1 + pts );
+				for (int i = 0; i < n; i++){
+					CrownBat bat = new CrownBat();
+					bat.setup( pts );
+					bat.pos = spots.get( i );
+					GameScene.add( bat );
+					VampireFX.at( bat.pos, VampireFX.BATBURST, 0.7f, 0.5f ).delay( i * 0.06f );
+					if (bat.sprite != null) bat.sprite.emitter().burst( BloodParticle.BURST, 8 );
+				}
+				VampireFX.on( hero.sprite, VampireFX.WINGS, 0.9f, 0.6f );
+				Sample.INSTANCE.play( Assets.Sounds.MISS, 1f, 0.6f );
+				Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.6f, 1.3f );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+			}
+
+			case CATACLYSM:
+				//핏빛 낙창: 6칸 안의 고른 곳에 핏빛 창이 비처럼 쏟아짐 (반경 1, 3점부터 반경 2)
+				pickCell( hero, skill, 6, new OnTarget() {
+					@Override
+					public void hit( Char picked, final int cell ) {
+						if (!Dungeon.level.heroFOV[cell] || Dungeon.level.distance( hero.pos, cell ) > 6){
+							GLog.w( Messages.get( CrimsonGrail.class, "cell_far", 6 ) );
+							return;
+						}
+						spend( hero, skill );
+						Invisibility.dispel();
+						final int pts = hero.pointsInTalent( Talent.CROWN_CATACLYSM );
+						int radius = pts >= 3 ? 2 : 1;
+						PathFinder.buildDistanceMap( cell, BArray.not( Dungeon.level.solid, null ), radius );
+						final ArrayList<Integer> area = new ArrayList<>();
+						for (int c = 0; c < Dungeon.level.length(); c++){
+							if (PathFinder.distance[c] < Integer.MAX_VALUE) area.add( c );
+						}
+						hero.busy();
+						hero.sprite.zap( cell );
+						Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 0.8f, 0.7f );
+						VampireFX.at( cell, VampireFX.AURA, 0.9f + 0.4f * radius, 0.7f );
+						java.util.Collections.shuffle( area );
+						for (int i = 0; i < area.size(); i++){
+							final int c = area.get( i );
+							PointF to = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.raisedTileCenterToWorld( c );
+							PointF from = new PointF( to.x - 10 + Random.Float( -4, 4 ), to.y - 70 );
+							final boolean last = i == area.size() - 1;
+							VampireFX.shoot( VampireFX.Projectile.LANCE, from, to, 0.05f + i * 0.04f, new Callback() {
+								@Override
+								public void call() {
+									VampireFX.at( c, VampireFX.SPLASH, 0.55f, 0.35f );
+									if (!last) return;
+									//마지막 창이 꽂히면 한꺼번에 피해
+									for (int a : area){
+										Char ch = Actor.findChar( a );
+										if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) continue;
+										int dmg = Math.round( Random.NormalIntRange( 4 + lvl / 2, 8 + lvl ) * (0.7f + 0.15f * pts) );
+										boolean living = isLiving( ch );
+										int dealt = wound( ch, dmg );
+										if (ch.sprite != null) ch.sprite.emitter().burst( BloodParticle.BURST, 10 );
+										if (ch.isAlive() && living && dealt > 0) Buff.affect( ch, Bleeding.class ).set( Math.max( 1f, dmg * 0.3f ) );
+									}
+									VampireFX.at( cell, VampireFX.NOVA, 0.8f, 0.45f ).grow( 1.2f + 0.6f * (pts >= 3 ? 2 : 1) );
+									com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.shake( 2f, 0.3f );
+									Sample.INSTANCE.play( Assets.Sounds.BLAST, 1f, 0.8f );
+									finish( hero, 1f );
+								}
+							} );
+						}
+					}
+				} );
+				break;
+
+			case THRONE: {
+				//피의 옥좌: 체력 20/25/30/35% 회복 + 10/15/20/25% 보호막 + 해로운 효과 정화, 왕관 3/4/5/6턴 연장(왕관마다 한 번)
+				spend( hero, skill );
+				int pts = hero.pointsInTalent( Talent.CROWN_THRONE );
+				heal( hero, Math.max( 1, Math.round( hero.HT * (0.15f + 0.05f * pts) ) ) );
+				Buff.affect( hero, Barrier.class ).setShield( Math.max( 2, Math.round( hero.HT * (0.05f + 0.05f * pts) ) ) );
+				com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing.cleanse( hero, 1f );
+				boolean ext = CrimsonCrown.extend( hero, 2f + pts );
+				if (ext) GLog.p( Messages.get( this, "throne_extend", 2 + pts ) );
+				VampireFX.onBig( hero.sprite, VampireFX.B_HEART, 0.55f, 0.9f ).offset( 0, -4f );
+				VampireFX.onBig( hero.sprite, VampireFX.B_SPARKLE, 0.4f, 0.8f ).offset( 0, -2f ).delay( 0.15f );
+				VampireFX.on( hero.sprite, VampireFX.MEND, 0.8f, 0.6f );
+				GameScene.flash( 0x40E0B040 );
+				Sample.INSTANCE.play( Assets.Sounds.DRINK, 1f, 0.8f );
+				Sample.INSTANCE.play( Assets.Sounds.LEVELUP, 0.5f, 1.2f );
+				hero.sprite.operate( hero.pos );
+				finish( hero, 1f );
+				break;
+			}
 
 			//--------------------------------------------- 처음부터 있는 기술
 			case DRAIN:
