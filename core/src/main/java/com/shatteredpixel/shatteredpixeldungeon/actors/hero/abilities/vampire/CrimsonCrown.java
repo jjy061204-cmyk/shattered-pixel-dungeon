@@ -52,8 +52,9 @@ public class CrimsonCrown extends ArmorAbility {
 	@Override
 	protected void activate( ClassArmor armor, Hero hero, Integer target ) {
 		float dur = DURATION;
-		Crown c = Buff.affect( hero, Crown.class, dur );
-		c.total = dur;
+		//다시 쓰면 지속 시간을 15턴으로 갱신 (피의 옥좌로 늘어나 더 길게 남아 있으면 그대로)
+		Crown c = Buff.prolong( hero, Crown.class, dur );
+		c.total = Math.max( dur, c.cooldown() );
 		c.extended = false;
 		GLog.p( Messages.get( this, "awaken" ) );
 
