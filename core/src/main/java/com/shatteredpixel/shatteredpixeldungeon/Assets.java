@@ -58,6 +58,9 @@ public class Assets {
 		public static final String TILES_VAMPIRE_CRYPT  = "environment/tiles_vampire_crypt.png";
 		public static final String TILES_VAMPIRE_CASTLE = "environment/tiles_vampire_castle.png";
 		public static final String WATER_BLOOD          = "environment/water_blood.png";
+		//모드: 갈림길 테마 수정 광맥
+		public static final String TILES_CRYSTAL_VEIN   = "environment/tiles_crystal_vein.png";
+		public static final String WATER_CRYSTAL        = "environment/water_crystal.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";

@@ -31,7 +31,7 @@ public class Routes {
 		MINES( 2, true ),            //원작 광산
 		GNOLL_EMPIRE( 3, true ),     //놀 군단이 DM-300과 기계들을 몰아내고 세운 놀 제국
 		VAMPIRE_CASTLE( 3, true ),   //광산에 숨어든 뱀파이어가 생물들을 감염시킨 흡혈귀의 성
-		CRYSTAL_VEIN( 2, false );    //드워프들이 캐다 깨운 수정 생명체가 뒤덮은 수정 광맥
+		CRYSTAL_VEIN( 2, true );    //드워프들이 캐다 깨운 수정 생명체가 뒤덮은 수정 광맥
 
 		public final int danger;
 		//만들어진 길인지 (아직이면 갈림길에서 고를 수 없음)
