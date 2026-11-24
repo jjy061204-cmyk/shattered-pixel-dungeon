@@ -73,6 +73,10 @@ public class MobSpawner extends Actor {
 		if (depth >= 11 && depth <= 15 && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.active()){
 			return gnollEmpireRotation( depth );
 		}
+		//모드: 갈림길 루트 '수정 광맥' (원작 동굴 몹 구성 그대로, 모두 수정에 잠식된 모습)
+		if (depth >= 11 && depth <= 15 && CrystalVeinMobs.active()){
+			return crystalVeinRotation( depth );
+		}
 		//모드: 갈림길 루트 '흡혈귀의 성' (브루트→구울 놀, 주술사→피의 사제, 거미→혈사 거미, DM-200→호위 기사)
 		if (depth >= 11 && depth <= 15 && com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.active()){
 			return vampireCastleRotation( depth );
@@ -254,6 +258,36 @@ public class MobSpawner extends Actor {
 		}
 	}
 
+	private static ArrayList<Class<? extends Mob>> crystalVeinRotation( int depth ){
+		switch (depth){
+			case 11: default:
+				return new ArrayList<>(Arrays.asList(
+						CrystalVeinMobs.CrystalBat.class, CrystalVeinMobs.CrystalBat.class, CrystalVeinMobs.CrystalBat.class,
+						CrystalVeinMobs.CrystalBrute.class,
+						CrystalVeinMobs.randomShaman()));
+			case 12:
+				return new ArrayList<>(Arrays.asList(
+						CrystalVeinMobs.CrystalBat.class, CrystalVeinMobs.CrystalBat.class,
+						CrystalVeinMobs.CrystalBrute.class, CrystalVeinMobs.CrystalBrute.class,
+						CrystalVeinMobs.randomShaman(),
+						CrystalVeinMobs.CrystalSpinner.class));
+			case 13:
+				return new ArrayList<>(Arrays.asList(
+						CrystalVeinMobs.CrystalBat.class,
+						CrystalVeinMobs.CrystalBrute.class, CrystalVeinMobs.CrystalBrute.class,
+						CrystalVeinMobs.randomShaman(), CrystalVeinMobs.randomShaman(),
+						CrystalVeinMobs.CrystalSpinner.class, CrystalVeinMobs.CrystalSpinner.class,
+						CrystalVeinMobs.CrystalDM200.class));
+			case 14: case 15:
+				return new ArrayList<>(Arrays.asList(
+						CrystalVeinMobs.CrystalBat.class,
+						CrystalVeinMobs.CrystalBrute.class,
+						CrystalVeinMobs.randomShaman(), CrystalVeinMobs.randomShaman(),
+						CrystalVeinMobs.CrystalSpinner.class, CrystalVeinMobs.CrystalSpinner.class,
+						CrystalVeinMobs.CrystalDM200.class, CrystalVeinMobs.CrystalDM200.class));
+		}
+	}
+
 	private static ArrayList<Class<? extends Mob>> vampireCastleRotation( int depth ){
 		switch (depth){
 			case 11: default:
@@ -350,6 +384,8 @@ public class MobSpawner extends Actor {
 
 		RARE_ALTS.put(Brute.class,          ArmoredBrute.class);
 		RARE_ALTS.put(DM200.class,          DM201.class);
+		RARE_ALTS.put(CrystalVeinMobs.CrystalBrute.class, CrystalVeinMobs.CrystalArmoredBrute.class);
+		RARE_ALTS.put(CrystalVeinMobs.CrystalDM200.class, CrystalVeinMobs.CrystalDM201.class);
 
 		RARE_ALTS.put(Monk.class,           Senior.class);
 		//swapping to chaos elemental actually happens in Elemental.random

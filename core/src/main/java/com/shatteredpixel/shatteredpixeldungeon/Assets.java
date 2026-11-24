@@ -312,6 +312,12 @@ public class Assets {
 		public static final String VC_GHOUL_GNOLL     = "sprites/vc_ghoul_gnoll.png";
 		public static final String VC_BLOOD_PRIEST    = "sprites/vc_blood_priest.png";
 		public static final String VC_BLOOD_SPIDER    = "sprites/vc_blood_spider.png";
+		//모드: 수정 광맥 몹 (원작 동굴 몹이 수정에 잠식된 그림)
+		public static final String CV_BAT        = "sprites/cv_bat.png";
+		public static final String CV_BRUTE      = "sprites/cv_brute.png";
+		public static final String CV_SHAMAN     = "sprites/cv_shaman.png";
+		public static final String CV_SPINNER    = "sprites/cv_spinner.png";
+		public static final String CV_DM200      = "sprites/cv_dm200.png";
 		public static final String VC_CASTLE_KNIGHT   = "sprites/vc_castle_knight.png";
 		public static final String VC_VAMPIRE_BRIDE   = "sprites/vc_vampire_bride.png";
 		public static final String VC_BLOOD_THRALL    = "sprites/vc_blood_thrall.png";

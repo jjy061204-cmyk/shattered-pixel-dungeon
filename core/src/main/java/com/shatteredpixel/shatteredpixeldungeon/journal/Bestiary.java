@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bandit;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bat;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CausticSlime;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Crab;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalGuardian;
@@ -282,6 +283,16 @@ public enum Bestiary {
 		classConversions.put(VaultElemental.Frost.class,        Elemental.FrostElemental.class);
 		classConversions.put(VaultElemental.Shock.class,        Elemental.ShockElemental.class);
 		classConversions.put(VaultGolem.class,                  Golem.class);
+		//모드: 수정 광맥 몹은 원작 몹으로 셈
+		classConversions.put(CrystalVeinMobs.CrystalBat.class,          Bat.class);
+		classConversions.put(CrystalVeinMobs.CrystalBrute.class,        Brute.class);
+		classConversions.put(CrystalVeinMobs.CrystalArmoredBrute.class, ArmoredBrute.class);
+		classConversions.put(CrystalVeinMobs.CrystalRedShaman.class,    Shaman.RedShaman.class);
+		classConversions.put(CrystalVeinMobs.CrystalBlueShaman.class,   Shaman.BlueShaman.class);
+		classConversions.put(CrystalVeinMobs.CrystalPurpleShaman.class, Shaman.PurpleShaman.class);
+		classConversions.put(CrystalVeinMobs.CrystalSpinner.class,      Spinner.class);
+		classConversions.put(CrystalVeinMobs.CrystalDM200.class,        DM200.class);
+		classConversions.put(CrystalVeinMobs.CrystalDM201.class,        DM201.class);
 
 		classConversions.put(DwarfKing.DKGhoul.class,           Ghoul.class);
 		classConversions.put(DwarfKing.DKWarlock.class,         Warlock.class);
