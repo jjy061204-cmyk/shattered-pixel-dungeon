@@ -85,6 +85,14 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 			return -1;
 		}
 
+		//모드: 수정 광맥은 수정 가루·결정 덤불·수정이 오른 석상·수정 기둥·방책을 자체 타일에 그려 두었으므로 동굴 장식을 겹치지 않음
+		if (com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isVein()
+				&& (tile == Terrain.GRASS || tile == Terrain.HIGH_GRASS || tile == Terrain.FURROWED_GRASS
+					|| tile == Terrain.STATUE || tile == Terrain.STATUE_SP || tile == Terrain.BARRICADE
+					|| tile == Terrain.REGION_DECO || tile == Terrain.REGION_DECO_ALT)){
+			return -1;
+		}
+
 		//모드: 놀 제국은 방책·토템·모닥불·고철 더미·천막을 자체 타일에 그려 두었으므로 동굴 장식을 겹치지 않음 (풀은 그대로)
 		if (com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isEmpireLevel(Dungeon.level)){
 			if (tile == Terrain.BARRICADE || tile == Terrain.STATUE || tile == Terrain.STATUE_SP

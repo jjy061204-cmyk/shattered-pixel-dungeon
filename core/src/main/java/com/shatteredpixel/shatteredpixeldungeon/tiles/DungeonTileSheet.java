@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.utils.Random;
@@ -341,7 +342,8 @@ public class DungeonTileSheet {
 
 		if (tile == Terrain.BOOKSHELF || below == Terrain.BOOKSHELF)        result = WALL_INTERNAL_WOODEN;
 		//TODO currently this line on triggers on mining floors, do we want to make it universal?
-		else if (Dungeon.branch == 1 && tile == Terrain.WALL_DECO)          result = WALL_INTERNAL_DECO;
+		//모드: 수정 광맥도 수정맥 벽은 테두리까지 수정
+		else if ((Dungeon.branch == 1 || CrystalVeinLevel.isVein()) && tile == Terrain.WALL_DECO)          result = WALL_INTERNAL_DECO;
 		else                                                                result = WALL_INTERNAL;
 
 		if (!wallStitcheable(right))        result += 1;
@@ -370,7 +372,7 @@ public class DungeonTileSheet {
 		else if (tile == Terrain.HERO_LKD_DR)                       visual = DOOR_SIDEWAYS_OVERHANG_LOCKED;
 		else if (tile == Terrain.CRYSTAL_DOOR)                      visual = DOOR_SIDEWAYS_OVERHANG_CRYSTAL;
 		//TODO currently this line on triggers on mining floors, do we want to make it universal?
-		else if (Dungeon.branch == 1 && below == Terrain.WALL_DECO) visual = WALL_OVERHANG_DECO;
+		else if ((Dungeon.branch == 1 || CrystalVeinLevel.isVein()) && below == Terrain.WALL_DECO) visual = WALL_OVERHANG_DECO;
 		else if (below == Terrain.BOOKSHELF)                        visual = WALL_OVERHANG_WOODEN;
 		else                                                        visual = WALL_OVERHANG;
 

@@ -127,6 +127,10 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 			return DungeonTileSheet.STATUE_OVERHANG;
 		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.STATUE_SP){
 			return DungeonTileSheet.STATUE_SP_OVERHANG;
+		} else if (pos + mapWidth < size && (map[pos+mapWidth] == Terrain.REGION_DECO || map[pos+mapWidth] == Terrain.REGION_DECO_ALT)
+				&& com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isVein()){
+			//모드: 수정 광맥의 수정 기둥 윗부분 (기둥과 같은 색)
+			return com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.pillarOverhang( pos + mapWidth );
 		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.REGION_DECO){
 			return DungeonTileSheet.REGION_DECO_OVERHANG;
 		} else if (pos + mapWidth < size && map[pos+mapWidth] == Terrain.REGION_DECO_ALT){

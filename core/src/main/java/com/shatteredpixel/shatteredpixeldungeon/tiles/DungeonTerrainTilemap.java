@@ -95,6 +95,10 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 				return DungeonTileSheet.RAISED_STATUE;
 			} else if (tile == Terrain.STATUE_SP) {
 				return DungeonTileSheet.RAISED_STATUE_SP;
+			} else if ((tile == Terrain.REGION_DECO || tile == Terrain.REGION_DECO_ALT)
+					&& com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isVein()) {
+				//모드: 수정 광맥의 수정 기둥은 칸마다 푸른·초록·붉은 수정
+				return com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.pillarRaised( pos );
 			} else if (tile == Terrain.REGION_DECO) {
 				return DungeonTileSheet.RAISED_REGION_DECO;
 			} else if (tile == Terrain.REGION_DECO_ALT) {
@@ -123,6 +127,10 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 				return DungeonTileSheet.NULL_TILE;
 			}
 		} else {
+			if ((tile == Terrain.REGION_DECO || tile == Terrain.REGION_DECO_ALT)
+					&& com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isVein()) {
+				return com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.pillarFlat( pos );
+			}
 			return DungeonTileSheet.getVisualWithAlts(
 					DungeonTileSheet.directFlatVisuals.get(tile),
 					pos);
