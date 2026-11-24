@@ -383,6 +383,9 @@ public class ItemSpriteSheet {
 	public static final int ARMOR_HUNTRESS  = ARMOR+8;
 	public static final int ARMOR_DUELIST   = ARMOR+9;
 	public static final int ARMOR_CLERIC    = ARMOR+10;
+	//모드: 뱀파이어·정령사 전용 영웅 갑옷
+	public static final int ARMOR_VAMPIRE   = ARMOR+11;
+	public static final int ARMOR_ELEMENTALIST = ARMOR+12;
 	static{
 		assignItemRect(ARMOR_CLOTH,     15, 12);
 		assignItemRect(ARMOR_LEATHER,   14, 13);
@@ -395,6 +398,8 @@ public class ItemSpriteSheet {
 		assignItemRect(ARMOR_HUNTRESS,  13, 15);
 		assignItemRect(ARMOR_DUELIST,   12, 13);
 		assignItemRect(ARMOR_CLERIC,    13, 14);
+		assignItemRect(ARMOR_VAMPIRE,   15, 15);
+		assignItemRect(ARMOR_ELEMENTALIST, 15, 15);
 	}
 
 	                                                                                    //16 free slots

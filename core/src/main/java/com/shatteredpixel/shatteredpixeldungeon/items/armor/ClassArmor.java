@@ -100,8 +100,14 @@ abstract public class ClassArmor extends Armor {
 		ClassArmor classArmor = null;
 		
 		switch (owner.heroClass) {
-			case WARRIOR: case VAMPIRE: case ELEMENTALIST: case MAGIC_KNIGHT:
+			case WARRIOR: case MAGIC_KNIGHT:
 				classArmor = new WarriorArmor();
+				break;
+			case VAMPIRE:
+				classArmor = new VampireArmor();
+				break;
+			case ELEMENTALIST:
+				classArmor = new ElementalistArmor();
 				break;
 			case ROGUE: case COLLECTOR:
 				classArmor = new RogueArmor();
@@ -141,6 +147,21 @@ abstract public class ClassArmor extends Armor {
 		classArmor.charge = 50;
 		
 		return classArmor;
+	}
+
+	//모드: 영웅에게 맞는 전용 갑옷 종류가 아니면 모든 값(강화·각인·충전·인장 등)을 그대로 옮겨 바꿈
+	public static Armor migrateForClass( Hero owner, Armor armor ){
+		if (owner == null || !(armor instanceof WarriorArmor)) return armor;
+		ClassArmor fresh;
+		switch (owner.heroClass){
+			case VAMPIRE:      fresh = new VampireArmor(); break;
+			case ELEMENTALIST: fresh = new ElementalistArmor(); break;
+			default:           return armor;
+		}
+		Bundle b = new Bundle();
+		armor.storeInBundle( b );
+		fresh.restoreFromBundle( b );
+		return fresh;
 	}
 
 	private static final String ARMOR_TIER	= "armortier";

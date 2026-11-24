@@ -196,6 +196,8 @@ public class Belongings implements Iterable<Item> {
 		if (weapon() != null)       weapon().activate(owner);
 		
 		armor = (Armor)bundle.get( ARMOR );
+		//모드: 예전 저장의 뱀파이어·정령사 영웅 갑옷(판금 갑옷 모양)을 각자의 전용 갑옷으로 바꿔 줌
+		armor = ClassArmor.migrateForClass( owner, armor );
 		if (armor() != null)        armor().activate( owner );
 
 		artifact = (Artifact) bundle.get(ARTIFACT);

@@ -1,16 +1,25 @@
 /*
  * Mirror Pixel Dungeon (Shattered Pixel Dungeon 모드)
- * 숲의 완드에 깃든 정령 3칸 관리 (정령 버튼을 길게 누르거나 완드의 '정령 관리')
- *  - 빈칸·깃들이기: 촉매에서 정령을 불러 완드에 담음 / 되돌리기: 장비의 정령을 완드로
- *  - 고른 정령: 부여(장비로 옮김) · 발현(가운데로) · 풀어 주기
- *  - 정령 부여사: 한 장비에 정령을 둘까지 깃들임 (둘 다 차 있으면 어느 쪽과 바꿀지 고름)
- *  - 정령 계약자: 상급 정령을 실체화시키고, 실체화한 정령을 다시 완드로 거둠
+ * 정령술: 정령사가 숲의 완드로 하는 모든 일을 한 창에 (정령 버튼을 길게 누르거나 완드의 '정령술')
+ *
+ *  ┌ 정령술 ─────────────────── [?] ┐
+ *  │   [왼쪽]  [  가운데(발현)  ]  [오른쪽]   │  ← 칸을 눌러 고름. 고른 빈칸을 한 번 더 누르면 정령 소환
+ *  │          고른 정령 이름 · 한 줄 능력        │
+ *  │  [부여] [발현] (실체화) [풀어 주기]         │  ← 고른 정령에게 하는 일
+ *  │ ─────────────── 숲의 완드 ─────────────── │
+ *  │  [정령 소환] [되돌리기] [바꾸기]            │  ← 완드 전체의 일
+ *  │  (계약 소환) (거두기)                       │  ← 정령 계약자·실체화한 정령이 있을 때만
+ *  │  누르면 사용 · 길게 누르면 정령 버튼에 등록  │
+ *  └───────────────────────────────────┘
+ *  - 정령 버튼에 등록된 일은 금빛 테두리. 부여·풀어 주기를 등록하면 발현 중인(가운데) 정령에게 씀
+ *  - 정령 부여사: 한 장비에 정령을 둘까지 / 정령 계약자: 상급 정령 실체화·거두기
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.GreaterSpirit;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -41,29 +50,31 @@ import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
 public class WndForestWand extends Window {
 
-	//한 화면 구성: [머리줄] → [정령 3칸] → [고른 정령 이름·한 줄 능력] → [고른 정령에게 할 일] → [완드 전체의 일]
-	private static final int WIDTH = 120;
+	private static final int WIDTH = 128;
 	private static final int GAP = 2;
-	private static final int BTN_H = 18;
+	private static final int BTN_H = 17;
 	private static final int CARD_C = 38;     //가운데(발현) 칸
 	private static final int CARD_S = 28;     //양옆(저장) 칸
-	private static final int CARD_GAP = 7;
+	private static final int CARD_GAP = 8;
 
 	private static final int ACTIVE_GOLD = 0xFFE9A0;   //발현 칸
+	private static final int GREEN = 0x9FD86A;
+	private static final int QUICK_GOLD = 0xFFD860;    //정령 버튼에 등록된 일
 
 	//버튼 빛깔표: 테두리 · 바탕 · 위 빛줄 · 아래 그림자 · 글씨
 	private static final int UI_BASE = 0x1A1815;
-	//모든 버튼은 같은 모양(어두운 바탕 + 회색 테두리)이고 글씨 빛깔만 살짝 다름
 	private static final int[] PAL_NEUTRAL = palette( 0x948E80, false );
 	private static final int[] PAL_BESTOW  = withText( PAL_NEUTRAL, 0xFFE2A0 );   //부여(완드 → 장비): 금빛 글씨
-	private static final int[] PAL_IMBUE   = withText( PAL_NEUTRAL, 0xCCF2B4 );   //깃들이기(촉매 → 완드): 풀빛 글씨
+	private static final int[] PAL_IMBUE   = withText( PAL_NEUTRAL, 0xCCF2B4 );   //정령 소환(촉매 → 완드): 풀빛 글씨
 	private static final int[] PAL_RELEASE = withText( PAL_NEUTRAL, 0xFFAFA2 );   //풀어 주기: 붉은 글씨
+	private static final int[] PAL_QUICK   = { 0xD8A838, 0x2A2416, 0x3A3220, 0x16120A, 0xFFE89A };
 	private static final int[] PAL_OFF     = { 0x4C4942, 0x262420, 0x2E2C28, 0x1E1C19, 0x7E7A72 };
 	private static final int EMPTY_GREEN   = 0x8FD86A;   //고른 빈칸
 	private static final int TEXT_DIM    = 0xB4B4B4;
@@ -80,7 +91,7 @@ public class WndForestWand extends Window {
 		super.hide();
 	}
 
-	//모드: 정령술 창·행동 버튼에서 관리 창을 열지 않고 바로 씀 (되돌리기·실체 거두기·부여·풀어 주기)
+	//모드: 정령 버튼에서 창을 열지 않고 바로 씀 (되돌리기·실체 거두기·부여·풀어 주기)
 	// 고른 칸은 발현 중인 가운데 정령
 	public static void runArt( ForestWand wand, String key ){
 		WndForestWand w = new WndForestWand( wand, ForestWand.CENTER );
@@ -97,7 +108,7 @@ public class WndForestWand extends Window {
 		this( wand, defaultSel( wand ) );
 	}
 
-	//처음엔 발현 중인(가운데) 정령, 없으면 깃든 첫 정령을 고름
+	//처음엔 발현 중인(가운데) 정령, 없으면 첫 정령, 정령이 없으면 가운데 빈칸
 	private static int defaultSel( ForestWand wand ){
 		if (wand.slots[ForestWand.CENTER] != null) return ForestWand.CENTER;
 		for (int i = 0; i < ForestWand.SLOTS; i++) if (wand.slots[i] != null) return i;
@@ -109,12 +120,18 @@ public class WndForestWand extends Window {
 		this.wand = wand;
 		this.sel = selected;
 		wand.preferredSlot = -1;
+		chrome.hardlight( 0xC8E8B0 );
 
 		// ── 머리줄: 완드 그림 + 제목, 오른쪽 끝에 도움말 ──
 		ItemSprite wandIcon = new ItemSprite( wand );
 		wandIcon.x = 0;
 		wandIcon.y = 0;
 		add( wandIcon );
+		RenderedTextBlock title = PixelScene.renderTextBlock( Messages.titleCase( Messages.get( this, "title" ) ), 9 );
+		title.hardlight( GREEN );
+		title.setPos( 19, (16 - title.height()) / 2f );
+		PixelScene.align( title );
+		add( title );
 		UiButton help = new UiButton( "?", 8, PAL_NEUTRAL ){
 			@Override
 			protected void onClick() {
@@ -123,32 +140,9 @@ public class WndForestWand extends Window {
 		};
 		help.setRect( WIDTH - 14, 1, 14, 14 );
 		add( help );
-		//깃들이기는 어느 칸을 골랐든 언제나 머리줄에서 바로 (완드가 가득 차면 꺼짐)
-		boolean full = wand.freeSlot() < 0;
-		UiButton imbueTop = new UiButton( Messages.get( this, full ? "imbue_full" : "imbue_top" ), 7, full ? PAL_NEUTRAL : PAL_IMBUE ){
-			@Override
-			protected void onClick() {
-				imbue();
-			}
-		};
-		//되돌리기도 어느 칸을 골랐든 머리줄에서 (장비에 깃든 정령이 없거나 완드가 가득 차면 꺼짐)
-		UiButton recallTop = new UiButton( Messages.get( this, "act_recall" ), 7, PAL_NEUTRAL ){
-			@Override
-			protected void onClick() {
-				recall();
-			}
-		};
-		float rw = Math.max( 34, recallTop.labelWidth() + 8 );
-		float iw = Math.max( 36, imbueTop.labelWidth() + 8 );
-		recallTop.setRect( WIDTH - 14 - 2 - rw, 1, rw, 14 );
-		imbueTop.setRect( recallTop.left() - 2 - iw, 1, iw, 14 );
-		if (full) imbueTop.enable( false );
-		if (full || !hasBestowed()) recallTop.enable( false );
-		add( imbueTop );
-		add( recallTop );
-		float y = 16 + 7;
+		float y = 16 + 6;
 
-		// ── 정령 3칸: 가운데(발현)는 크게, 양옆(저장)은 작게. 빈칸을 누르면 곧바로 깃들이기 ──
+		// ── 정령 3칸: 가운데(발현)는 크게, 양옆(저장)은 작게 ──
 		float total = CARD_S*2 + CARD_C + CARD_GAP*2;
 		float x0 = (WIDTH - total) / 2f;
 		float[] cardX = { x0, x0 + CARD_S + CARD_GAP, x0 + CARD_S + CARD_GAP*2 + CARD_C };
@@ -165,9 +159,9 @@ public class WndForestWand extends Window {
 		tag.hardlight( wand.slots[ForestWand.CENTER] != null ? ACTIVE_GOLD : 0x777777 );
 		tag.setPos( cardX[ForestWand.CENTER] + (CARD_C - tag.width()) / 2f, y );
 		add( tag );
-		y = tag.bottom() + 7;
+		y = tag.bottom() + 6;
 
-		// ── 고른 칸: 이름과 한 줄 설명 (누르면 자세한 설명) ──
+		// ── 고른 칸: 이름과 한 줄 능력 (누르면 자세한 설명) ──
 		final ForestWand.Spirit s = wand.slots[sel];
 		float infoTop = y;
 		RenderedTextBlock name = PixelScene.renderTextBlock(
@@ -182,7 +176,7 @@ public class WndForestWand extends Window {
 		brief.align( RenderedTextBlock.CENTER_ALIGN );
 		brief.setPos( (WIDTH - brief.width()) / 2f, name.bottom() + 3 );
 		add( brief );
-		y = brief.bottom() + 7;
+		y = brief.bottom() + 6;
 		Button info = new Button(){
 			@Override
 			protected void onClick() {
@@ -192,87 +186,131 @@ public class WndForestWand extends Window {
 		info.setRect( 0, infoTop - 2, WIDTH, y - infoTop - 3 );
 		add( info );
 
-		// ── 고른 칸에서 할 일: 한 줄에 같은 모양의 버튼만 ──
-		//  정령 칸: 부여 · 발현 · (실체화) · 풀어 주기  /  빈칸: 깃들이기 · 되돌리기
-		ArrayList<String> keys = new ArrayList<>();
+		// ── 고른 정령에게 하는 일 (빈칸이면 줄 없이 위의 안내만) ──
 		if (s != null){
+			ArrayList<String> keys = new ArrayList<>();
 			keys.add( "bestow" );
 			keys.add( "to_center" );
 			if (s.greater && contractor()) keys.add( "materialize" );
 			keys.add( "release" );
-		} else {
-			keys.add( "imbue" );
-			keys.add( "recall" );
+			y = buttonRow( keys, y, true );
 		}
-		int perRow = keys.size() == 4 ? 2 : keys.size();
-		int rows = (keys.size() + perRow - 1) / perRow;
-		float bw = (WIDTH - GAP*(perRow - 1)) / (float) perRow;
-		for (int k = 0; k < keys.size(); k++){
+
+		// ── 숲의 완드 전체의 일 ──
+		y = header( Messages.get( this, "section_wand" ), y + 3 );
+		ArrayList<String> wandKeys = new ArrayList<>();
+		wandKeys.add( WndSpiritArts.IMBUE );
+		wandKeys.add( WndSpiritArts.RECALL );
+		wandKeys.add( WndSpiritArts.SWITCH );
+		y = buttonRow( wandKeys, y, false );
+		ArrayList<String> more = new ArrayList<>();
+		if (contractor()) more.add( WndSpiritArts.CONTRACT );
+		if (!ForestWand.materializedSpirits().isEmpty()) more.add( WndSpiritArts.UNMATERIALIZE );
+		if (!more.isEmpty()) y = buttonRow( more, y + GAP, false );
+
+		// ── 맨 아래 안내: 누르면 사용 · 길게 누르면 정령 버튼에 등록 (지금 등록된 일) ──
+		String q = wand.quickArt == null ? WndSpiritArts.SWITCH : wand.quickArt;
+		RenderedTextBlock foot = PixelScene.renderTextBlock( Messages.get( this,
+				DeviceCompat.isDesktop() ? "foot_desktop" : "foot_mobile", WndSpiritArts.artName( q ) ), 5 );
+		foot.hardlight( 0x9A9A90 );
+		foot.maxWidth( WIDTH );
+		foot.align( RenderedTextBlock.CENTER_ALIGN );
+		foot.setPos( (WIDTH - foot.width()) / 2f, y + 5 );
+		add( foot );
+		y = foot.bottom();
+
+		resize( WIDTH, (int) Math.ceil( y ) );
+
+		//모바일에서는 창을 도구 모음 바로 위로 내림
+		if (SPDSettings.interfaceSize() != 2){
+			offset( 0, (int) (GameScene.uiCamera.height / 2 - 30 - height / 2) );
+		}
+	}
+
+	//줄 제목: ── 제목 ── (양옆 풀빛 선)
+	private float header( String text, float top ){
+		RenderedTextBlock head = PixelScene.renderTextBlock( text, 6 );
+		head.hardlight( 0xB8E890 );
+		head.setPos( (WIDTH - head.width()) / 2f, top );
+		PixelScene.align( head );
+		add( head );
+		float lineY = top + head.height() / 2f;
+		float side = (WIDTH - head.width()) / 2f - 4;
+		if (side > 2){
+			ColorBlock l = new ColorBlock( side, 1, 0xFF3E5A2C ); l.x = 0; l.y = lineY; add( l );
+			ColorBlock r = new ColorBlock( side, 1, 0xFF3E5A2C ); r.x = WIDTH - side; r.y = lineY; add( r );
+		}
+		return top + head.height() + 4;
+	}
+
+	//한 줄에 같은 너비의 버튼을 나란히. spiritRow: 고른 정령에게 하는 일
+	private float buttonRow( ArrayList<String> keys, float y, boolean spiritRow ){
+		int n = keys.size();
+		float bw = (WIDTH - GAP*(n - 1)) / (float) n;
+		final ForestWand.Spirit s = wand.slots[sel];
+		for (int k = 0; k < n; k++){
 			final String key = keys.get( k );
+			final String quickKey = quickKeyOf( key );
+			boolean isQuick = quickKey != null && quickKey.equals( wand.quickArt == null ? WndSpiritArts.SWITCH : wand.quickArt );
 			int[] pal;
-			switch (key){
-				case "bestow":  pal = PAL_BESTOW; break;
-				case "imbue":   pal = PAL_IMBUE; break;
-				case "release": pal = PAL_RELEASE; break;
-				default:        pal = PAL_NEUTRAL; break;
-			}
-			UiButton b = new UiButton( Messages.get( this, "act_" + key ), 7, pal ){
+			if (isQuick)                    pal = PAL_QUICK;
+			else if (key.equals( "bestow" ))  pal = PAL_BESTOW;
+			else if (key.equals( WndSpiritArts.IMBUE ) || key.equals( WndSpiritArts.UNMATERIALIZE )) pal = PAL_IMBUE;
+			else if (key.equals( "release" )) pal = PAL_RELEASE;
+			else                            pal = PAL_NEUTRAL;
+			String label = spiritRow ? Messages.get( this, "act_" + key ) : WndSpiritArts.artName( key );
+			UiButton b = new UiButton( label, 6, pal ){
 				@Override
 				protected void onClick() {
 					act( key );
 				}
+				@Override
+				protected boolean onLongClick() {
+					return register( quickKey );
+				}
+				@Override
+				protected void onRightClick() {
+					register( quickKey );
+				}
 			};
-			//부여 버튼에는 옮길 정령의 아이콘
-			if (key.equals( "bestow" )){
+			if (key.equals( "bestow" ) && s != null){
 				Image si = new Image( Assets.Sprites.ITEM_ICONS );
 				si.frame( ItemSpriteSheet.Icons.film.get( s.icon() ) );
 				b.icon( si );
 			}
-			//이미 가운데 칸이면 '발현', 장비에 깃든 정령이 없으면 '되돌리기'는 꺼 둠 (자리는 그대로)
+			if (key.equals( WndSpiritArts.UNMATERIALIZE )){
+				ArrayList<GreaterSpirit> m = ForestWand.materializedSpirits();
+				if (!m.isEmpty()){
+					Image si = new Image( Assets.Sprites.ITEM_ICONS );
+					si.frame( ItemSpriteSheet.Icons.film.get( m.get( 0 ).spirit().icon() ) );
+					b.icon( si );
+				}
+			}
+			//쓸 수 없는 일은 자리는 그대로 두고 꺼 둠
 			if (key.equals( "to_center" ) && sel == ForestWand.CENTER) b.enable( false );
-			if (key.equals( "recall" ) && !hasBestowed()) b.enable( false );
-			b.setRect( (k % perRow) * (bw + GAP), y + (k / perRow) * (BTN_H + GAP), bw, BTN_H );
+			if (!spiritRow && !WndSpiritArts.canUse( wand, key )) b.enable( false );
+			b.setRect( k * (bw + GAP), y, bw, BTN_H );
 			add( b );
 		}
-		y += rows * (BTN_H + GAP) - GAP;
+		return y + BTN_H;
+	}
 
-		// ── 실체화한 정령: 어느 칸을 골랐든 언제나 맨 아래에서 바로 거둠 (빈칸이 없으면 꺼짐) ──
-		ArrayList<GreaterSpirit> mats = ForestWand.materializedSpirits();
-		if (!mats.isEmpty()){
-			y += 6;
-			ColorBlock line = new ColorBlock( WIDTH, 1, 0xFF3A3830 );
-			line.x = 0; line.y = y - 4;
-			add( line );
-			boolean room = wand.freeSlot() >= 0;
-			ForestWand.Spirit first = mats.get( 0 ).spirit();
-			String label = mats.size() == 1
-					? Messages.get( this, "act_unmaterialize_one", first.title() )
-					: Messages.get( this, "act_unmaterialize_many", mats.size() );
-			UiButton um = new UiButton( label, 7, PAL_IMBUE ){
-				@Override
-				protected void onClick() {
-					act( "unmaterialize" );
-				}
-			};
-			Image si = new Image( Assets.Sprites.ITEM_ICONS );
-			si.frame( ItemSpriteSheet.Icons.film.get( first.icon() ) );
-			um.icon( si );
-			um.setRect( 0, y, WIDTH, BTN_H );
-			if (!room) um.enable( false );
-			add( um );
-			y += BTN_H;
-			if (!room){
-				RenderedTextBlock note = PixelScene.renderTextBlock( Messages.get( this, "unmaterialize_full" ), 6 );
-				note.hardlight( TEXT_DIM );
-				note.maxWidth( WIDTH );
-				note.align( RenderedTextBlock.CENTER_ALIGN );
-				note.setPos( (WIDTH - note.width()) / 2f, y + 3 );
-				add( note );
-				y = note.bottom() + 1;
-			}
+	//정령 버튼에 등록할 때의 이름 (발현·실체화는 등록하지 않음)
+	private static String quickKeyOf( String key ){
+		switch (key){
+			case "bestow":  return WndSpiritArts.BESTOW;
+			case "release": return WndSpiritArts.RELEASE;
+			case "to_center": case "materialize": return null;
+			default: return key;
 		}
+	}
 
-		resize( WIDTH, (int) Math.ceil( y ) );
+	private boolean register( String quickKey ){
+		if (quickKey == null) return false;
+		WndSpiritArts.setQuick( wand, quickKey );
+		hide();
+		if (!quickRun) GameScene.show( new WndForestWand( wand, sel ) );
+		return true;
 	}
 
 	@Override
@@ -303,7 +341,6 @@ public class WndForestWand extends Window {
 			this.center = center;
 			this.selected = selected;
 
-			//바깥 빛 (고른 칸은 정령 빛깔, 발현 칸은 금빛으로 은은하게)
 			int glowColor = selected ? (sp != null ? sp.color : EMPTY_GREEN) : (center && sp != null ? ACTIVE_GOLD : 0x000000);
 			glow = new ColorBlock( 1, 1, 0xFF000000 | glowColor );
 			glow.alpha( selected ? 0.45f : (center && sp != null ? 0.3f : 0f) );
@@ -371,7 +408,7 @@ public class WndForestWand extends Window {
 		@Override
 		protected void onClick() {
 			if (slot != sel)  reopen( slot );   //다른 칸을 누르면 그 칸을 고름
-			else if (sp == null) imbue();       //고른 빈칸을 한 번 더 누르면 바로 깃들이기
+			else if (sp == null) imbue();       //고른 빈칸을 한 번 더 누르면 바로 정령 소환
 			else showHelp();                    //고른 정령을 한 번 더 누르면 자세한 설명
 		}
 	}
@@ -478,7 +515,6 @@ public class WndForestWand extends Window {
 		return p;
 	}
 
-	//강조색 하나로 버튼 빛깔표를 만듦 (filled: 바탕까지 물든 주 버튼 / 아니면 테두리만 물든 보조 버튼)
 	private static int[] palette( int accent, boolean filled ){
 		return new int[]{
 				mix( accent, 0x000000, 0.12f ),
@@ -517,7 +553,6 @@ public class WndForestWand extends Window {
 		return false;
 	}
 
-	//칸 바탕: 정령 빛깔을 어둡게 (고른 칸은 조금 밝게)
 	private static int dim( int c, boolean lit ){
 		int r = (c >> 16) & 0xFF, g = (c >> 8) & 0xFF, b = c & 0xFF;
 		int k = lit ? 38 : 26;
@@ -540,6 +575,16 @@ public class WndForestWand extends Window {
 				break;
 			case "recall":
 				recall();
+				break;
+			case "switch":
+				//다음 정령을 가운데로 (턴을 쓰지 않음)
+				if (wand.nextSpirit() == null) return;
+				SpiritSwitch.switchNext();
+				reopen( ForestWand.CENTER );
+				break;
+			case "contract":
+				hide();
+				if (Dungeon.hero != null && Dungeon.hero.ready) wand.execute( Dungeon.hero, ForestWand.AC_CONTRACT );
 				break;
 			case "unmaterialize":
 				if (Dungeon.hero == null || !Dungeon.hero.ready) return;

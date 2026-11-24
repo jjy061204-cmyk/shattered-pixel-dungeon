@@ -147,7 +147,7 @@ public class SpiritSwitch extends Buff implements ActionIndicator.Action {
 	}
 
 	private void openArts( ForestWand w ){
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show( new WndSpiritArts( w ) );
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show( new com.shatteredpixel.shatteredpixeldungeon.windows.WndForestWand( w ) );
 	}
 
 	//다음 정령을 가운데로 (턴을 쓰지 않음)

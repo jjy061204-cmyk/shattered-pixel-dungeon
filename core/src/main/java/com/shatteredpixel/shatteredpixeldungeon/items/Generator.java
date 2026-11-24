@@ -487,9 +487,11 @@ public class Generator {
 					RogueArmor.class,
 					HuntressArmor.class,
 					DuelistArmor.class,
-					ClericArmor.class
+					ClericArmor.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.VampireArmor.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.ElementalistArmor.class
 			};
-			ARMOR.probs = new float[]{ 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 };
+			ARMOR.probs = new float[]{ 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 			
 			//see Generator.randomMissile
 			MISSILE.classes = new Class<?>[]{};
