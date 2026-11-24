@@ -39,16 +39,17 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.watabou.utils.PathFinder;
 
-//뱀파이어 갑옷 능력 3: 불멸의 피
-// 생명력을 끓어오르게 해 곧바로 체력을 회복하고, 20턴 동안 매 턴 체력이 크게 차오르며 성배에도 생명력이 고임.
-// 그동안 쓰러지면 한 번 되살아남
+//뱀파이어 갑옷 능력 3: 불멸의 피 (버프)
+// 생명력을 끓어오르게 해 곧바로 체력을 회복하고 해로운 효과를 씻어 냄. 25턴 동안
+//  매 턴 최대 체력의 4% 회복 + 성배에 생명력 0.5, 받는 피해 -20%, 공격으로 준 피해의 15% 흡혈
+// 그동안 쓰러지면 한 번 되살아나고 6턴 동안 아드레날린
 public class UndyingBlood extends ArmorAbility {
 
 	{
 		baseChargeUse = 50f;
 	}
 
-	public static final float DURATION = 20f;
+	public static final float DURATION = 25f;
 
 	@Override
 	protected void activate( ClassArmor armor, Hero hero, Integer target ) {
@@ -60,6 +61,8 @@ public class UndyingBlood extends ArmorAbility {
 		//곧바로 최대 체력의 25% 회복 (신선한 피: +10/20/30/40%)
 		float pct = 0.25f + 0.1f * hero.pointsInTalent( Talent.FRESH_BLOOD );
 		heal( hero, Math.round( hero.HT * pct ) );
+		//끓는 피가 독·출혈·불구 같은 해로운 효과를 태워 버림
+		PotionOfHealing.cure( hero );
 
 		hero.sprite.operate( hero.pos );
 		//커다란 심장이 두 번 고동치며 핏줄이 뻗어 나감
@@ -81,6 +84,22 @@ public class UndyingBlood extends ArmorAbility {
 		if (hero.sprite != null) hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( amount ), FloatingText.HEALING );
 	}
 
+	public static boolean active( Char ch ){
+		return ch != null && ch.buff( Tracker.class ) != null;
+	}
+
+	//받는 피해 -20%
+	public static int reduceDamage( Char ch, int dmg ){
+		if (!active( ch ) || dmg <= 0) return dmg;
+		return Math.max( 1, Math.round( dmg * 0.8f ) );
+	}
+
+	//공격으로 준 피해의 15% 흡혈
+	public static void onAttack( Hero hero, int damage ){
+		if (!active( hero ) || damage <= 0) return;
+		heal( hero, Math.max( 1, Math.round( damage * 0.15f ) ) );
+	}
+
 	//Hero.die에서 가장 먼저 부름. 능력이 이어지는 동안 쓰러지면 되살아나고 true
 	public static boolean tryRevive( Hero hero ){
 		Tracker t = hero.buff( Tracker.class );
@@ -93,6 +112,8 @@ public class UndyingBlood extends ArmorAbility {
 		hero.HP = Math.max( 1, Math.round( hero.HT * (0.5f + 0.1f * pts) ) );
 		PotionOfHealing.cure( hero );
 		Buff.prolong( hero, Invulnerability.class, Invulnerability.DURATION );
+		//되살아난 피가 미쳐 날뜀: 6턴 동안 아드레날린
+		Buff.prolong( hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline.class, 6f );
 
 		//피의 귀환: 주변 적에게 피해, 성배에 생명력
 		if (pts > 0){

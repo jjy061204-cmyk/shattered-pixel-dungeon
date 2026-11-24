@@ -1617,6 +1617,7 @@ public class Hero extends Char {
 		damage = CollectorBonus.onAttack( this, enemy, damage );
 		damage = com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CrimsonGrail.onHeroAttack( this, enemy, damage );
 		damage = com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.onAttack( this, enemy, damage );
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood.onAttack( this, damage );
 
 		if (wep != null) {
 			damage = wep.proc( this, enemy, damage );
@@ -1727,6 +1728,7 @@ public class Hero extends Char {
 
 		//모드: 진조의 왕관 - 받는 피해 25% 감소
 		dmg = com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.CrimsonCrown.reduceDamage( this, dmg );
+		dmg = com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood.reduceDamage( this, dmg );
 
 		//regular damage interrupt, triggers on any damage except specific mild DOT effects
 		// unless the player recently hit 'continue moving', in which case this is ignored
