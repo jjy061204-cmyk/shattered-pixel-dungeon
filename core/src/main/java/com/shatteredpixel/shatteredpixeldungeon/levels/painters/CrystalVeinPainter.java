@@ -3,7 +3,6 @@
  * 수정 광맥 꾸미기: 원작 광산 꾸미기에, 살아 있는 수정 광맥이 광산 전체를 뒤덮은 모습을 더함
  *  - 금맥 대신 통째로 수정인 수정맥 벽이 원작 금맥보다 자주, 옆으로 바닥을 마주한 벽에도 지나감
  *  - 넓은 방 안쪽 모서리에 수정 기둥이 돋음 (원작 광산이 모서리를 바위로 메우는 것과 같은 조건이라 길을 막지 않음)
- *  - 수정맥 벽·수정 기둥 둘레 바닥으로 잔 결정 더께가 번짐 (바닥 장식)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,21 +75,6 @@ public class CrystalVeinPainter extends CavesPainter {
 			}
 		}
 
-		//수정맥 벽·수정 기둥 둘레 바닥으로 결정 더께가 번짐
-		int[] around = {-w - 1, -w, -w + 1, -1, 1, w - 1, w, w + 1};
-		boolean[] spread = new boolean[l];
-		for (int i = w + 1; i < l - w - 1; i++) {
-			if (map[i] != Terrain.EMPTY) continue;
-			for (int n : around) {
-				int t = map[i + n];
-				if (t == Terrain.WALL_DECO || t == Terrain.REGION_DECO || t == Terrain.REGION_DECO_ALT) {
-					spread[i] = Random.Int(5) == 0;
-					break;
-				}
-			}
-		}
-		for (int i = 0; i < l; i++) {
-			if (spread[i]) map[i] = Terrain.EMPTY_DECO;
-		}
+		//수정맥·수정 기둥 둘레 바닥의 수정 번짐은 지형을 바꾸지 않고 그림(바닥 가장자리 번짐)으로 표현
 	}
 }

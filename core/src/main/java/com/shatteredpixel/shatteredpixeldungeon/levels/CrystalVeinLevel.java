@@ -65,6 +65,34 @@ public class CrystalVeinLevel extends CavesLevel {
 		return DungeonTileSheet.FLAT_MINE_CRYSTAL + pillarColor( pos );
 	}
 
+	//수정이 번져 나오는 칸: 수정맥 벽·수정 기둥
+	private static boolean crystalSource( int t ){
+		return t == Terrain.WALL_DECO || t == Terrain.REGION_DECO || t == Terrain.REGION_DECO_ALT;
+	}
+	private static boolean plainWall( int t ){
+		return t == Terrain.WALL || t == Terrain.SECRET_DOOR;
+	}
+	//위 1 · 오른쪽 2 · 아래 4 · 왼쪽 8 → 시트의 빈 칸 15개
+	private static final int[] FRINGE = {-1, 138, 139, 140, 141, 142, 143, 247, 248, 249, 250, 251, 252, 253, 254, 255};
+	public static int floorFringe( int pos, int[] map, int w ){
+		int size = map.length;
+		int x = pos % w;
+		int b = 0;
+		int up = pos - w;
+		if (up >= 0){
+			int t = map[up];
+			//위가 수정맥이거나, 수정맥 옆 이음 벽(바위가 수정에 먹혀 드는 벽)
+			if (crystalSource(t)
+					|| (plainWall(t) && ((x > 0 && map[up - 1] == Terrain.WALL_DECO) || (x < w - 1 && map[up + 1] == Terrain.WALL_DECO)))){
+				b |= 1;
+			}
+		}
+		if (x < w - 1 && crystalSource(map[pos + 1])) b |= 2;
+		if (pos + w < size && crystalSource(map[pos + w])) b |= 4;
+		if (x > 0 && crystalSource(map[pos - 1])) b |= 8;
+		return FRINGE[b];
+	}
+
 	@Override
 	public String entryText() {
 		return Dungeon.depth == 11 ? Messages.get( this, "entry" ) : null;

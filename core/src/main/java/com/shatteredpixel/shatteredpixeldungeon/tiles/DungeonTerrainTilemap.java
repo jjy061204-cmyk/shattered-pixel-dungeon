@@ -46,6 +46,13 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat) {
+		//모드: 수정 광맥에서 수정맥 벽·이음 벽·수정 기둥에 닿은 바닥은 그쪽 가장자리부터 수정이 번진 바닥
+		//  (숨은 함정·함정 칸도 같은 그림이어야 숨은 함정이 드러나지 않음)
+		if ((tile == Terrain.EMPTY || tile == Terrain.SECRET_TRAP || tile == Terrain.TRAP || tile == Terrain.INACTIVE_TRAP)
+				&& com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isVein()) {
+			int f = com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.floorFringe( pos, map, mapWidth );
+			if (f != -1) return f;
+		}
 		int visual = DungeonTileSheet.directVisuals.get(tile, -1);
 		if (visual != -1 && carpetEdges && !flat && tile == Terrain.EMPTY_SP) {
 			int edge = carpetEdge( pos );
