@@ -254,11 +254,22 @@ public class DungeonTileSheet {
 		return false;
 	}
 
+	//모드: 수정 광맥 이음 벽 (원작 시트에서 비어 있던 칸)
+	public static final int RAISED_WALL_VEIN_SEAM_LEFT  = RAISED_WALLS+24;
+	public static final int RAISED_WALL_VEIN_SEAM_RIGHT = RAISED_WALLS+25;
+	public static final int RAISED_WALL_VEIN_SEAM_BOTH  = RAISED_WALLS+26;
+
 	public static int getRaisedWallTile(int tile, int pos, int right, int below, int left){
 		int result;
 		
 		if (below == -1 || wallStitcheable(below))                      return -1;
 		else if (doorTile(below))                                       result = RAISED_WALL_DOOR;
+		else if ((tile == Terrain.WALL || tile == Terrain.SECRET_DOOR) && CrystalVeinLevel.isVein()
+				&& (left == Terrain.WALL_DECO || right == Terrain.WALL_DECO)){
+			//모드: 수정 광맥에서 수정맥 벽 옆 바위 벽은 수정맥 쪽에서부터 먹혀 들어간 이음 벽
+			if (left == Terrain.WALL_DECO && right == Terrain.WALL_DECO) return RAISED_WALL_VEIN_SEAM_BOTH;
+			return left == Terrain.WALL_DECO ? RAISED_WALL_VEIN_SEAM_LEFT : RAISED_WALL_VEIN_SEAM_RIGHT;
+		}
 		else if (tile == Terrain.WALL || tile == Terrain.SECRET_DOOR)   result = RAISED_WALL;
 		else if (tile == Terrain.WALL_DECO)                             result = RAISED_WALL_DECO;
 		else if (tile == Terrain.BOOKSHELF)                             result = RAISED_WALL_BOOKSHELF;

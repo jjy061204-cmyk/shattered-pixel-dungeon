@@ -84,7 +84,7 @@ public class CrystalVeinPainter extends CavesPainter {
 			for (int n : around) {
 				int t = map[i + n];
 				if (t == Terrain.WALL_DECO || t == Terrain.REGION_DECO || t == Terrain.REGION_DECO_ALT) {
-					spread[i] = Random.Int(5) < 2;
+					spread[i] = Random.Int(4) == 0;
 					break;
 				}
 			}
