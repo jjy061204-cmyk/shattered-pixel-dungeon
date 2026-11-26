@@ -395,11 +395,18 @@ public class ForestWand extends Weapon {
 		return slots[filled.get( 1 )];
 	}
 
+	//대 정령사의 완드: 가운데 칸에 정령이 없으면 무지갯빛으로 은은하게 빛남
+	private static final ItemSprite.Glowing GRAND_RAINBOW = new ItemSprite.Glowing( 0xFFFFFF, 1.6f );
+	static {
+		GRAND_RAINBOW.rainbow = true;
+		GRAND_RAINBOW.min = 0.08f;
+		GRAND_RAINBOW.max = 0.32f;
+	}
+
 	@Override
 	public ItemSprite.Glowing glowing() {
-		//대 정령사의 완드는 꽃잎이 스스로 무지갯빛으로 일렁이므로 덧칠하지 않음
-		if (grand) return null;
 		if (active() != null) return active().glowing();
+		if (grand) return GRAND_RAINBOW;
 		return super.glowing();
 	}
 

@@ -413,7 +413,24 @@ public class ItemSprite extends MovieClip {
 			float value = glowing.min + phase / glowing.period * (glowing.max - glowing.min);
 			
 			rm = gm = bm = 1 - value;
-			if (glowing.color2 != -1 && glowAlt){
+			if (glowing.rainbow){
+				//모드: 무지갯빛이 천천히 돌며 은은하게 빛남
+				float h = (Game.timeTotal / glowing.rainbowCycle) % 1f * 6f;
+				int i = (int) h;
+				float f = h - i;
+				float r, g, b;
+				switch (i){
+					case 0:  r = 1;     g = f;     b = 0;     break;
+					case 1:  r = 1 - f; g = 1;     b = 0;     break;
+					case 2:  r = 0;     g = 1;     b = f;     break;
+					case 3:  r = 0;     g = 1 - f; b = 1;     break;
+					case 4:  r = f;     g = 0;     b = 1;     break;
+					default: r = 1;     g = 0;     b = 1 - f; break;
+				}
+				ra = r * value;
+				ga = g * value;
+				ba = b * value;
+			} else if (glowing.color2 != -1 && glowAlt){
 				ra = ((glowing.color2 >> 16) & 0xFF) / 255f * value;
 				ga = ((glowing.color2 >> 8) & 0xFF) / 255f * value;
 				ba = (glowing.color2 & 0xFF) / 255f * value;
@@ -445,6 +462,9 @@ public class ItemSprite extends MovieClip {
 		public int color2 = -1;
 		public float min = 0f;
 		public float max = 0.6f;
+		//모드: 무지갯빛으로 색이 돌며 빛남 (rainbowCycle 초에 한 바퀴)
+		public boolean rainbow = false;
+		public float rainbowCycle = 4f;
 		
 		public Glowing( int color ) {
 			this( color, 1f );

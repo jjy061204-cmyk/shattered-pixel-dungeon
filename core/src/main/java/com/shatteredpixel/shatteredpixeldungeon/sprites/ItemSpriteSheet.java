@@ -1089,8 +1089,8 @@ public class ItemSpriteSheet {
 			SLOT.put( PARFAIT, new int[]{ 0, 24, 1, 0 } );
 			SLOT.put( EXCALIBUR, new int[]{ 1, 20, 1, 0 } );
 			SLOT.put( SEALED_EXCALIBUR, new int[]{ 2, 20, 1, 0 } );
-			//대 정령사의 완드: 꽃잎의 무지갯빛이 돌며 일렁임 (둘째 줄 8프레임)
-			SLOT.put( FOREST_WAND_GRAND, new int[]{ 8, 24, 8, 7 } );
+			//대 정령사의 완드: 무지갯빛 꽃잎 (둘째 줄 첫 칸)
+			SLOT.put( FOREST_WAND_GRAND, new int[]{ 8, 24, 1, 0 } );
 		}
 
 		public static boolean has( int image ){
