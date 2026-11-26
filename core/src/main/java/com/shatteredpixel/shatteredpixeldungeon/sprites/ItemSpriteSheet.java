@@ -1053,7 +1053,8 @@ public class ItemSpriteSheet {
 		for (int i = 0; i < 32; i++) assignItemRect( spiritBolt( i ), 12, 12 );
 	}
 	public static final int ETHER_CLAY        = MOD_WEAPON+10;  //마법 기사의 에테르 점토
-	public static final int FOREST_WAND_GRAND = MOD_WEAPON+11;  //대 정령사의 완드 (큰 그림은 items_hd.png, 움직임)
+	public static final int FOREST_WAND_GRAND = MOD_WEAPON+11;  //대 정령사의 완드 (큰 그림은 items_hd.png)
+	public static final int DEV_SUMMONER      = MOD_WEAPON+12;  //테스터 소환 기기 (무기 줄의 빈칸을 빌려 씀)
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);
 		assignItemRect(KNIGHT_LONGSWORD, 16, 16);
@@ -1063,6 +1064,7 @@ public class ItemSpriteSheet {
 		assignItemRect(FOREST_WAND, 16, 16);
 		assignItemRect(ETHER_CLAY, 16, 16);
 		assignItemRect(FOREST_WAND_GRAND, 16, 16);
+		assignItemRect(DEV_SUMMONER, 16, 16);
 		assignItemRect(FOREST_BOLT, 9, 9);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);

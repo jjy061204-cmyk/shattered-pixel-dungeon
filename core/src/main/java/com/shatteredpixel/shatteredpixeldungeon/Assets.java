@@ -397,6 +397,7 @@ public class Assets {
 		public static final String GHOUL    = "sprites/ghoul.png";
 		public static final String RIPPER   = "sprites/ripper.png";
 		public static final String SPAWNER  = "sprites/spawner.png";
+		public static final String TRAINING_DUMMY = "sprites/training_dummy.png";   //모드: 테스터 소환 기기의 허수아비
 		public static final String DM100    = "sprites/dm100.png";
 		public static final String PYLON    = "sprites/pylon.png";
 		public static final String DM200    = "sprites/dm200.png";

@@ -165,6 +165,7 @@ public class CityLevel extends RegularLevel {
 								//모드: 테스터의 상자·리모컨은 금고 안으로 가져감
 								boolean devChest = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevChest.class) != null;
 								boolean devRemote = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevRemote.class) != null;
+								boolean devSummoner = hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevSummoner.class) != null;
 
 								EscapeCrystal crystal = hero.belongings.getItem(EscapeCrystal.class);
 								if (crystal == null) {
@@ -185,6 +186,11 @@ public class CityLevel extends RegularLevel {
 									com.shatteredpixel.shatteredpixeldungeon.items.Item remote = new com.shatteredpixel.shatteredpixeldungeon.items.DevRemote();
 									remote.collect();
 									Dungeon.quickslot.setSlot(1, remote);
+								}
+								if (devSummoner && hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.DevSummoner.class) == null){
+									com.shatteredpixel.shatteredpixeldungeon.items.Item summoner = new com.shatteredpixel.shatteredpixeldungeon.items.DevSummoner();
+									summoner.collect();
+									Dungeon.quickslot.setSlot(2, summoner);
 								}
 								hero.belongings.armor = new ClothArmor();
 								hero.belongings.armor.identify();

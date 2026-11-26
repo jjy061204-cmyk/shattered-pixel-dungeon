@@ -70,6 +70,12 @@ public class DemonSpawner extends Mob {
 		//do nothing
 	}
 
+	//모드: 소환수는 공격하지 않음 (덤벼드는 상태가 되면 반복되는 공격 동작에서 턴이 오래 멈춰 있던 문제)
+	@Override
+	protected boolean canAttack( com.shatteredpixel.shatteredpixeldungeon.actors.Char enemy ) {
+		return false;
+	}
+
 	@Override
 	public boolean reset() {
 		return true;

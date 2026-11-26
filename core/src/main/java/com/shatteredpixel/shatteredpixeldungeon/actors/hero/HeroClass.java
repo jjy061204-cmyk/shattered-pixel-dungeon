@@ -384,9 +384,12 @@ public enum HeroClass {
 		chest.collect();
 		com.shatteredpixel.shatteredpixeldungeon.items.DevRemote remote = new com.shatteredpixel.shatteredpixeldungeon.items.DevRemote();
 		remote.collect();
+		//몬스터·보스·허수아비를 불러내는 소환 기기
+		com.shatteredpixel.shatteredpixeldungeon.items.DevSummoner summoner = new com.shatteredpixel.shatteredpixeldungeon.items.DevSummoner();
+		summoner.collect();
 
 		//빈 빠른 칸에 차례로 넣음 (직업의 시작 아이템은 그대로 둠)
-		for (Item it : new Item[]{ chest, remote }){
+		for (Item it : new Item[]{ chest, remote, summoner }){
 			for (int s = 0; s < QuickSlot.SIZE; s++){
 				if (Dungeon.quickslot.getItem(s) == null){
 					Dungeon.quickslot.setSlot(s, it);
