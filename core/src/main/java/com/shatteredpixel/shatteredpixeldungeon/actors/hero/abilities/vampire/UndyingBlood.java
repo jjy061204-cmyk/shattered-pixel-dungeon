@@ -119,7 +119,7 @@ public class UndyingBlood extends ArmorAbility {
 		if (pts > 0){
 			for (int n : PathFinder.NEIGHBOURS8){
 				Char ch = Actor.findChar( hero.pos + n );
-				if (ch != null && ch.alignment != Char.Alignment.ALLY && ch.isAlive()){
+				if (ch != null && Char.foeTarget( ch )){
 					ch.damage( Math.round( hero.HT * 0.1f * pts ), hero );
 					if (ch.isAlive()) Buff.prolong( ch, Cripple.class, 3f );
 				}

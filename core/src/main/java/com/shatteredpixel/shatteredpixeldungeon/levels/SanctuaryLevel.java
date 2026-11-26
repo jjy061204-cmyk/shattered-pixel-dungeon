@@ -455,6 +455,13 @@ public class SanctuaryLevel extends RegularLevel {
 		public Image image( int tileX, int tileY ) {
 			return null;
 		}
+		//게이트 칸에 큰 그림 영웅이 서 있으면 아치를 흐리게 해서 머리를 가리지 않음
+		@Override
+		protected void onVisUpdate( com.watabou.noosa.Tilemap v ) {
+			if (Dungeon.level == null) return;
+			int gate = tileX + (tileY + 1) * Dungeon.level.width();
+			v.alpha( com.shatteredpixel.shatteredpixeldungeon.tiles.RaisedTerrainTilemap.tallCells.contains( gate ) ? 0.3f : 1f );
+		}
 	}
 
 	//옛 버전(손으로 그린 성소)의 저장 파일 호환용

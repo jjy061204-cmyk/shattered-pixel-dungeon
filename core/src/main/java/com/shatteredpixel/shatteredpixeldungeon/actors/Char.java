@@ -1500,6 +1500,13 @@ public abstract class Char extends Actor {
 
 	}
 
+	//모드: 능력·광역 공격으로 노릴 수 있는 상대인지 (아군, 화로·북·우리 같은 물건, NPC는 제외)
+	public static boolean foeTarget( Char ch ){
+		return ch != null && ch.isAlive() && ch.alignment != Alignment.ALLY
+				&& !hasProp( ch, Property.OBJECT )
+				&& !(ch instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC);
+	}
+
 	public static boolean hasProp( Char ch, Property p){
 		return (ch != null && ch.properties().contains(p));
 	}

@@ -2325,6 +2325,10 @@ public class Hero extends Char {
 		if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.vampire.UndyingBlood.tryRevive( this )){
 			return;
 		}
+		//모드: 불완전한 생명의 정령이 깃든 갑옷이 남은 힘을 모두 써서 되살림
+		if (com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.lifeRevive( this )){
+			return;
+		}
 
 		Ankh ankh = null;
 

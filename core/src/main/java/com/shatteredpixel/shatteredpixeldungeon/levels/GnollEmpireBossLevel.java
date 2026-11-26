@@ -503,6 +503,10 @@ public class GnollEmpireBossLevel extends Level {
 
 		//내려가는 곳의 문턱 (3행, 몹 아래)
 		visuals.add( arenaImage( 0, 208, 80, 16, 14*S, 3*S ) );
+		//해골 입과 돌계단 (계단 칸 15~17열 0~2행, 양옆 2행)
+		visuals.add( arenaImage( 16, 160, 48, 48, 15*S, 0 ) );
+		visuals.add( arenaImage( 0, 192, 16, 16, 14*S, 2*S ) );
+		visuals.add( arenaImage( 64, 192, 16, 16, 18*S, 2*S ) );
 
 		//왕좌 단 (쓰러뜨린 뒤에는 부서진 왕좌)
 		throneLow = arenaImage( bossDefeated ? 112 : 0, 0, 112, 64, THRONE_X*S, THRONE_Y*S );
@@ -531,8 +535,10 @@ public class GnollEmpireBossLevel extends Level {
 		wallVisuals.add( throneUp );
 		//입구 아치 (지나갈 때 머리 위로 지나가게 벽 위 층)
 		wallVisuals.add( arenaImage( 144, 80, 80, 40, 14*S, 21*S - 40 ) );
-		//내려가는 곳: 바위에 새긴 거대한 놀 해골, 그 입 안으로 이어진 돌계단 (0~2행은 벽 위 층)
-		wallVisuals.add( arenaImage( 0, 160, 80, 48, 14*S, 0 ) );
+		//내려가는 곳: 바위에 새긴 거대한 놀 해골, 그 입 안으로 이어진 돌계단
+		// 양옆 벽 기둥(0~1행)만 벽 위 층. 계단 칸과 그 위는 캐릭터 아래 층(addVisuals)이라 계단에 선 영웅을 가리지 않음
+		wallVisuals.add( arenaImage( 0, 160, 16, 32, 14*S, 0 ) );
+		wallVisuals.add( arenaImage( 64, 160, 16, 32, 18*S, 0 ) );
 		return wallVisuals;
 	}
 

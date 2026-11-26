@@ -332,7 +332,7 @@ public class CrimsonGrail extends Artifact {
 				endAim();
 				if (cell == null) return;
 				Char ch = Actor.findChar( cell );
-				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY
+				if (ch == null || ch == hero || !Char.foeTarget( ch )
 						|| !Dungeon.level.adjacent( hero.pos, cell )){
 					GLog.w( Messages.get( CrimsonGrail.class, "adjacent_invalid" ) );
 					return;
@@ -359,7 +359,7 @@ public class CrimsonGrail extends Artifact {
 				Char ch = Actor.findChar( cell );
 				//피의 창은 비스듬히 노린 칸으로도 쏠 수 있음 (날아가다 처음 닿는 적)
 				if (ch == null && skill == Skill.LANCE) ch = Actor.findChar( new Ballistica( hero.pos, cell, Ballistica.PROJECTILE ).collisionPos );
-				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY || !Dungeon.level.heroFOV[ch.pos]
+				if (ch == null || ch == hero || !Char.foeTarget( ch ) || !Dungeon.level.heroFOV[ch.pos]
 						|| Dungeon.level.distance( hero.pos, ch.pos ) > range){
 					GLog.w( Messages.get( CrimsonGrail.class, "enemy_invalid", range ) );
 					return;
@@ -568,7 +568,7 @@ public class CrimsonGrail extends Artifact {
 									//마지막 창이 꽂히면 한꺼번에 피해
 									for (int a : area){
 										Char ch = Actor.findChar( a );
-										if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) continue;
+										if (ch == null || ch == hero || !Char.foeTarget( ch )) continue;
 										int dmg = Math.round( Random.NormalIntRange( 4 + lvl / 2, 8 + lvl ) * (0.7f + 0.15f * pts) );
 										boolean living = isLiving( ch );
 										int dealt = wound( ch, dmg );
@@ -654,7 +654,7 @@ public class CrimsonGrail extends Artifact {
 									public void call() {
 										for (int c : line.subPath( 1, reach )){
 											Char ch = Actor.findChar( c );
-											if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) continue;
+											if (ch == null || ch == hero || !Char.foeTarget( ch )) continue;
 											int dmg = Random.NormalIntRange( 2 + lvl / 3, 5 + lvl * 2 / 3 );
 											ch.damage( dmg, CrimsonGrail.this );
 											VampireFX.at( c, VampireFX.SPLASH, 0.45f, 0.35f );
@@ -759,7 +759,7 @@ public class CrimsonGrail extends Artifact {
 						int reach = reachOf( hero, path, cell, 5, false );
 						int endPos = path.path.get( reach );
 						Char hitCh = Actor.findChar( endPos );
-						if (hitCh == hero || (hitCh != null && hitCh.alignment == Char.Alignment.ALLY)) hitCh = null;
+						if (hitCh == hero || (hitCh != null && !Char.foeTarget( hitCh ))) hitCh = null;
 						final Char target = hitCh;
 						PointF a = hero.sprite.center();
 						PointF b = target != null && target.sprite != null ? target.sprite.center()
@@ -803,7 +803,7 @@ public class CrimsonGrail extends Artifact {
 							public void call() {
 								VampireFX.at( hitPos, VampireFX.SPLASH, 0.6f, 0.4f );
 								Char ch = Actor.findChar( hitPos );
-								if (ch != null && ch != hero && ch.alignment != Char.Alignment.ALLY){
+								if (ch != null && ch != hero && Char.foeTarget( ch )){
 									int pts = hero.pointsInTalent( Talent.BLOOD_LANCE );
 									int dmg = Math.round( Random.NormalIntRange( 3 + lvl / 2, 6 + lvl ) * (0.8f + 0.2f * pts) );
 									boolean living = isLiving( ch );
@@ -858,7 +858,7 @@ public class CrimsonGrail extends Artifact {
 				PathFinder.buildDistanceMap( hero.pos, BArray.not( Dungeon.level.solid, null ), 2 );
 				int healed = 0;
 				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )){
-					if (mob.alignment != Char.Alignment.ALLY && PathFinder.distance[mob.pos] < Integer.MAX_VALUE){
+					if (Char.foeTarget( mob ) && PathFinder.distance[mob.pos] < Integer.MAX_VALUE){
 						int dmg = Math.round( Random.NormalIntRange( 4 + lvl / 2, 8 + lvl ) * (0.75f + 0.25f * pts) );
 						boolean living = isLiving( mob );
 						int dealt = wound( mob, dmg );
@@ -917,7 +917,7 @@ public class CrimsonGrail extends Artifact {
 				boolean any = false;
 				for (int n : PathFinder.NEIGHBOURS8){
 					Char ch = Actor.findChar( hero.pos + n );
-					if (ch != null && ch.alignment != Char.Alignment.ALLY){
+					if (ch != null && Char.foeTarget( ch )){
 						if (bite( hero, ch, hero.pos + n, mult ) > 0) any = true;
 					}
 				}

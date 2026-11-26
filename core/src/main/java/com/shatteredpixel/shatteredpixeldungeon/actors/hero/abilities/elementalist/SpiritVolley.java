@@ -69,7 +69,7 @@ public class SpiritVolley extends ArmorAbility {
 	protected void activate( ClassArmor armor, final Hero hero, Integer target ) {
 		if (target == null) return;
 		final Char enemy = Actor.findChar( target );
-		if (enemy == null || enemy == hero || enemy.alignment == Char.Alignment.ALLY
+		if (enemy == null || enemy == hero || !Char.foeTarget( enemy )
 				|| !Dungeon.level.heroFOV[target] || enemy.sprite == null){
 			GLog.w( Messages.get( this, "no_target" ) );
 			return;
@@ -137,7 +137,7 @@ public class SpiritVolley extends ArmorAbility {
 		if (chain > 0){
 			int best = Integer.MAX_VALUE;
 			for (Char ch : Actor.chars()){
-				if (ch == hero || ch.alignment == Char.Alignment.ALLY || !ch.isAlive() || ch.sprite == null) continue;
+				if (ch == hero || !Char.foeTarget( ch ) || ch.sprite == null) continue;
 				if (!Dungeon.level.heroFOV[ch.pos]) continue;
 				int d = Dungeon.level.distance( enemy.pos, ch.pos );
 				if (d <= 2 * chain && d < best){ best = d; next = ch; }

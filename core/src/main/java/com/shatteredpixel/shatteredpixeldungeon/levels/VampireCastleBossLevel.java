@@ -384,12 +384,8 @@ public class VampireCastleBossLevel extends Level {
 			}
 		};
 		visuals.add( place( c, coffin ) );
-		return visuals;
-	}
 
-	@Override
-	public Group addWallVisuals() {
-		super.addWallVisuals();
+		//벽면의 창: 벽 위 층이 아니라 캐릭터 아래 층에 그려서, 창 바로 아래에 선 영웅의 머리를 가리지 않게
 		for (int wx : WINDOWS){
 			//24x24로 찍은 창 (벽 타일과 같은 해상도), 핏빛 달이 뜨면 붉은 창으로
 			Image win = new Image( Assets.Sprites.VC_WINDOW_HD, 0, 0, 24, 24 ){
@@ -404,9 +400,9 @@ public class VampireCastleBossLevel extends Level {
 				}
 			};
 			win.scale.set( 16f / 24f );
-			wallVisuals.add( place( win, wx + width() ) );
+			visuals.add( place( win, wx + width() ) );
 		}
-		return wallVisuals;
+		return visuals;
 	}
 
 	private Image place( Image img, int cell ){

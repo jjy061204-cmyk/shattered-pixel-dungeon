@@ -190,15 +190,24 @@ public class SpiritGlyph extends Armor.Glyph {
 				ForestWand.fx( defender, s, "g_rune" );
 				if (adjacent) ForestWand.runeMark( s, defender, attacker, 0.5f*pow );
 				return damage - damage/5;
-			case LIFE:      //불완전한 생명: 때린 적에게 생명의 빛줄기를 되쏨 (멀리서 때려도)
-				if (attacker != null && attacker.isAlive() && attacker != defender){
-					ForestWand.lifeRay( defender, attacker );
-					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( s.particle(), 8 );
-					ForestWand.fx( defender, s, "g_life" );
-					ForestWand.elemHit( s, attacker, 0.6f*pow );
-					ForestWand.lifeUsed();
+			case LIFE: {    //불완전한 생명: 생명의 맥동이 최대 체력의 10%를 채우고 나쁜 상태를 씻어 냄
+				//  (쓰러질 만큼 큰 피해를 받으면 ForestWand.lifeRevive 가 남은 힘을 모두 써서 되살림)
+				int heal = Math.min( Math.max( 1, Math.round( defender.HT * 0.1f * pow ) ), defender.HT - defender.HP );
+				if (heal > 0){
+					defender.HP += heal;
+					if (defender.sprite != null){
+						defender.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( heal ), FloatingText.HEALING );
+					}
 				}
+				com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing.cure( defender );
+				if (defender.sprite != null){
+					defender.sprite.centerEmitter().burst( s.particle(), 14 );
+					defender.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 3 );
+				}
+				ForestWand.fx( defender, s, "g_life" );
+				ForestWand.lifeUsed();
 				return damage;
+			}
 			case CRYSTAL_BLUE: case CRYSTAL_GREEN: case CRYSTAL_RED:   //수정: 수정 껍질이 피해를 1/4 막고, 붙어 있는 적에게 파편이 박힘
 				if (defender.sprite != null) defender.sprite.centerEmitter().burst( s.particle(), 10 );
 				ForestWand.fx( defender, s, "g_crystal" );

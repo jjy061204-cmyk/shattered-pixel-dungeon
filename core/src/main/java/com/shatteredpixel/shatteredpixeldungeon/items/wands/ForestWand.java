@@ -788,7 +788,9 @@ public class ForestWand extends Weapon {
 
 	private static boolean foe( Char attacker, Char other ){
 		return other != null && other != attacker && other.isAlive()
-				&& (attacker == null || other.alignment != attacker.alignment);
+				&& (attacker == null || other.alignment != attacker.alignment)
+				&& !Char.hasProp( other, Char.Property.OBJECT )
+				&& !(other instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC);
 	}
 
 	//맞은 대상에게 정령 능력을 걸고, 바뀐 피해량을 돌려줌. mul은 속성 피해 배율 (무기 1, 정령 탄 0.5)
@@ -1012,11 +1014,12 @@ public class ForestWand extends Weapon {
 				break;
 
 			//불완전한 생명: 생명의 빛줄기가 꿰뚫음 (언데드·악마 1.5배). 힘을 한 번 쓸 때마다 남은 횟수가 줄어듦
+			//  무기·양옆 칸(공명 등)에서는 다른 정령과 비슷한 세기, 완드 가운데 칸의 빛줄기는 lifeBeam
 			case LIFE:
 				lifeRay( attacker, defender );
 				burst( defender, s.particle(), 10 );
 				fx( defender, s, "life" );
-				elemHit( s, defender, mul*1.2f );
+				elemHit( s, defender, mul*0.7f );
 				lifeUsed();
 				break;
 
@@ -1077,7 +1080,8 @@ public class ForestWand extends Weapon {
 	//  (장비에 부여해 어딘가에 두고 와도 그대로 하나로 셈), 힘을 다섯 번 쓰면 자연으로 돌아감
 
 	public static final int LIFE_USES = 5;
-	public static final float LIFE_BEAM_MUL = 1.5f;
+	//가운데 칸의 빛줄기: 정령 탄 한 발(물리 피해 + 정령 능력)과 비슷한 세기. 빗나가지 않고 방어를 무시하는 대신 다섯 번뿐
+	public static final float LIFE_BEAM_MUL = 0.9f;
 
 	//영웅에게 붙어 생명의 정령이 어디 있든 남은 횟수를 셈
 	public static class LifeBond extends Buff {
@@ -1167,6 +1171,28 @@ public class ForestWand extends Weapon {
 		if (sw != null) sw.refreshButton();
 	}
 
+	//생명의 정령이 깃든 갑옷: 쓰러질 만큼 큰 피해를 받으면 남은 힘을 모두 써서 되살려 내고 자연으로 돌아감
+	public static boolean lifeRevive( Hero hero ){
+		Armor a = hero.belongings.armor();
+		if (a == null || !(a.glyph instanceof SpiritGlyph)) return false;
+		SpiritGlyph g = (SpiritGlyph) a.glyph;
+		if (g.spirit != Spirit.LIFE && g.spirit2 != Spirit.LIFE) return false;
+		hero.interrupt();
+		hero.HP = Math.max( 1, Math.round( hero.HT * 0.3f ) );
+		com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing.cure( hero );
+		Buff.prolong( hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invulnerability.class, 1f );
+		if (hero.sprite != null){
+			hero.sprite.centerEmitter().burst( Spirit.LIFE.particle(), 30 );
+			hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 6 );
+			new Flare( 8, 32 ).color( Spirit.LIFE.color, true ).show( hero.sprite, 1.6f );
+		}
+		GameScene.flash( 0x80FF6E8E );
+		Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
+		GLog.p( Messages.get( ForestWand.class, "life_revive" ) );
+		fadeLife( hero );
+		return true;
+	}
+
 	//생명의 빛줄기 (굴절광의 마법 막대처럼)
 	public static void lifeRay( Char from, Char to ){
 		if (from == null || to == null || from.sprite == null || from.sprite.parent == null) return;
@@ -1187,7 +1213,11 @@ public class ForestWand extends Weapon {
 		Char ch = Actor.findChar( cell );
 		QuickSlotButton.target( ch );
 		if (ch != null && ch != user){
-			spiritHit( Spirit.LIFE, user, ch, 0, LIFE_BEAM_MUL );
+			lifeRay( user, ch );
+			burst( ch, Spirit.LIFE.particle(), 12 );
+			fx( ch, Spirit.LIFE, "life" );
+			elemHit( Spirit.LIFE, ch, LIFE_BEAM_MUL * (SpiritSurge.active( user ) ? SpiritSurge.SPIRIT : 1f) );
+			lifeUsed();
 			if (!ch.isAlive()) SpiritSurge.onKill( user );
 		} else {
 			if (user.sprite.parent != null){

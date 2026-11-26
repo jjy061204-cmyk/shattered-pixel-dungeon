@@ -68,7 +68,7 @@ public class HeartPierce extends ArmorAbility {
 
 		final Ballistica path = new Ballistica( hero.pos, target, Ballistica.PROJECTILE );
 		final Char enemy = Actor.findChar( path.collisionPos );
-		if (enemy == null || enemy == hero || enemy.alignment == Char.Alignment.ALLY){
+		if (enemy == null || enemy == hero || !Char.foeTarget( enemy )){
 			GLog.w( Messages.get( this, "no_target" ) );
 			return;
 		}

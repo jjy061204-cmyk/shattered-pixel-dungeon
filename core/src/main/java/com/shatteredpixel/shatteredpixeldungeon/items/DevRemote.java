@@ -65,13 +65,28 @@ public class DevRemote extends Item {
 		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.BloodSpider.class,
 		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleKnight.class,
 		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireBride.class,
-		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.BloodThrall.class }
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.BloodThrall.class },
+		//갈림길: 수정 광맥
+		{ com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalBat.class, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalBrute.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalArmoredBrute.class, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalRedShaman.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalBlueShaman.class, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalPurpleShaman.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalSpinner.class, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalDM200.class,
+		  com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.CrystalDM201.class }
 	};
 
 	//보스: 그 자리 소환이 되는 보스(구)와, 전용 무대가 있어야 하는 보스(그 층으로 이동)
 	private static final Class<?>[] BOSSES = { Goo.class, Tengu.class, DM300.class, DwarfKing.class, YogDzewa.class, SanctuaryColossus.class, GnollWarlord.class,
-			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireLord.class };
-	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1, 15, 15 };   //-1: 이차원의 성소 2층
+			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireLord.class, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalDM300.class };
+	private static final int[] BOSS_DEPTH = { 5, 10, 15, 20, 25, -1, 15, 15, 15 };   //-1: 이차원의 성소 2층
+
+	//광산 보스는 그 갈림길 루트의 15층에만 있음
+	private static com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves bossRoute( Class<?> boss ){
+		if (boss == DM300.class) return com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.MINES;
+		if (boss == GnollWarlord.class) return com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.GNOLL_EMPIRE;
+		if (boss == com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireLord.class) return com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.VAMPIRE_CASTLE;
+		if (boss == com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalDM300.class) return com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.CRYSTAL_VEIN;
+		return null;
+	}
 
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
@@ -132,7 +147,7 @@ public class DevRemote extends Item {
 		if (travel){
 			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "depth_26" ), txt( "sanctuary" ) };
 		} else {
-			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "gnoll_empire" ), txt( "vampire_castle" ), txt( "bosses" ) };
+			regions = new String[]{ txt( "region_0" ), txt( "region_1" ), txt( "region_2" ), txt( "region_3" ), txt( "region_4" ), txt( "special" ), txt( "sanctuary" ), txt( "gnoll_empire" ), txt( "vampire_castle" ), txt( "crystal_vein" ), txt( "bosses" ) };
 		}
 		GameScene.show( new WndOptions( new ItemSprite( this ), txt( travel ? "travel_title" : "summon_title" ),
 				txt( travel ? "travel_msg" : "summon_msg", Dungeon.depth ), regions ){
@@ -144,7 +159,7 @@ public class DevRemote extends Item {
 					else if (index == 2 && com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves == null) chooseCavesRoute( index );
 					else chooseDepth( index );
 				} else {
-					if (index == 9) chooseBoss();
+					if (index == 10) chooseBoss();
 					else chooseMob( index );
 				}
 			}
@@ -208,6 +223,18 @@ public class DevRemote extends Item {
 		});
 	}
 
+	//보스 층을 새로 만들어서 이동 (이미 쓰러뜨렸거나 지금 그 층에 있어도 보스와 다시 싸울 수 있게)
+	private void travelFresh( int depth ){
+		if (Dungeon.hero == null || !Dungeon.hero.isAlive()) return;
+		if (Dungeon.level != null && Dungeon.level.locked){
+			GLog.w( txt( "locked" ) );
+			return;
+		}
+		Dungeon.generatedLevels.remove( (Integer)(depth) );
+		GLog.i( txt( "boss_fresh" ) );
+		travel( depth );
+	}
+
 	private void travel( int depth ){
 		if (Dungeon.hero == null || !Dungeon.hero.isAlive()) return;
 		if (Dungeon.level != null && Dungeon.level.locked){
@@ -231,7 +258,7 @@ public class DevRemote extends Item {
 		for (int i = 0; i < list.length; i++){
 			names[i] = Messages.titleCase( ((Mob) Reflection.newInstance( list[i] )).name() );
 		}
-		String title = group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : (group == 6 ? txt( "sanctuary" ) : (group == 7 ? txt( "gnoll_empire" ) : txt( "vampire_castle" ))));
+		String title = group < 5 ? txt( "region_" + group ) : (group == 5 ? txt( "special" ) : (group == 6 ? txt( "sanctuary" ) : (group == 7 ? txt( "gnoll_empire" ) : (group == 8 ? txt( "vampire_castle" ) : txt( "crystal_vein" )))));
 		GameScene.show( new WndOptions( new ItemSprite( this ), title, txt( "pick_mob" ), names ){
 			@Override
 			protected void onSelect( int index ) {
@@ -261,31 +288,18 @@ public class DevRemote extends Item {
 								com.shatteredpixel.shatteredpixeldungeon.levels.SanctuaryBossLevel.BRANCH );
 					}
 				}
-				else if (BOSSES[index] == GnollWarlord.class){
-					//놀 대족장은 놀 제국 루트의 15층에만 있음
+				else if (bossRoute( BOSSES[index] ) != null){
+					//광산 보스: 그 루트가 아니면 못 감, 루트를 아직 안 골랐으면 그 루트로 정함
+					com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves need = bossRoute( BOSSES[index] );
 					com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves r = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves;
-					if (r != null && r != com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.GNOLL_EMPIRE){
+					if (r != null && r != need){
 						GLog.w( txt( "other_route" ) );
 					} else {
-						com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.GNOLL_EMPIRE;
-						travel( 15 );
+						com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = need;
+						travelFresh( 15 );
 					}
 				}
-				else if (BOSSES[index] == com.shatteredpixel.shatteredpixeldungeon.actors.mobs.VampireLord.class){
-					//흡혈 군주는 흡혈귀의 성 루트의 15층에만 있음
-					com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves r = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves;
-					if (r != null && r != com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.VAMPIRE_CASTLE){
-						GLog.w( txt( "other_route" ) );
-					} else {
-						com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves = com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.VAMPIRE_CASTLE;
-						travel( 15 );
-					}
-				}
-				else if (BOSSES[index] == DM300.class
-						&& com.shatteredpixel.shatteredpixeldungeon.levels.Routes.caves() != com.shatteredpixel.shatteredpixeldungeon.levels.Routes.Caves.MINES){
-					GLog.w( txt( "other_route" ) );
-				}
-				else travel( BOSS_DEPTH[index] );   //텐구·DM-300·드워프 왕·요그는 전용 무대가 있어야 싸움이 됨
+				else travelFresh( BOSS_DEPTH[index] );   //텐구·드워프 왕·요그는 전용 무대가 있어야 싸움이 됨
 			}
 		});
 	}

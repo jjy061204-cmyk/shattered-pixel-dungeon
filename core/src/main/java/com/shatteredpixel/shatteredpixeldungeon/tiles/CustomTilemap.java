@@ -90,6 +90,12 @@ public abstract class CustomTilemap implements Bundlable {
 		if (vis != null && vis.alive) vis.killAndErase();
 		vis = new Tilemap(texture, new TextureFilm( texture, SIZE, SIZE )){
 			@Override
+			public void update() {
+				super.update();
+				onVisUpdate( this );
+			}
+
+			@Override
 			protected NoosaScript script() {
 				//allow lighting for custom tilemaps
 				return NoosaScript.get();
@@ -116,6 +122,10 @@ public abstract class CustomTilemap implements Bundlable {
 		vis.x = tileX*SIZE;
 		vis.y = tileY*SIZE;
 		return vis;
+	}
+
+	//모드: 매 프레임 (캐릭터 위 층 장식이 큰 그림 영웅을 가릴 때 숨기는 용도 등)
+	protected void onVisUpdate( Tilemap v ){
 	}
 
 	protected boolean updateCell(int cell, int[] data){
