@@ -605,25 +605,20 @@ public class ForestWand extends Weapon {
 		return Random.NormalIntRange( 5 + d, 10 + d*2 );
 	}
 
-	//속성 피해를 입히고 실제 들어간 양을 돌려줌 (면역·저항 반영, 물은 불의 적에게, 번개는 물에 선 적에게 1.5배)
+	//정령 속성 피해를 입히고 실제로 깎인 양을 돌려줌
+	//  면역·저항은 ElementalDamage.hit 이 처리 (속성별·정령 속성 전체·모든 속성·녹픽던 원래 저항)
+	//  물은 불의 적에게, 번개는 물에 선 적에게 1.5배
 	public static int elemHit( Spirit s, Char target, float mul ){
 		if (target == null || !target.isAlive() || mul <= 0) return 0;
 		ElementalDamage src = ElementalDamage.of( s );
-		Class rc = src.legacyResist();
-		if (target.isImmune( src.getClass() )) return 0;
-		if (rc != null && target.isImmune( rc )) return 0;
 		float dmg = elemBase() * mul;
-		if (rc != null) dmg *= target.resist( rc );
-		dmg *= target.resist( src.getClass() );
 		if (s == Spirit.WATER && Char.hasProp( target, Char.Property.FIERY )) dmg *= 1.5f;
 		if (s == Spirit.SHOCK && Dungeon.level.water[target.pos] && !target.flying) dmg *= 1.5f;
 		//원소 숙련: 정령사 편이 입히는 속성 피해 +15/30/45%
 		if (Dungeon.hero != null && target != Dungeon.hero && target.alignment != Char.Alignment.ALLY){
 			dmg *= 1f + 0.15f * Dungeon.hero.pointsInTalent( Talent.ELEMENTAL_MASTERY );
 		}
-		int d = Math.max( 1, Math.round( dmg ) );
-		target.damage( d, src );
-		return d;
+		return ElementalDamage.hit( target, dmg, src );
 	}
 
 	//룬 각인: 10턴 동안 남고, 셋이 쌓이면 터짐
