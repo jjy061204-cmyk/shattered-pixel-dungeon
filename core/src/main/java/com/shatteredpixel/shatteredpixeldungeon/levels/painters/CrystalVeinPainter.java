@@ -30,19 +30,31 @@ public class CrystalVeinPainter extends CavesPainter {
 		int l = level.length();
 		int[] map = level.map;
 
-		//바닥을 마주한 벽은 셋 중 하나가 수정맥 (원작 금맥은 넷 중 하나)
-		for (int i = 0; i < l - w; i++) {
-			if (map[i] == Terrain.WALL && DungeonTileSheet.floorTile(map[i + w]) && Random.Int(3) == 0) {
+		//수정맥은 흩뿌리지 않고 몇 군데에 몰려 있음: 바닥을 마주한 벽 중 몇 곳에서 시작해 가로로 1~3칸 이어짐
+		for (int i = w; i < l - w; i++) {
+			if (map[i] == Terrain.WALL && DungeonTileSheet.floorTile(map[i + w]) && Random.Int(9) == 0) {
 				map[i] = Terrain.WALL_DECO;
+				int x = i % w;
+				int left = Random.Int(3), right = Random.Int(3);
+				for (int k = 1; k <= left && x - k > 0; k++) {
+					int c = i - k;
+					if (map[c] != Terrain.WALL || !DungeonTileSheet.floorTile(map[c + w])) break;
+					map[c] = Terrain.WALL_DECO;
+				}
+				for (int k = 1; k <= right && x + k < w - 1; k++) {
+					int c = i + k;
+					if (map[c] != Terrain.WALL || !DungeonTileSheet.floorTile(map[c + w])) break;
+					map[c] = Terrain.WALL_DECO;
+				}
 			}
 		}
 
-		//옆으로 바닥을 마주한 벽에도 수정맥이 지나감 (위에서 보면 벽 테두리가 수정)
+		//옆으로 바닥을 마주한 벽에도 가끔 수정맥이 지나감
 		for (int i = w; i < l - w; i++) {
 			int x = i % w;
 			if (map[i] == Terrain.WALL && x > 0 && x < w - 1
 					&& (DungeonTileSheet.floorTile(map[i - 1]) || DungeonTileSheet.floorTile(map[i + 1]))
-					&& Random.Int(5) == 0) {
+					&& Random.Int(12) == 0) {
 				map[i] = Terrain.WALL_DECO;
 			}
 		}
@@ -75,6 +87,44 @@ public class CrystalVeinPainter extends CavesPainter {
 			}
 		}
 
-		//수정맥·수정 기둥 둘레 바닥의 수정 번짐은 지형을 바꾸지 않고 그림(바닥 가장자리 번짐)으로 표현
+		//수정맥·수정 기둥 둘레에서 멀어질수록 옅어지게: 가까운 바닥엔 수정 새싹·돋아난 수정·수정 덤불
+		//  (일반 방과 통로만, 특수 방은 건드리지 않음)
+		int[] dist = new int[l];
+		java.util.Arrays.fill(dist, 99);
+		for (int i = 0; i < l; i++) {
+			int t = map[i];
+			if (t == Terrain.WALL_DECO || t == Terrain.REGION_DECO || t == Terrain.REGION_DECO_ALT) dist[i] = 0;
+		}
+		for (int pass = 1; pass <= 3; pass++) {
+			for (int i = w + 1; i < l - w - 1; i++) {
+				if (dist[i] != 99) continue;
+				for (int n : new int[]{-w - 1, -w, -w + 1, -1, 1, w - 1, w, w + 1}) {
+					if (dist[i + n] == pass - 1) { dist[i] = pass; break; }
+				}
+			}
+		}
+		for (Room room : rooms) {
+			if (!(room instanceof StandardRoom) && !(room instanceof com.shatteredpixel.shatteredpixeldungeon.levels.rooms.connection.ConnectionRoom)) continue;
+			if (room instanceof BlacksmithRoom) continue;
+			for (int y = room.top + 1; y < room.bottom; y++) {
+				for (int x = room.left + 1; x < room.right; x++) {
+					int i = x + y * w;
+					if (map[i] != Terrain.EMPTY || level.traps.get(i) != null) continue;
+					switch (dist[i]) {
+						case 1:
+							if (Random.Int(10) < 3) map[i] = Terrain.GRASS;
+							else if (Random.Int(10) < 2) map[i] = Terrain.EMPTY_DECO;
+							break;
+						case 2:
+							if (Random.Int(10) < 2) map[i] = Terrain.GRASS;
+							else if (Random.Int(12) == 0) map[i] = Terrain.HIGH_GRASS;
+							break;
+						case 3:
+							if (Random.Int(10) == 0) map[i] = Terrain.GRASS;
+							break;
+					}
+				}
+			}
+		}
 	}
 }

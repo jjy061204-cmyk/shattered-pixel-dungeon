@@ -270,6 +270,13 @@ public class DungeonTileSheet {
 			if (left == Terrain.WALL_DECO && right == Terrain.WALL_DECO) return RAISED_WALL_VEIN_SEAM_BOTH;
 			return left == Terrain.WALL_DECO ? RAISED_WALL_VEIN_SEAM_LEFT : RAISED_WALL_VEIN_SEAM_RIGHT;
 		}
+		else if ((tile == Terrain.WALL || tile == Terrain.SECRET_DOOR) && CrystalVeinLevel.isVein()){
+			//모드: 수정 광맥의 바위 벽은 수정맥에 가까울수록(2칸 안) 침식된 벽, 멀면 원작 바위 그대로
+			result = CrystalVeinLevel.veinDistance(pos, Dungeon.level.map, Dungeon.level.width()) <= 2 ? RAISED_WALL_ALT : RAISED_WALL;
+			if (!wallStitcheable(right)) result += 1;
+			if (!wallStitcheable(left))  result += 2;
+			return result;
+		}
 		else if (tile == Terrain.WALL || tile == Terrain.SECRET_DOOR)   result = RAISED_WALL;
 		else if (tile == Terrain.WALL_DECO)                             result = RAISED_WALL_DECO;
 		else if (tile == Terrain.BOOKSHELF)                             result = RAISED_WALL_BOOKSHELF;

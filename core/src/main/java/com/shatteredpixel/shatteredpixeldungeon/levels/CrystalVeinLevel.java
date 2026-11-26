@@ -38,7 +38,7 @@ public class CrystalVeinLevel extends CavesLevel {
 	protected Painter painter() {
 		return new CrystalVeinPainter()
 				.setWater(feeling == Feeling.WATER ? 0.85f : 0.30f, 6)
-				.setGrass(feeling == Feeling.GRASS ? 0.65f : 0.15f, 3)
+				.setGrass(feeling == Feeling.GRASS ? 0.40f : 0.05f, 3)
 				.setTraps(nTraps(), trapClasses(), trapChances());
 	}
 
@@ -72,6 +72,28 @@ public class CrystalVeinLevel extends CavesLevel {
 	private static boolean plainWall( int t ){
 		return t == Terrain.WALL || t == Terrain.SECRET_DOOR;
 	}
+	//가로로 가장 가까운 수정맥 벽까지 거리 (같은 줄, 4칸까지)
+	public static int veinDistance( int pos, int[] map, int w ){
+		int x = pos % w;
+		for (int d = 1; d <= 4; d++){
+			if (x - d >= 0 && map[pos - d] == Terrain.WALL_DECO) return d;
+			if (x + d < w && map[pos + d] == Terrain.WALL_DECO) return d;
+		}
+		return 99;
+	}
+	//수정이 번져 나오는 칸이 둘레 2칸 안에 있는지
+	public static boolean nearCrystal( int pos, int[] map, int w ){
+		int x = pos % w, y = pos / w, h = map.length / w;
+		for (int dy = -2; dy <= 2; dy++){
+			for (int dx = -2; dx <= 2; dx++){
+				int xx = x + dx, yy = y + dy;
+				if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+				if (crystalSource(map[xx + yy * w])) return true;
+			}
+		}
+		return false;
+	}
+
 	//위 1 · 오른쪽 2 · 아래 4 · 왼쪽 8 → 시트의 빈 칸 15개
 	private static final int[] FRINGE = {-1, 138, 139, 140, 141, 142, 143, 247, 248, 249, 250, 251, 252, 253, 254, 255};
 	public static int floorFringe( int pos, int[] map, int w ){
@@ -90,7 +112,13 @@ public class CrystalVeinLevel extends CavesLevel {
 		if (x < w - 1 && crystalSource(map[pos + 1])) b |= 2;
 		if (pos + w < size && crystalSource(map[pos + w])) b |= 4;
 		if (x > 0 && crystalSource(map[pos - 1])) b |= 8;
-		return FRINGE[b];
+		if (b != 0) return FRINGE[b];
+		//수정에서 먼 바닥은 원작 광산 바닥 그대로(드문 수정 변형을 쓰지 않음), 가까우면 드문 변형이 더 자주
+		int v = DungeonTileSheet.tileVariance == null ? 99 : DungeonTileSheet.tileVariance[pos];
+		if (nearCrystal(pos, map, w)) {
+			return v < 25 ? DungeonTileSheet.FLOOR_ALT_2 : (v < 62 ? DungeonTileSheet.FLOOR_ALT_1 : DungeonTileSheet.FLOOR);
+		}
+		return v < 50 ? DungeonTileSheet.FLOOR_ALT_1 : DungeonTileSheet.FLOOR;
 	}
 
 	@Override
