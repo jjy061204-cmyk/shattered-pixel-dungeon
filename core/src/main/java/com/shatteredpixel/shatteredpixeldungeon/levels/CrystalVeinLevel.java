@@ -17,6 +17,22 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
+import java.util.HashMap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.CrystalVeinPainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -40,6 +56,95 @@ public class CrystalVeinLevel extends CavesLevel {
 				.setWater(feeling == Feeling.WATER ? 0.85f : 0.30f, 6)
 				.setGrass(feeling == Feeling.GRASS ? 0.40f : 0.05f, 3)
 				.setTraps(nTraps(), trapClasses(), trapChances());
+	}
+
+	// ───── 수정 기둥: 엄폐물이면서 두 번 내리치거나 폭발에 부서짐 ─────
+	//  부서지면 둘레 8칸에 파편 피해와 1턴 눈부심, 그 소리에 가까운 몹들이 몰려옴(공명)
+
+	public static boolean isPillar( int t ){
+		return t == Terrain.REGION_DECO || t == Terrain.REGION_DECO_ALT;
+	}
+
+	private HashMap<Integer, Integer> pillarHits = new HashMap<>();
+
+	public void hitPillar( int cell ){
+		int h = (pillarHits.containsKey(cell) ? pillarHits.get(cell) : 0) + 1;
+		if (h >= 2){
+			pillarHits.remove(cell);
+			shatterPillar(cell);
+		} else {
+			pillarHits.put(cell, h);
+			Splash.at(cell, 0x66B3FF, 4);
+			Sample.INSTANCE.play(Assets.Sounds.SHATTER, 0.5f, 1.4f);
+			GLog.i(Messages.get(CrystalVeinLevel.class, "pillar_crack"));
+		}
+	}
+
+	public static class PillarShard {}
+
+	public static void shatterPillar( int cell ){
+		Level level = Dungeon.level;
+		if (level instanceof CrystalVeinLevel) ((CrystalVeinLevel) level).pillarHits.remove(cell);
+
+		Level.set(cell, Terrain.EMPTY_DECO);
+		for (int i : PathFinder.NEIGHBOURS9){
+			if (cell + i >= 0 && cell + i < level.length()) GameScene.updateMap(cell + i);
+		}
+
+		if (level.heroFOV[cell]){
+			Splash.at(cell, 0x66B3FF, 14);
+			Splash.at(cell, 0xFFFFFF, 6);
+			CellEmitter.center(cell).burst(Speck.factory(Speck.STAR), 6);
+			PixelScene.shake(1, 0.4f);
+		}
+		Sample.INSTANCE.play(Assets.Sounds.SHATTER);
+
+		//둘레 8칸 파편 피해 (같은 층 함정 수준) + 1턴 눈부심
+		int depth = Dungeon.scalingDepth();
+		for (int i : PathFinder.NEIGHBOURS8){
+			Char ch = Actor.findChar(cell + i);
+			if (ch == null || !ch.isAlive()) continue;
+			int dmg = Random.NormalIntRange(2 + depth/2, 6 + depth) - ch.drRoll();
+			if (dmg > 0) ch.damage(dmg, new PillarShard());
+			if (ch.isAlive()){
+				Buff.prolong(ch, Blindness.class, 1f);
+			} else if (ch == Dungeon.hero){
+				Dungeon.fail(new PillarShard());
+				GLog.n(Messages.get(CrystalVeinLevel.class, "pillar_kill"));
+			}
+		}
+
+		//공명: 깨지는 소리에 가까운 적들이 그쪽으로
+		for (Mob m : level.mobs.toArray(new Mob[0])){
+			if (m.alignment == Char.Alignment.ENEMY && level.distance(m.pos, cell) <= 8){
+				m.beckon(cell);
+			}
+		}
+		if (level.heroFOV[cell]) GLog.w(Messages.get(CrystalVeinLevel.class, "pillar_shatter"));
+		Dungeon.observe();
+	}
+
+	private static final String PILLAR_CELLS = "pillar_cells";
+	private static final String PILLAR_HITS  = "pillar_hits";
+
+	@Override
+	public void storeInBundle( Bundle bundle ){
+		super.storeInBundle(bundle);
+		int[] c = new int[pillarHits.size()], h = new int[pillarHits.size()];
+		int k = 0;
+		for (Integer key : pillarHits.keySet()){ c[k] = key; h[k] = pillarHits.get(key); k++; }
+		bundle.put(PILLAR_CELLS, c);
+		bundle.put(PILLAR_HITS, h);
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ){
+		super.restoreFromBundle(bundle);
+		pillarHits.clear();
+		if (bundle.contains(PILLAR_CELLS)){
+			int[] c = bundle.getIntArray(PILLAR_CELLS), h = bundle.getIntArray(PILLAR_HITS);
+			for (int k = 0; k < c.length; k++) pillarHits.put(c[k], h[k]);
+		}
 	}
 
 	public static boolean isVein(){

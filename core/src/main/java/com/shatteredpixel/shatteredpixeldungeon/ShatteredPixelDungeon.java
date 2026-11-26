@@ -53,6 +53,11 @@ public class ShatteredPixelDungeon extends Game {
 				com.shatteredpixel.shatteredpixeldungeon.items.keys.WornKey.class,
 				"com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey" );
 
+		//모드: 삭제한 우사기 토벌봉은 예전 저장에서 소검으로 불러옴
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Shortsword.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.UsagiRod" );
+
 	}
 	
 	@Override

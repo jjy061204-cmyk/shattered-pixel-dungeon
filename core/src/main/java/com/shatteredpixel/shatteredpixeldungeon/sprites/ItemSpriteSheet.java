@@ -851,10 +851,7 @@ public class ItemSpriteSheet {
 	}
 
 	private static final int MOD_WEAPON =                                   xy(1, 34);  //16 slots
-	public static final int USAGI_ROD       = MOD_WEAPON+0;
-	static{
-		assignItemRect(USAGI_ROD,       14, 14);
-	}
+	//MOD_WEAPON+0: 우사기 토벌봉 자리 (삭제됨, 비워 둠)
 
 	private static final int MOD_MISC   =                                   xy(1, 35);  //16 slots
 	public static final int DIMENSION_TICKET        = MOD_MISC+0;

@@ -54,7 +54,7 @@ public class DM300Sprite extends MobSprite {
 
 		int c = enraged ? 10 : 0;
 
-		TextureFilm frames = new TextureFilm( texture, 25, 22 );
+		TextureFilm frames = new TextureFilm( texture, 25, frameHeight() );
 
 		idle = new Animation( enraged ? 15 : 10, true );
 		idle.frames( frames, c+0, c+1 );
@@ -81,6 +81,17 @@ public class DM300Sprite extends MobSprite {
 		}
 
 		if (curAnim != charge) play(idle);
+	}
+
+	//모드: 수정 DM-300 그림은 위로 늘린 칸(25x26)
+	protected int frameHeight(){
+		return 22;
+	}
+
+	//모드: 텍스처를 바꾼 뒤 칸을 다시 자름
+	protected void rebuildFrames(){
+		charge = null;
+		updateChargeState( false );
 	}
 
 	public void zap( int cell ) {

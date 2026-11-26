@@ -318,6 +318,7 @@ public class Assets {
 		public static final String CV_SHAMAN     = "sprites/cv_shaman.png";
 		public static final String CV_SPINNER    = "sprites/cv_spinner.png";
 		public static final String CV_DM200      = "sprites/cv_dm200.png";
+		public static final String CV_DM300      = "sprites/cv_dm300boss.png";
 		public static final String VC_CASTLE_KNIGHT   = "sprites/vc_castle_knight.png";
 		public static final String VC_VAMPIRE_BRIDE   = "sprites/vc_vampire_bride.png";
 		public static final String VC_BLOOD_THRALL    = "sprites/vc_blood_thrall.png";

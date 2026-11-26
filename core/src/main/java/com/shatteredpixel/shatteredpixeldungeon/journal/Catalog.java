@@ -83,7 +83,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.SmallRation;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StewedMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryCake;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.StrawberryMilk;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.UsagiRod;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.SupplyRation;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
@@ -210,7 +209,7 @@ public enum Catalog {
 
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T1.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T2.classes);
-		MELEE_WEAPONS.addItems(UsagiRod.class, Crowbar.class, ClawHammer.class, com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur.class); //차원 균열 단검은 5티어 목록(WEP_T5)으로 들어감
+		MELEE_WEAPONS.addItems(Crowbar.class, ClawHammer.class, com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Excalibur.class); //차원 균열 단검은 5티어 목록(WEP_T5)으로 들어감
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T3.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T4.classes);
 		MELEE_WEAPONS.addItems(Generator.Category.WEP_T5.classes);

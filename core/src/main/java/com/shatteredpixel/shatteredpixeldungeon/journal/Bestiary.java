@@ -293,6 +293,7 @@ public enum Bestiary {
 		classConversions.put(CrystalVeinMobs.CrystalSpinner.class,      Spinner.class);
 		classConversions.put(CrystalVeinMobs.CrystalDM200.class,        DM200.class);
 		classConversions.put(CrystalVeinMobs.CrystalDM201.class,        DM201.class);
+		classConversions.put(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalDM300.class, DM300.class);
 
 		classConversions.put(DwarfKing.DKGhoul.class,           Ghoul.class);
 		classConversions.put(DwarfKing.DKWarlock.class,         Warlock.class);

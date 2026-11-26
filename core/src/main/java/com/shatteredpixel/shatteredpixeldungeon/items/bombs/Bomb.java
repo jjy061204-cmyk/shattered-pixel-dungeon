@@ -157,6 +157,12 @@ public class Bomb extends Item {
 			boolean[] explodable = new boolean[Dungeon.level.length()];
 			BArray.not( Dungeon.level.solid, explodable);
 			BArray.or( Dungeon.level.flamable, explodable, explodable);
+			//모드: 수정 기둥도 폭발이 닿는 칸으로
+			if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel){
+				for (int i = 0; i < explodable.length; i++){
+					if (com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isPillar(Dungeon.level.map[i])) explodable[i] = true;
+				}
+			}
 			PathFinder.buildDistanceMap( cell, explodable, explosionRange() );
 			for (int i = 0; i < PathFinder.distance.length; i++) {
 				if (PathFinder.distance[i] != Integer.MAX_VALUE) {
@@ -171,6 +177,13 @@ public class Bomb extends Item {
 			for (int i : affectedCells){
 				if (Dungeon.level.heroFOV[i]) {
 					CellEmitter.get(i).burst(SmokeParticle.FACTORY, 4);
+				}
+
+				//모드: 수정 광맥의 수정 기둥은 폭발에 부서짐
+				if (com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isPillar(Dungeon.level.map[i])
+						&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel) {
+					com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.shatterPillar(i);
+					terrainAffected = true;
 				}
 
 				if (Dungeon.level.flamable[i]) {

@@ -329,7 +329,9 @@ public class CavesBossLevel extends Level {
 		PixelScene.shake( 3, 0.7f );
 		Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 
-		DM300 boss = new DM300();
+		//모드: 수정 광맥 루트에서는 수정 DM-300
+		DM300 boss = com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalVeinMobs.active()
+				? new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalDM300() : new DM300();
 		boss.state = boss.WANDERING;
 		do {
 			boss.pos = pointToCell(Random.element(mainArena.getPoints()));

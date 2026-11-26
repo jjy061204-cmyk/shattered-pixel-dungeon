@@ -14,6 +14,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Callback;
 import com.watabou.noosa.MovieClip.Animation;
 import com.watabou.noosa.TextureFilm;
 
@@ -136,6 +139,35 @@ public class CrystalVeinSprites {
 			die = new Animation( 8, false );
 			die.frames( frames, c+9, c+10, c+11 );
 			play( idle, true );
+		}
+	}
+
+	//수정 DM-300: 덮개를 뚫고 솟은 수정 무리, 녹 자리마다 수정 (칸 25x22 → 25x26, 위로만 늘림)
+	public static class DM300 extends DM300Sprite {
+		public DM300(){
+			super();
+			texture( Assets.Sprites.CV_DM300 );
+			rebuildFrames();
+		}
+
+		@Override
+		protected int frameHeight() {
+			//원작 시트(높이 64)일 때는 22, 수정 시트(높이 52)일 때는 26
+			return texture != null && texture.height == 52 ? 26 : 22;
+		}
+
+		//독가스 대신 수정빛 탄
+		@Override
+		public void zap( int cell ) {
+			turnTo( ch.pos, cell );
+			play( zap );
+			MagicMissile.boltFromChar( parent, MagicMissile.FROST, this, cell, new Callback() {
+				@Override
+				public void call() {
+					((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300)ch).onZapComplete();
+				}
+			} );
+			Sample.INSTANCE.play( Assets.Sounds.ZAP );
 		}
 	}
 }

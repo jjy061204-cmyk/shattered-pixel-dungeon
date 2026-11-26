@@ -1390,6 +1390,20 @@ public class Hero extends Char {
 	private boolean actMine(HeroAction.Mine action){
 		if (Dungeon.level.adjacent(pos, action.dst)){
 			path = null;
+			//모드: 수정 광맥의 수정 기둥은 곡괭이 없이 내리쳐 깸 (두 번에 부서짐)
+			if (com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isPillar(Dungeon.level.map[action.dst])
+					&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel){
+				sprite.attack(action.dst, new Callback() {
+					@Override
+					public void call() {
+						((com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel)Dungeon.level).hitPillar(action.dst);
+						Dungeon.observe();
+						spendAndNext(attackDelay());
+						ready();
+					}
+				});
+				return false;
+			}
 			if ((Dungeon.level.map[action.dst] == Terrain.WALL
 					|| Dungeon.level.map[action.dst] == Terrain.WALL_DECO
 					|| Dungeon.level.map[action.dst] == Terrain.MINE_CRYSTAL
@@ -2063,6 +2077,13 @@ public class Hero extends Char {
 			}
 
 		//TODO perhaps only trigger this if hero is already adjacent? reducing mistaps
+		} else if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel
+				&& com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isPillar(Dungeon.level.map[cell])
+				&& fieldOfView[cell]){
+
+			//모드: 수정 기둥을 누르면 다가가서 내리침
+			curAction = new HeroAction.Mine( cell );
+
 		} else if (Dungeon.level instanceof MiningLevel &&
 					belongings.getItem(Pickaxe.class) != null &&
 				(Dungeon.level.map[cell] == Terrain.WALL
