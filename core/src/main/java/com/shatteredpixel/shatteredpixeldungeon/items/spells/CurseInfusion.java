@@ -51,6 +51,8 @@ public class CurseInfusion extends InventorySpell {
 
 	@Override
 	protected boolean usableOnItem(Item item) {
+		//모드: 에테르 점토는 저주를 받지 않음
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay) return false;
 		return ((item instanceof EquipableItem && item.isUpgradable()) || item instanceof Wand || item instanceof SpiritBow);
 	}
 

@@ -21,6 +21,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -298,11 +299,15 @@ public class EtherClay extends MeleeWeapon {
 
 	//흡수로 오르는 강화 수치: 마법사의 지팡이에 마법 막대를 융합할 때와 같은 식, 단 흡수로는 +3까지만
 	public static final int ABSORB_CAP = 3;
+	//모드: 무기 흡수 +2는 (저주를 걸러 낼 필요가 없어졌으므로) 흡수 한계를 +4로
+	public static int absorbCap(){
+		return ABSORB_CAP + (Dungeon.hero != null && Dungeon.hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2 ? 1 : 0);
+	}
 	public int absorbLevel( MeleeWeapon w ){
 		int mine = trueLevel();
 		int target = Math.max( mine, w.trueLevel() );
 		if (w.trueLevel() >= mine && mine > 0) target++;
-		if (target > mine) target = Math.min( target, Math.max( mine, ABSORB_CAP ) );
+		if (target > mine) target = Math.min( target, Math.max( mine, absorbCap() ) );
 		return target;
 	}
 
@@ -321,7 +326,7 @@ public class EtherClay extends MeleeWeapon {
 		} else {
 			body += "\n\n" + Messages.get( EtherClay.class, "absorb_unknown" );
 		}
-		if (trueLevel() >= ABSORB_CAP) body += "\n\n" + Messages.get( EtherClay.class, "absorb_cap" );
+		if (trueLevel() >= absorbCap()) body += "\n\n" + Messages.get( EtherClay.class, "absorb_cap", absorbCap() );
 		GameScene.show( new WndOptions( new ItemSprite( w ),
 				Messages.titleCase( w.name() ), body,
 				Messages.get( EtherClay.class, "absorb_yes" ), Messages.get( EtherClay.class, "absorb_no" ) ){
@@ -333,7 +338,6 @@ public class EtherClay extends MeleeWeapon {
 	}
 
 	private void doAbsorb( Hero hero, MeleeWeapon w ){
-		boolean purify = hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2;
 		int oldLvl = trueLevel();
 		int newLvl = absorbLevel( w );
 		w.detach( hero.belongings.backpack );
@@ -343,25 +347,15 @@ public class EtherClay extends MeleeWeapon {
 			GLog.p( Messages.get( EtherClay.class, "absorb_upgraded", newLvl ) );
 		}
 
-		if (w.enchantment != null){
-			boolean curse = w.enchantment.curse();
-			if (curse && purify){
-				GLog.i( Messages.get( EtherClay.class, "absorb_purified" ) );
-			} else {
-				enchant( w.enchantment );
-				if (curse){
-					cursed = true;
-					cursedKnown = true;
-					GLog.n( Messages.get( EtherClay.class, "absorb_cursed" ) );
-				} else {
-					GLog.p( Messages.get( EtherClay.class, "absorb_done", w.enchantment.name() ) );
-				}
-			}
+		//모드: 마나 응집도가 너무 높아 저주는 붙지 않고, 좋은 마법은 몽환의 · 꿈의 마법으로 바뀜
+		if (w.enchantment != null && !w.enchantment.curse()){
+			quietConvert = true;
+			enchant( w.enchantment );
+			quietConvert = false;
+			if (enchantment != null) GLog.p( Messages.get( EtherClay.class, "absorb_done", enchantment.name() ) );
 		}
-		if (w.cursed && !purify && !cursed){
-			cursed = true;
-			cursedKnown = true;
-			GLog.n( Messages.get( EtherClay.class, "absorb_cursed" ) );
+		if (w.cursed || (w.enchantment != null && w.enchantment.curse())){
+			GLog.i( Messages.get( EtherClay.class, "curse_repelled" ) );
 		}
 		levelKnown = true;
 
@@ -560,6 +554,55 @@ public class EtherClay extends MeleeWeapon {
 			}
 		}
 		applyForm();
+	}
+
+	// ───── 모드: 너무 높은 마나 응집도 ─────
+	//  마법부여의 돌·주문서·흡수 등 어떤 좋은 마법이 붙어도 전용 마법(몽환의 / 꿈의) 중 하나로 바뀜
+	//  (이미 하나가 붙어 있으면 다른 하나로). 정령사의 정령은 그대로
+	//  저주는 붙지 않고, 드워프 흑마법사의 장비 약화도 받지 않음
+
+	private static boolean quietConvert = false;
+
+	@Override
+	public Weapon enchant( Enchantment ench ) {
+		if (ench != null && ench.curse()){
+			if (Dungeon.hero != null && Dungeon.hero.belongings.contains( this )){
+				GLog.i( Messages.get( EtherClay.class, "curse_repelled" ) );
+			}
+			return this;
+		}
+		if (ench != null
+				&& !(ench instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant)
+				&& !(ench instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reverie)
+				&& !(ench instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Dreaming)){
+			if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reverie){
+				ench = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Dreaming();
+			} else if (enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Dreaming){
+				ench = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reverie();
+			} else {
+				ench = com.watabou.utils.Random.Int( 2 ) == 0
+						? new com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reverie()
+						: new com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Dreaming();
+			}
+			if (!quietConvert && Dungeon.hero != null && Dungeon.hero.belongings.contains( this )){
+				GLog.p( Messages.get( EtherClay.class, "ench_converted", ench.name() ) );
+			}
+		}
+		super.enchant( ench );
+		cursed = false;
+		curseInfusionBonus = false;
+		return this;
+	}
+
+	@Override
+	public int buffedLvl() {
+		int lvl = super.buffedLvl();
+		//장비 약화로 깎인 만큼 되돌림
+		if (Dungeon.hero != null && Dungeon.hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade.class ) != null
+				&& (isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this ))){
+			lvl += level() - com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade.reduceLevel( level() );
+		}
+		return lvl;
 	}
 
 	@Override

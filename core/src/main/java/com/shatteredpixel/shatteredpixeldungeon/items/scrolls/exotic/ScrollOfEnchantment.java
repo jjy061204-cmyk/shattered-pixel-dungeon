@@ -119,6 +119,15 @@ public class ScrollOfEnchantment extends ExoticScroll {
 				}
 				identifiedByUse = false;
 				
+				//모드: 에테르 점토는 전용 마법 둘 중에서 고름
+				if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay){
+					GameScene.show(new WndEnchantSelect((Weapon) item,
+							new com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reverie(),
+							new com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Dreaming(),
+							null));
+					return;
+				}
+
 				final Weapon.Enchantment enchants[] = new Weapon.Enchantment[3];
 				
 				Class<? extends Weapon.Enchantment> existing = ((Weapon) item).enchantment != null ? ((Weapon) item).enchantment.getClass() : null;
@@ -163,10 +172,7 @@ public class ScrollOfEnchantment extends ExoticScroll {
 			super(new ItemSprite(new ScrollOfEnchantment()),
 					Messages.titleCase(new ScrollOfEnchantment().name()),
 					Messages.get(ScrollOfEnchantment.class, "weapon"),
-					ench1.name(),
-					ench2.name(),
-					ench3.name(),
-					Messages.get(ScrollOfEnchantment.class, "cancel"));
+					opts(wep, ench1, ench2, ench3));
 			this.wep = wep;
 			enchantments = new Weapon.Enchantment[3];
 			enchantments[0] = ench1;
@@ -176,9 +182,22 @@ public class ScrollOfEnchantment extends ExoticScroll {
 			WndGlyphSelect.arm = null;
 		}
 
+		//부모 생성자가 hasInfo를 부르기 전에 선택지를 먼저 기억해 둠
+		private static String[] opts(Weapon w, Weapon.Enchantment e1, Weapon.Enchantment e2, Weapon.Enchantment e3){
+			wep = w;
+			enchantments = new Weapon.Enchantment[]{e1, e2, e3};
+			return e3 == null
+					? new String[]{e1.name(), e2.name(), Messages.get(ScrollOfEnchantment.class, "cancel")}
+					: new String[]{e1.name(), e2.name(), e3.name(), Messages.get(ScrollOfEnchantment.class, "cancel")};
+		}
+
+		private static int count(){
+			return enchantments[2] == null ? 2 : 3;
+		}
+
 		@Override
 		protected void onSelect(int index) {
-			if (index < 3) {
+			if (index < count()) {
 				wep.enchant(enchantments[index]);
 				GLog.p(Messages.get(StoneOfEnchantment.class, "weapon"));
 				((ScrollOfEnchantment)curItem).readAnimation();
@@ -192,7 +211,7 @@ public class ScrollOfEnchantment extends ExoticScroll {
 
 		@Override
 		protected boolean hasInfo(int index) {
-			return index < 3;
+			return index < count();
 		}
 
 		@Override
