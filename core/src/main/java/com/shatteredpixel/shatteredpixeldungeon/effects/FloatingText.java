@@ -112,6 +112,8 @@ public class FloatingText extends RenderedTextBlock {
 	public static int DARK_DMG   = 30;
 	public static int CHAOS_DMG  = 31;
 	public static int RUNE_DMG   = 32;
+	//모드: 마법 기사의 에테르 피해
+	public static int ETHER_DMG  = 33;
 
 	//currency icons
 	public static int GOLD      = 23;

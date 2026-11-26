@@ -213,6 +213,9 @@ public class EtherClay extends MeleeWeapon {
 			com.shatteredpixel.shatteredpixeldungeon.effects.RiftSlash.at( defender.sprite, 0.8f );
 			defender.sprite.emitter().burst( com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle.BURST, 4 );
 		}
+		//무기 흡수 +2: 에테르 잔향
+		EtherEcho echo = attacker.buff( EtherEcho.class );
+		if (echo != null) damage += echo.bonus;
 		return super.proc( attacker, defender, damage );
 	}
 
@@ -297,11 +300,53 @@ public class EtherClay extends MeleeWeapon {
 		} );
 	}
 
-	//흡수로 오르는 강화 수치: 마법사의 지팡이에 마법 막대를 융합할 때와 같은 식, 단 흡수로는 +3까지만
-	public static final int ABSORB_CAP = 3;
-	//모드: 무기 흡수 +2는 (저주를 걸러 낼 필요가 없어졌으므로) 흡수 한계를 +4로
+	//흡수로 오르는 강화 수치: 마법사의 지팡이에 마법 막대를 융합할 때와 같은 식, 단 흡수로는 +1까지만
+	public static final int ABSORB_CAP = 1;
 	public static int absorbCap(){
-		return ABSORB_CAP + (Dungeon.hero != null && Dungeon.hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2 ? 1 : 0);
+		return ABSORB_CAP;
+	}
+
+	//무기 흡수 +2 '에테르 잔향': 녹인 무기의 힘이 20턴 동안 남아, 점토로 때릴 때 (녹인 무기 티어 + 강화 수치)만큼 피해 +
+	public static final float ECHO_TURNS = 20f;
+	public static int echoBonus( MeleeWeapon w ){
+		return Math.max( 1, w.tier + Math.max( 0, w.trueLevel() ) );
+	}
+
+	public static class EtherEcho extends com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff {
+		{
+			type = buffType.POSITIVE;
+		}
+		public int bonus = 0;
+		@Override
+		public int icon() {
+			return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.UPGRADE;
+		}
+		@Override
+		public void tintIcon( com.watabou.noosa.Image icon ) {
+			icon.hardlight( 0xC8A0FF );
+		}
+		@Override
+		public float iconFadePercent() {
+			return Math.max( 0, (ECHO_TURNS - visualcooldown()) / ECHO_TURNS );
+		}
+		@Override
+		public String iconTextDisplay() {
+			return "+" + bonus;
+		}
+		@Override
+		public String desc() {
+			return Messages.get( this, "desc", bonus, dispTurns() );
+		}
+		@Override
+		public void storeInBundle( Bundle b ) {
+			super.storeInBundle( b );
+			b.put( "bonus", bonus );
+		}
+		@Override
+		public void restoreFromBundle( Bundle b ) {
+			super.restoreFromBundle( b );
+			bonus = b.getInt( "bonus" );
+		}
 	}
 	public int absorbLevel( MeleeWeapon w ){
 		int mine = trueLevel();
@@ -314,8 +359,9 @@ public class EtherClay extends MeleeWeapon {
 	private void confirmAbsorb( final Hero hero, final MeleeWeapon w ){
 		final int newLvl = absorbLevel( w );
 		final boolean ench = w.enchantment != null;
+		boolean echo = hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2;
 		//얻을 게 하나도 없으면 녹이지 않음
-		if (!ench && newLvl <= trueLevel()){
+		if (!ench && !echo && newLvl <= trueLevel()){
 			w.cursedKnown = true;
 			GLog.w( Messages.get( EtherClay.class, "absorb_nothing", Messages.titleCase( w.trueName() ) ) );
 			return;
@@ -327,6 +373,7 @@ public class EtherClay extends MeleeWeapon {
 			body += "\n\n" + Messages.get( EtherClay.class, "absorb_unknown" );
 		}
 		if (trueLevel() >= absorbCap()) body += "\n\n" + Messages.get( EtherClay.class, "absorb_cap", absorbCap() );
+		if (echo) body += "\n\n" + Messages.get( EtherClay.class, "absorb_echo", echoBonus( w ), (int) ECHO_TURNS );
 		GameScene.show( new WndOptions( new ItemSprite( w ),
 				Messages.titleCase( w.name() ), body,
 				Messages.get( EtherClay.class, "absorb_yes" ), Messages.get( EtherClay.class, "absorb_no" ) ){
@@ -356,6 +403,14 @@ public class EtherClay extends MeleeWeapon {
 		}
 		if (w.cursed || (w.enchantment != null && w.enchantment.curse())){
 			GLog.i( Messages.get( EtherClay.class, "curse_repelled" ) );
+		}
+		//무기 흡수 +2: 에테르 잔향
+		if (hero.pointsInTalent( Talent.WEAPON_ABSORB ) >= 2){
+			int b = echoBonus( w );
+			EtherEcho old = hero.buff( EtherEcho.class );
+			if (old != null) b = Math.max( b, old.bonus );
+			Buff.prolong( hero, EtherEcho.class, ECHO_TURNS ).bonus = b;
+			GLog.p( Messages.get( EtherClay.class, "echo_gained", b ) );
 		}
 		levelKnown = true;
 

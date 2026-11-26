@@ -255,6 +255,9 @@ public enum Talent {
 	SPIRIT_LEGION(325, 4), SPIRIT_CHAIN(326, 4), SPIRIT_BIND(327, 4),
 	SURGE_DURATION(328, 4), SURGE_RESONANCE(329, 4), SURGE_FRENZY(330, 4),
 	KING_MAJESTY(331, 4), KING_REIGN(332, 4), ROYAL_AEGIS(333, 4),
+	//마법 기사 갑옷 능력 T4: 에테르 갑주 / 에테르 심화
+	CLAY_LAYERS(337, 4), ETHER_WARD(338, 4), ETHER_THORNS(339, 4),
+	ETHER_INTENSITY(340, 4), ETHER_RIPPLE(341, 4), ETHER_LINGER(342, 4),
 
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
@@ -524,6 +527,8 @@ public enum Talent {
 					return 186;
 				case VAMPIRE:
 					return 282;
+				case MAGIC_KNIGHT:
+					return 343;
 			}
 		} else {
 			return icon;

@@ -65,6 +65,22 @@ public abstract class ElementalDamage {
 		@Override public int icon(){ return FloatingText.CHAOS_DMG; }
 	}
 
+	// ── 마법 기사의 전용 속성 ──
+	//에테르: 마법 기사의 에테르 점토와 갑옷 능력이 입히는 피해. 마법 피해와도 정령의 속성과도 다른 갈래
+	public static class Ether extends ElementalDamage {
+		@Override public int icon(){ return FloatingText.ETHER_DMG; }
+	}
+
+	//에테르 피해를 입히고 실제 들어간 양을 돌려줌 (몹의 에테르 면역·저항 반영)
+	public static int etherHit( com.shatteredpixel.shatteredpixeldungeon.actors.Char target, float amount ){
+		if (target == null || !target.isAlive() || amount <= 0) return 0;
+		if (target.isImmune( Ether.class )) return 0;
+		float dmg = amount * target.resist( Ether.class );
+		int d = Math.max( 1, Math.round( dmg ) );
+		target.damage( d, new Ether() );
+		return d;
+	}
+
 	//정령 → 그 정령이 입히는 속성 피해 (상급 정령은 바탕 원소를 따름)
 	public static ElementalDamage of( ForestWand.Spirit s ){
 		switch (s){

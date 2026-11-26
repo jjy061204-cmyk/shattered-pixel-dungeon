@@ -100,8 +100,11 @@ abstract public class ClassArmor extends Armor {
 		ClassArmor classArmor = null;
 		
 		switch (owner.heroClass) {
-			case WARRIOR: case MAGIC_KNIGHT:
+			case WARRIOR:
 				classArmor = new WarriorArmor();
+				break;
+			case MAGIC_KNIGHT:
+				classArmor = new MagicKnightArmor();
 				break;
 			case VAMPIRE:
 				classArmor = new VampireArmor();
@@ -156,6 +159,7 @@ abstract public class ClassArmor extends Armor {
 		switch (owner.heroClass){
 			case VAMPIRE:      fresh = new VampireArmor(); break;
 			case ELEMENTALIST: fresh = new ElementalistArmor(); break;
+			case MAGIC_KNIGHT: fresh = new MagicKnightArmor(); break;
 			default:           return armor;
 		}
 		Bundle b = new Bundle();

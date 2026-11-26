@@ -514,6 +514,11 @@ public class Hero extends Char {
 			Buff.affect( this, Sai.ComboStrikeTracker.class).addHit( attackTarget );
 		}
 
+		//모드: 에테르 심화 중 근접 공격으로 적을 쓰러뜨림
+		if (hit && wasEnemy && !attackTarget.isAlive()){
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherDeepen.onKill( this );
+		}
+
 		attackTarget = null;
 		return hit;
 	}
@@ -704,6 +709,9 @@ public class Hero extends Char {
 		if (buff(HoldFast.class) != null){
 			dr += buff(HoldFast.class).armorBonus();
 		}
+
+		//모드: 에테르 갑주
+		dr += com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherArmor.drBonus( this );
 		
 		return dr;
 	}
@@ -1635,6 +1643,8 @@ public class Hero extends Char {
 
 		if (wep != null) {
 			damage = wep.proc( this, enemy, damage );
+			//모드: 에테르 심화 - 근접 무기 공격에 에테르 피해
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherDeepen.onAttack( this, enemy, damage, wep );
 		} else {
 
 			if (buff(BodyForm.BodyFormBuff.class) != null && buff(BodyForm.BodyFormBuff.class).enchant() != null){
@@ -1685,6 +1695,8 @@ public class Hero extends Char {
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 		Talent.onHeroDefended( this, enemy );
+		//모드: 에테르 갑주의 에테르 가시
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherArmor.onHeroDefended( this, enemy );
 
 		//모드: 수호의 반지 - 융합한 속성의 반격
 		

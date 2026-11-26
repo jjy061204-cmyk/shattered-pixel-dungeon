@@ -974,6 +974,10 @@ public abstract class Char extends Actor {
 			if (buff(ArcaneArmor.class) != null) {
 				dmg -= Random.NormalIntRange(0, buff(ArcaneArmor.class).level());
 			}
+			//모드: 에테르 갑주 + 에테르 차폐의 마법 방어력
+			if (this instanceof Hero) {
+				dmg -= com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherArmor.magicBlock( (Hero) this );
+			}
 			if (dmg < 0) dmg = 0;
 		}
 		

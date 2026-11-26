@@ -428,6 +428,9 @@ public enum HeroClass {
 				return new ArmorAbility[]{new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritVolley(),
 						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritSurge(),
 						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritKingCall()};
+			case MAGIC_KNIGHT:   //세 번째 능력(잠재력 활성화)은 영웅 그림이 준비되면 추가
+				return new ArmorAbility[]{new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherArmor(),
+						new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.magicknight.EtherDeepen()};
 			case HUNTRESS:
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
 			case DUELIST:
