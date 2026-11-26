@@ -5,7 +5,8 @@
  *  ElementalDamage                 ← 모든 속성 피해 (카테고리 맨 위)
  *   ├ SpiritElement                ← 정령 속성 (정령사 · 정령 · 정령 문양이 입히는 피해)
  *   │   ├ 원래 있던 속성: Water 물 · Fire 불 · Ice 냉기 · Shock 번개
- *   │   └ 정령사의 속성: Wind 바람 · Nature 자연 · Earth 땅 · Rock 바위 · Gold 황금 · Dark 어둠 · Rune 룬 · Chaos 혼돈
+ *   │   ├ 정령사의 속성: Wind 바람 · Nature 자연 · Earth 땅 · Rock 바위 · Gold 황금 · Dark 어둠 · Rune 룬 · Chaos 혼돈
+ *   │   └ 지역 속성: Life 생명(흡혈귀의 성) · Crystal 수정(수정 광맥)
  *   └ Ether 에테르                  ← 마법 기사 전용 속성
  *
  * 카테고리를 클래스 상속으로 묶어 두었으므로 몹·버프의 저항/면역을 한 줄로 줄 수 있음
@@ -109,6 +110,14 @@ public abstract class ElementalDamage {
 		@Override public int icon(){ return FloatingText.CHAOS_DMG; }
 	}
 
+	//지역 속성: 그 지역에서만 깨어나는 정령의 힘
+	public static class Life extends SpiritElement {      //흡혈귀의 성, 고인 피에서 깨어난 불완전한 생명의 정령
+		@Override public int icon(){ return FloatingText.LIFE_DMG; }
+	}
+	public static class Crystal extends SpiritElement {   //수정 광맥의 수정 정령 (푸른·초록·붉은 수정 모두)
+		@Override public int icon(){ return FloatingText.CRYSTAL_DMG; }
+	}
+
 	// ───── 마법 기사 전용 속성 ─────
 	//에테르: 마법 기사의 에테르 점토와 갑옷 능력이 입히는 피해
 	public static class Ether extends ElementalDamage {
@@ -119,7 +128,8 @@ public abstract class ElementalDamage {
 	// ───── 목록 ─────
 	public static final List<Class<? extends SpiritElement>> SPIRIT_ELEMENTS = Collections.unmodifiableList( Arrays.asList(
 			Water.class, Fire.class, Ice.class, Shock.class,
-			Wind.class, Nature.class, Earth.class, Rock.class, Gold.class, Dark.class, Rune.class, Chaos.class ) );
+			Wind.class, Nature.class, Earth.class, Rock.class, Gold.class, Dark.class, Rune.class, Chaos.class,
+			Life.class, Crystal.class ) );
 
 	public static final List<Class<? extends ElementalDamage>> ALL;
 	static {
@@ -189,6 +199,8 @@ public abstract class ElementalDamage {
 			case GOLD:                              return new Gold();
 			case DARK:                              return new Dark();
 			case RUNE:                              return new Rune();
+			case LIFE:                              return new Life();
+			case CRYSTAL_BLUE: case CRYSTAL_GREEN: case CRYSTAL_RED: return new Crystal();
 			case CHAOS: default:                    return new Chaos();
 		}
 	}

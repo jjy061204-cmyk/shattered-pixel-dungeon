@@ -399,7 +399,8 @@ public class MeleeWeapon extends Weapon {
 	@Override
 	public int value() {
 		int price = 20 * tier;
-		if (hasGoodEnchant()) {
+		//모드: 깃든 정령은 팔 때 자연으로 돌아가므로 값에 셈하지 않음
+		if (hasGoodEnchant() && !(enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant)) {
 			price *= 1.5f;
 			if (enchantment instanceof Crystal){
 				price *= 3;

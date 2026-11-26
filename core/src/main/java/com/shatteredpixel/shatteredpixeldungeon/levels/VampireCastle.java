@@ -74,4 +74,55 @@ public class VampireCastle {
 			default: return null;
 		}
 	}
+
+	// ───── 뱀파이어 영웅: 고향 같은 성 ─────
+	//  흡혈귀의 성에 있는 동안 자연 재생 +20%, 핏빛 성배 충전 +20%, 적의 흡혈량 30% 감소
+
+	public static final float HOME_REGEN = 1.2f;
+	public static final float HOME_GRAIL = 1.2f;
+	public static final float HOME_DRAIN = 0.7f;
+
+	public static boolean vampireHome(){
+		return Dungeon.hero != null && Dungeon.hero.isAlive()
+				&& Dungeon.hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE
+				&& isCastleLevel( Dungeon.level );
+	}
+
+	//적이 빨아들이는 양 (뱀파이어 영웅이 성에 있으면 줄어듦)
+	public static int enemyDrain( int amount ){
+		if (amount <= 0 || !vampireHome()) return amount;
+		return Math.max( 0, Math.round( amount * HOME_DRAIN ) );
+	}
+
+	//버프 칸에 '성의 혈족'을 띄움 (성 밖으로 나가면 저절로 사라짐)
+	public static void updateKinship(){
+		if (vampireHome() && Dungeon.hero.buff( Kinship.class ) == null){
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect( Dungeon.hero, Kinship.class );
+		}
+	}
+
+	public static class Kinship extends com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff {
+		{
+			type = buffType.POSITIVE;
+			announced = false;
+		}
+		@Override
+		public boolean act() {
+			if (!vampireHome()) detach();
+			spend( TICK );
+			return true;
+		}
+		@Override
+		public int icon() {
+			return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.HEART;
+		}
+		@Override
+		public void tintIcon( com.watabou.noosa.Image icon ) {
+			icon.hardlight( 0.75f, 0.1f, 0.2f );
+		}
+		@Override
+		public String desc() {
+			return Messages.get( this, "desc" );
+		}
+	}
 }

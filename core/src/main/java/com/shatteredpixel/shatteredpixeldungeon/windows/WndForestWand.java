@@ -657,6 +657,8 @@ public class WndForestWand extends Window {
 			bestow( slot );
 		} else {
 			wand.slots[slot] = null;
+			//불완전한 생명의 정령을 풀어 주면 자연으로 돌아가, 고인 피에서 새로 부를 수 있음
+			if (s == ForestWand.Spirit.LIFE) ForestWand.lifeGone();
 			Item.updateQuickslot();
 			refreshSwitch();
 			Hero hero = Dungeon.hero;

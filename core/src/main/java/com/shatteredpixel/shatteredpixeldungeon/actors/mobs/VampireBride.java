@@ -69,7 +69,7 @@ public class VampireBride extends Mob {
 
 		//어둠 속에서는 준 피해의 절반을 빨아들임
 		if (!VampireCastle.isLit( pos )){
-			int reg = Math.min( damage / 2, HT - HP );
+			int reg = Math.min( VampireCastle.enemyDrain( damage / 2 ), HT - HP );
 			if (reg > 0){
 				HP += reg;
 				if (sprite != null) sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( reg ), FloatingText.HEALING );

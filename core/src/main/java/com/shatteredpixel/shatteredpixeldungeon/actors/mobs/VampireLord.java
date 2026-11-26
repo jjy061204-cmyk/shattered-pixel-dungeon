@@ -256,7 +256,7 @@ public class VampireLord extends Mob {
 		damage = super.attackProc( enemy, damage );
 		//근접 흡혈 (어둠 속에서만)
 		if (!VampireCastle.isLit( pos )){
-			int reg = Math.min( damage / 2, HT - HP );
+			int reg = Math.min( VampireCastle.enemyDrain( damage / 2 ), HT - HP );
 			if (reg > 0){
 				HP += reg;
 				if (sprite != null) sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString( reg ), FloatingText.HEALING );
@@ -512,7 +512,7 @@ public class VampireLord extends Mob {
 			int dmg = 3;
 			target.damage( dmg, l );
 			if (target.sprite != null) target.sprite.emitter().burst( BloodParticle.BURST, 4 );
-			l.HP = Math.min( l.HT, l.HP + dmg );
+			l.HP = Math.min( l.HT, l.HP + VampireCastle.enemyDrain( dmg ) );
 			l.tether( target );
 			if (target == Dungeon.hero && !target.isAlive()){
 				Dungeon.fail( l );

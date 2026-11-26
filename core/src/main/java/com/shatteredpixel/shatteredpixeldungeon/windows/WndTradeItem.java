@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArm
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -244,6 +245,9 @@ public class WndTradeItem extends WndInfoItem {
 		}
 		item.detachAll( hero.belongings.backpack );
 
+		//모드: 정령이 깃든 장비를 팔면 정령은 자연으로 돌아가고 장비만 팔림
+		releaseSpirits( item );
+
 		if (item instanceof MissileWeapon && item.isUpgradable()){
 			Buff.affect(hero, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(((MissileWeapon) item).setID, Integer.MAX_VALUE);
 		}
@@ -259,6 +263,36 @@ public class WndTradeItem extends WndInfoItem {
 				shop.buybackItems.remove(0);
 			}
 		}
+	}
+
+	//장비에 깃든 정령을 자연으로 돌려보냄
+	public static void releaseSpirits( Item item ){
+		com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit a = null, b = null;
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
+				&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) item).enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant){
+			com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant e =
+					(com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SpiritEnchant) ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) item).enchantment;
+			a = e.spirit; b = e.spirit2;
+			((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) item).enchantment = null;
+		} else if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor
+				&& ((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) item).glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph){
+			com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph g =
+					(com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph) ((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) item).glyph;
+			a = g.spirit; b = g.spirit2;
+			((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) item).glyph = null;
+		}
+		if (a == null) return;
+		if (a == com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit.LIFE
+				|| b == com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.Spirit.LIFE){
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.lifeGone();
+		}
+		Hero hero = Dungeon.hero;
+		if (hero != null && hero.sprite != null){
+			hero.sprite.centerEmitter().burst( a.particle(), 8 );
+			if (b != null) hero.sprite.centerEmitter().burst( b.particle(), 8 );
+		}
+		if (b == null) GLog.i( Messages.get( WndTradeItem.class, "spirit_freed", a.title() ) );
+		else GLog.i( Messages.get( WndTradeItem.class, "spirit_freed2", a.title(), b.title() ) );
 	}
 
 	public static void sellOne( Item item ) {

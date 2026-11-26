@@ -74,7 +74,7 @@ public class Bat extends Mob {
 		damage = super.attackProc( enemy, damage );
 		//모드: 흡혈귀의 성 — 밝은 칸에서는 흡혈이 막힘
 		if (com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isLit( pos )) return damage;
-		int reg = Math.min( damage - 4, HT - HP );
+		int reg = Math.min( com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.enemyDrain( damage - 4 ), HT - HP );
 		
 		if (reg > 0) {
 			HP += reg;

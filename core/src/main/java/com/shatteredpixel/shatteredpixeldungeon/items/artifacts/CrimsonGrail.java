@@ -1059,6 +1059,8 @@ public class CrimsonGrail extends Artifact {
 		if (g == null) return;
 		int cap = g.lifeCap();
 		if (g.charge >= cap) return;
+		//흡혈귀의 성: 성배가 +20% 빨리 참
+		if (com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.vampireHome()) amount *= com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.HOME_GRAIL;
 		g.partialCharge += amount;
 		int whole = (int) g.partialCharge;
 		if (whole > 0){

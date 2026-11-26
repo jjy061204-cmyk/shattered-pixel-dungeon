@@ -723,7 +723,8 @@ public class Armor extends EquipableItem {
 		if (seal != null) return 0;
 
 		int price = 20 * tier;
-		if (hasGoodGlyph()) {
+		//모드: 깃든 정령은 팔 때 자연으로 돌아가므로 값에 셈하지 않음
+		if (hasGoodGlyph() && !(glyph instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SpiritGlyph)) {
 			price *= 1.5;
 		}
 		if (cursedKnown && (cursed || hasCurseGlyph())) {

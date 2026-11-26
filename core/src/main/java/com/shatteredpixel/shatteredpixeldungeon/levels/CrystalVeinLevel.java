@@ -156,7 +156,8 @@ public class CrystalVeinLevel extends CavesLevel {
 		byte[] v = DungeonTileSheet.tileVariance;
 		return (v == null || pos < 0 || pos >= v.length) ? 99 : v[pos];
 	}
-	private static int pillarColor( int pos ){
+	//0 푸른 · 1 초록 · 2 붉은 (수정 정령의 색으로도 씀)
+	public static int pillarColor( int pos ){
 		int v = pillarVariance( pos );
 		return v < 25 ? 1 : v < 50 ? 2 : 0;
 	}

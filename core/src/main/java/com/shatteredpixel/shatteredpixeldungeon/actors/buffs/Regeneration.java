@@ -47,6 +47,9 @@ public class Regeneration extends Buff {
 	public boolean act() {
 		if (target.isAlive()) {
 
+			//모드: 뱀파이어가 흡혈귀의 성에 있으면 '성의 혈족' 표시
+			com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.updateKinship();
+
 			//if other trinkets ever get buffs like this should probably make the buff attaching
 			// behaviour more like wands/rings/artifacts
 			if (ChaoticCenser.averageTurnsUntilGas() != -1){
@@ -86,6 +89,8 @@ public class Regeneration extends Buff {
 
 				//모드: 뱀파이어는 타고난 생명력으로 자연 재생 +50%
 				if (((Hero)target).heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.VAMPIRE) delay /= 1.5f;
+				//모드: 흡혈귀의 성은 뱀파이어의 고향 같은 곳 - 자연 재생 +20%
+				if (com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.vampireHome()) delay /= com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.HOME_REGEN;
 
 				//모드: 진조 흡혈귀의 '불사의 육체' - 자연 재생 +25/50/75%
 				delay /= 1f + 0.25f * Dungeon.hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.UNDYING_FLESH);

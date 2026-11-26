@@ -71,6 +71,10 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SnowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.WindParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpiritSwitch;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle;
+import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.elementalist.SpiritSurge;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Embers;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -136,7 +140,17 @@ public class ForestWand extends Weapon {
 		GNOME      ( true, 0xD9A55A, true ),
 		SYLPH      ( true, 0x9CFFC8, true ),
 		//서리 물약·서리 함정의 서리 구름 (서리 정령의 약한 형제. 순서를 지키려고 맨 끝에 둠)
-		ICE    ( false, 0xBFEFFF );
+		ICE    ( false, 0xBFEFFF ),
+		//흡혈귀의 성: 바닥에 고인 피에서 깨어난 불완전한 생명의 정령 (한 번에 하나, 힘을 다섯 번 쓰면 자연으로 돌아감)
+		LIFE   ( false, 0xFF6E8E ),
+		//수정 광맥: 수정 기둥·수정맥·수정 덤불에서 깨어난 수정 정령 (색만 다르고 능력은 같음)
+		CRYSTAL_BLUE  ( false, 0x6FB8FF ),
+		CRYSTAL_GREEN ( false, 0x5FD884 ),
+		CRYSTAL_RED   ( false, 0xFF6464 );
+
+		public boolean crystal(){
+			return this == CRYSTAL_BLUE || this == CRYSTAL_GREEN || this == CRYSTAL_RED;
+		}
 
 		public final boolean strong;
 		public final boolean greater;
@@ -186,6 +200,10 @@ public class ForestWand extends Weapon {
 				case GOLD:   return Speck.factory( Speck.YELLOW_LIGHT );
 				case DARK:   return ShadowParticle.UP;
 				case RUNE:   return MagicMissile.WardParticle.FACTORY;
+				case LIFE:   return com.shatteredpixel.shatteredpixeldungeon.effects.particles.RegionSpiritParticle.LIFE;
+				case CRYSTAL_BLUE:  return com.shatteredpixel.shatteredpixeldungeon.effects.particles.RegionSpiritParticle.CRYSTAL_BLUE;
+				case CRYSTAL_GREEN: return com.shatteredpixel.shatteredpixeldungeon.effects.particles.RegionSpiritParticle.CRYSTAL_GREEN;
+				case CRYSTAL_RED:   return com.shatteredpixel.shatteredpixeldungeon.effects.particles.RegionSpiritParticle.CRYSTAL_RED;
 				default:     return RainbowParticle.BURST;
 			}
 		}
@@ -494,6 +512,7 @@ public class ForestWand extends Weapon {
 				case GOLD:  return 900;
 				case CHAOS: return 720;
 				case RUNE:  return 360;
+				case CRYSTAL_BLUE: case CRYSTAL_GREEN: case CRYSTAL_RED: return 0;
 				default:    return 0;
 			}
 		}
@@ -576,7 +595,10 @@ public class ForestWand extends Weapon {
 	private CellSelector.Listener shooter = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer target ) {
-			if (target != null) knockBolt().cast( curUser, target );
+			if (target == null) return;
+			//불완전한 생명의 정령은 굴절광처럼 곧은 빛줄기를 쏨
+			if (active() == Spirit.LIFE) lifeBeam( curUser, target );
+			else knockBolt().cast( curUser, target );
 		}
 		@Override
 		public String prompt() {
@@ -614,6 +636,8 @@ public class ForestWand extends Weapon {
 		float dmg = elemBase() * mul;
 		if (s == Spirit.WATER && Char.hasProp( target, Char.Property.FIERY )) dmg *= 1.5f;
 		if (s == Spirit.SHOCK && Dungeon.level.water[target.pos] && !target.flying) dmg *= 1.5f;
+		//생명: 언데드·악마에게 1.5배
+		if (s == Spirit.LIFE && (Char.hasProp( target, Char.Property.UNDEAD ) || Char.hasProp( target, Char.Property.DEMONIC ))) dmg *= 1.5f;
 		//원소 숙련: 정령사 편이 입히는 속성 피해 +15/30/45%
 		if (Dungeon.hero != null && target != Dungeon.hero && target.alignment != Char.Alignment.ALLY){
 			dmg *= 1f + 0.15f * Dungeon.hero.pointsInTalent( Talent.ELEMENTAL_MASTERY );
@@ -920,6 +944,34 @@ public class ForestWand extends Weapon {
 				}
 				break;
 
+			//불완전한 생명: 생명의 빛줄기가 꿰뚫음 (언데드·악마 1.5배). 힘을 한 번 쓸 때마다 남은 횟수가 줄어듦
+			case LIFE:
+				lifeRay( attacker, defender );
+				burst( defender, s.particle(), 10 );
+				fx( defender, s, "life" );
+				elemHit( s, defender, mul*1.2f );
+				lifeUsed();
+				break;
+
+			//수정: 수정 파편이 박히고, 튄 파편이 둘레의 다른 적 하나에게도 박힘
+			case CRYSTAL_BLUE: case CRYSTAL_GREEN: case CRYSTAL_RED: {
+				burst( defender, s.particle(), 12 );
+				Sample.INSTANCE.play( Assets.Sounds.SHATTER, 0.6f, Random.Float( 1.1f, 1.3f ) );
+				fx( defender, s, "crystal" );
+				elemHit( s, defender, mul*0.8f );
+				ArrayList<Char> near = new ArrayList<>();
+				for (int n : PathFinder.NEIGHBOURS8){
+					Char other = Actor.findChar( defender.pos + n );
+					if (foe( attacker, other ) && other != defender) near.add( other );
+				}
+				if (!near.isEmpty()){
+					Char other = Random.element( near );
+					burst( other, s.particle(), 6 );
+					elemHit( s, other, mul*0.4f );
+				}
+				break;
+			}
+
 			//룬 마법: 룬을 새기고, 룬이 셋 쌓이면 폭발해 대상과 둘레의 적에게 큰 피해
 			case RUNE:
 				burst( defender, MagicMissile.WardParticle.FACTORY, 8 );
@@ -951,6 +1003,145 @@ public class ForestWand extends Weapon {
 	public static String dwells( Spirit a, Spirit b ){
 		if (b == null) return Messages.get( Weapon.class, "spirit_dwells", a.title() );
 		return Messages.get( Weapon.class, "spirit_dwells2", a.title(), b.title() );
+	}
+
+	// ── 불완전한 생명의 정령 ──
+	//  흡혈귀의 성의 고인 피에서만 깨어남. 완드·장비·어디에 있든 한 번에 하나뿐이며
+	//  (장비에 부여해 어딘가에 두고 와도 그대로 하나로 셈), 힘을 다섯 번 쓰면 자연으로 돌아감
+
+	public static final int LIFE_USES = 5;
+	public static final float LIFE_BEAM_MUL = 1.5f;
+
+	//영웅에게 붙어 생명의 정령이 어디 있든 남은 횟수를 셈
+	public static class LifeBond extends Buff {
+		{
+			type = buffType.NEUTRAL;
+			announced = false;
+		}
+		public int uses = LIFE_USES;
+		@Override public int icon() { return BuffIndicator.HEART; }
+		@Override public void tintIcon( Image icon ) { icon.hardlight( Spirit.LIFE.color ); }
+		@Override public String iconTextDisplay() { return Integer.toString( uses ); }
+		@Override public String desc() { return Messages.get( this, "desc", uses ); }
+		@Override public void storeInBundle( Bundle b ) { super.storeInBundle( b ); b.put( "uses", uses ); }
+		@Override public void restoreFromBundle( Bundle b ) { super.restoreFromBundle( b ); uses = b.getInt( "uses" ); }
+	}
+
+	public static boolean lifeExists( Hero hero ){
+		return hero != null && hero.buff( LifeBond.class ) != null;
+	}
+
+	//영웅의 완드·장비에 생명의 정령이 있는지
+	private static boolean lifeCarried( Hero hero ){
+		for (Item i : hero.belongings){
+			if (i instanceof ForestWand){
+				for (Spirit w : ((ForestWand) i).slots) if (w == Spirit.LIFE) return true;
+			} else if (i instanceof Weapon && ((Weapon) i).enchantment instanceof SpiritEnchant){
+				SpiritEnchant e = (SpiritEnchant) ((Weapon) i).enchantment;
+				if (e.spirit == Spirit.LIFE || e.spirit2 == Spirit.LIFE) return true;
+			} else if (i instanceof Armor && ((Armor) i).glyph instanceof SpiritGlyph){
+				SpiritGlyph g = (SpiritGlyph) ((Armor) i).glyph;
+				if (g.spirit == Spirit.LIFE || g.spirit2 == Spirit.LIFE) return true;
+			}
+		}
+		return false;
+	}
+
+	//생명의 정령이 힘을 한 번 씀
+	public static void lifeUsed(){
+		Hero hero = Dungeon.hero;
+		if (hero == null) return;
+		LifeBond b = hero.buff( LifeBond.class );
+		if (b == null){
+			//남은 횟수 기록이 없는데 정령이 남아 있으면(예전 저장 등) 바로 돌려보냄
+			if (lifeCarried( hero )) fadeLife( hero );
+			return;
+		}
+		b.uses--;
+		if (b.uses <= 0) fadeLife( hero );
+		else BuffIndicator.refreshHero();
+	}
+
+	//생명의 정령이 완드·장비 밖으로 떠남 (풀어 주기·팔기·역소환 실패) → 새로 부를 수 있음
+	public static void lifeGone(){
+		if (Dungeon.hero != null) Buff.detach( Dungeon.hero, LifeBond.class );
+	}
+
+	//힘을 다한 생명의 정령이 자연으로 돌아감: 완드·장비 어디에 있든 빠짐
+	public static void fadeLife( Hero hero ){
+		for (Item i : hero.belongings){
+			if (i instanceof ForestWand){
+				ForestWand w = (ForestWand) i;
+				for (int k = 0; k < SLOTS; k++) if (w.slots[k] == Spirit.LIFE) w.slots[k] = null;
+			} else if (i instanceof Weapon && ((Weapon) i).enchantment instanceof SpiritEnchant){
+				SpiritEnchant e = (SpiritEnchant) ((Weapon) i).enchantment;
+				if (e.spirit2 == Spirit.LIFE) e.spirit2 = null;
+				if (e.spirit == Spirit.LIFE){
+					if (e.spirit2 != null){ e.spirit = e.spirit2; e.spirit2 = null; }
+					else ((Weapon) i).enchantment = null;
+				}
+			} else if (i instanceof Armor && ((Armor) i).glyph instanceof SpiritGlyph){
+				SpiritGlyph g = (SpiritGlyph) ((Armor) i).glyph;
+				if (g.spirit2 == Spirit.LIFE) g.spirit2 = null;
+				if (g.spirit == Spirit.LIFE){
+					if (g.spirit2 != null){ g.spirit = g.spirit2; g.spirit2 = null; }
+					else ((Armor) i).glyph = null;
+				}
+			}
+		}
+		Buff.detach( hero, LifeBond.class );
+		updateQuickslot();
+		if (hero.sprite != null){
+			hero.sprite.centerEmitter().burst( Spirit.LIFE.particle(), 16 );
+			hero.sprite.showStatus( Spirit.LIFE.color, Messages.get( ForestWand.class, "life_faded_short" ) );
+		}
+		GLog.i( Messages.get( ForestWand.class, "life_faded" ) );
+		SpiritSwitch sw = hero.buff( SpiritSwitch.class );
+		if (sw != null) sw.refreshButton();
+	}
+
+	//생명의 빛줄기 (굴절광의 마법 막대처럼)
+	public static void lifeRay( Char from, Char to ){
+		if (from == null || to == null || from.sprite == null || from.sprite.parent == null) return;
+		if (!from.sprite.visible && (to.sprite == null || !to.sprite.visible)) return;
+		com.shatteredpixel.shatteredpixeldungeon.effects.Beam ray = new com.shatteredpixel.shatteredpixeldungeon.effects.Beam.LightRay(
+				from.sprite.center(), to.sprite != null ? to.sprite.center() : DungeonTilemap.raisedTileCenterToWorld( to.pos ) );
+		ray.hardlight( Spirit.LIFE.color );
+		from.sprite.parent.add( ray );
+	}
+
+	//생명의 정령이 가운데 있을 때의 정령 탄: 곧은 빛줄기가 처음 닿는 대상을 꿰뚫음 (빗나가지 않음)
+	private void lifeBeam( final Hero user, int dst ){
+		Ballistica b = new Ballistica( user.pos, dst, Ballistica.MAGIC_BOLT );
+		int cell = b.collisionPos;
+		user.sprite.zap( cell );
+		Sample.INSTANCE.play( Assets.Sounds.RAY );
+		Invisibility.dispel();
+		Char ch = Actor.findChar( cell );
+		QuickSlotButton.target( ch );
+		if (ch != null && ch != user){
+			spiritHit( Spirit.LIFE, user, ch, 0, LIFE_BEAM_MUL );
+			if (!ch.isAlive()) SpiritSurge.onKill( user );
+		} else {
+			if (user.sprite.parent != null){
+				com.shatteredpixel.shatteredpixeldungeon.effects.Beam ray = new com.shatteredpixel.shatteredpixeldungeon.effects.Beam.LightRay(
+						user.sprite.center(), DungeonTilemap.raisedTileCenterToWorld( cell ) );
+				ray.hardlight( Spirit.LIFE.color );
+				user.sprite.parent.add( ray );
+			}
+			CellEmitter.center( cell ).burst( Spirit.LIFE.particle(), 6 );
+			lifeUsed();
+		}
+		user.spendAndNext( delayFactor( user ) );
+	}
+
+	//수정 광맥에서 깨어나는 수정 정령: 0 푸른 · 1 초록 · 2 붉은
+	public static Spirit crystalOf( int color ){
+		switch (color){
+			case 1:  return Spirit.CRYSTAL_GREEN;
+			case 2:  return Spirit.CRYSTAL_RED;
+			default: return Spirit.CRYSTAL_BLUE;
+		}
 	}
 
 	//설명용: 지금 깊이의 속성 피해 기준
@@ -1132,6 +1323,7 @@ public class ForestWand extends Weapon {
 		} else {
 			if (hero.sprite != null) hero.sprite.centerEmitter().burst( s.particle(), 5 );
 			GLog.w( Messages.get( ForestWand.class, "returned_lost", s.title() ) );
+			if (s == Spirit.LIFE) lifeGone();
 		}
 	}
 
@@ -1197,8 +1389,17 @@ public class ForestWand extends Weapon {
 		if (t == Terrain.WALL_DECO && level instanceof PrisonLevel) return Spirit.FIRE;   //감옥 벽의 횃불
 		//놀 제국의 모닥불·용광로
 		if (t == Terrain.STATUE_SP && com.shatteredpixel.shatteredpixeldungeon.levels.GnollEmpire.isEmpireLevel( level )) return Spirit.FIRE;
-		//흡혈귀의 성의 핏물 웅덩이는 물이 아니라 물의 정령을 부르지 못함
-		if ((level.water[cell] || t == Terrain.WATER) && com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isCastleLevel( level )) return null;
+		//흡혈귀의 성의 핏물 웅덩이는 물이 아니라, 고인 피에서 불완전한 생명의 정령이 깨어남
+		if ((level.water[cell] || t == Terrain.WATER) && com.shatteredpixel.shatteredpixeldungeon.levels.VampireCastle.isCastleLevel( level )) return Spirit.LIFE;
+		//수정 광맥: 수정 기둥은 그 색의 수정 정령, 수정맥 벽·수정 덤불은 아무 색이나
+		if (level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel){
+			if (com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.isPillar( t )){
+				return crystalOf( com.shatteredpixel.shatteredpixeldungeon.levels.CrystalVeinLevel.pillarColor( cell ) );
+			}
+			if (t == Terrain.WALL_DECO || t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS){
+				return crystalOf( Random.Int( 3 ) );
+			}
+		}
 		if (level.water[cell] || t == Terrain.WATER) return Spirit.WATER;
 		if (t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS) return Random.Int(2) == 0 ? Spirit.WIND : Spirit.NATURE;
 		//맨땅: 땅의 정령 또는 바위의 정령
@@ -1243,7 +1444,7 @@ public class ForestWand extends Weapon {
 					((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CastleLight) lightCh).snuff( null );
 				}
 			}
-		} else if ((s == Spirit.WIND || s == Spirit.NATURE)
+		} else if ((s == Spirit.WIND || s == Spirit.NATURE || s.crystal())
 				&& (level.map[cell] == Terrain.HIGH_GRASS || level.map[cell] == Terrain.FURROWED_GRASS)){
 			Level.set( cell, Terrain.GRASS );
 			GameScene.updateMap( cell );
@@ -1266,6 +1467,8 @@ public class ForestWand extends Weapon {
 			case GOLD:   CellEmitter.center( from ).burst( Speck.factory( Speck.YELLOW_LIGHT ), 10 ); break;
 			case DARK:   CellEmitter.get( from ).burst( ShadowParticle.UP, 14 ); break;
 			case RUNE:   CellEmitter.center( from ).burst( MagicMissile.WardParticle.FACTORY, 14 ); break;
+			case LIFE:   CellEmitter.center( from ).burst( BloodParticle.BURST, 10 ); CellEmitter.center( from ).burst( s.particle(), 10 ); break;
+			case CRYSTAL_BLUE: case CRYSTAL_GREEN: case CRYSTAL_RED: CellEmitter.center( from ).burst( s.particle(), 14 ); break;
 			default: break;
 		}
 	}
@@ -1285,6 +1488,10 @@ public class ForestWand extends Weapon {
 			case GOLD: return MagicMissile.LIGHT_MISSILE;
 			case DARK: return MagicMissile.SHADOW;
 			case RUNE: return MagicMissile.WARD;
+			case LIFE: return MagicMissile.SHAMAN_RED;
+			case CRYSTAL_BLUE:  return MagicMissile.FROST;
+			case CRYSTAL_GREEN: return MagicMissile.FOLIAGE;
+			case CRYSTAL_RED:   return MagicMissile.SHAMAN_RED;
 			default: return MagicMissile.FOLIAGE;
 		}
 	}
@@ -1328,6 +1535,12 @@ public class ForestWand extends Weapon {
 				GLog.w( Messages.get( ForestWand.class, "no_catalyst" ) );
 				return;
 			}
+			//불완전한 생명의 정령은 한 번에 하나뿐 (장비에 부여해 어딘가 두고 왔어도)
+			if (s == Spirit.LIFE && lifeExists( hero )){
+				GLog.w( Messages.get( ForestWand.class, "life_exists" ) );
+				return;
+			}
+			if (s == Spirit.LIFE) Buff.affect( hero, LifeBond.class ).uses = LIFE_USES;
 
 			consumeCatalyst( cell, s );
 

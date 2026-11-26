@@ -190,6 +190,23 @@ public class SpiritGlyph extends Armor.Glyph {
 				ForestWand.fx( defender, s, "g_rune" );
 				if (adjacent) ForestWand.runeMark( s, defender, attacker, 0.5f*pow );
 				return damage - damage/5;
+			case LIFE:      //불완전한 생명: 때린 적에게 생명의 빛줄기를 되쏨 (멀리서 때려도)
+				if (attacker != null && attacker.isAlive() && attacker != defender){
+					ForestWand.lifeRay( defender, attacker );
+					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( s.particle(), 8 );
+					ForestWand.fx( defender, s, "g_life" );
+					ForestWand.elemHit( s, attacker, 0.6f*pow );
+					ForestWand.lifeUsed();
+				}
+				return damage;
+			case CRYSTAL_BLUE: case CRYSTAL_GREEN: case CRYSTAL_RED:   //수정: 수정 껍질이 피해를 1/4 막고, 붙어 있는 적에게 파편이 박힘
+				if (defender.sprite != null) defender.sprite.centerEmitter().burst( s.particle(), 10 );
+				ForestWand.fx( defender, s, "g_crystal" );
+				if (adjacent){
+					if (attacker.sprite != null) attacker.sprite.centerEmitter().burst( s.particle(), 6 );
+					ForestWand.elemHit( s, attacker, 0.3f*pow );
+				}
+				return damage - damage/4;
 			//상급 정령: 바탕 원소의 보호 능력을 훨씬 강하게
 			case UNDINE:
 				ForestWand.fx( defender, s, "g_undine" );
