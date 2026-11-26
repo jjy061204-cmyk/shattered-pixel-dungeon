@@ -1747,6 +1747,12 @@ public class Hero extends Char {
 		}
 
 
+		//모드: 불완전한 생명의 정령을 지닌 동안 언데드에게 받는 피해 1 감소 (따로 표시하지 않음)
+		if (src instanceof Char && Char.hasProp( (Char) src, Char.Property.UNDEAD ) && dmg > 0
+				&& com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.lifeCarried( this )){
+			dmg = Math.max( 0, dmg - 1 );
+		}
+
 		//모드: 왕의 가호 - 받는 모든 피해 20% 감소
 		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.class) != null){
 			dmg = Math.round( dmg * com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ExcaliburBlessing.DAMAGE_TAKEN );

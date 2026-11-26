@@ -488,7 +488,11 @@ public class ForestWand extends Weapon {
 			float chance = 0.25f * ((Hero) attacker).pointsInTalent( Talent.SURGE_RESONANCE );
 			for (int i = 0; i < SLOTS; i++){
 				if (i == CENTER || slots[i] == null || !defender.isAlive()) continue;
-				if (Random.Float() < chance) damage = spiritHit( slots[i], attacker, defender, damage, mul*0.5f );
+				if (Random.Float() < chance){
+					resonating = true;
+					try { damage = spiritHit( slots[i], attacker, defender, damage, mul*0.5f ); }
+					finally { resonating = false; }
+				}
 			}
 		}
 		//정령 전이: 정령 탄이 맞으면 손에 든 무기의 정령도 15/30/45% 확률로 발동
@@ -506,7 +510,11 @@ public class ForestWand extends Weapon {
 			float chance = 0.15f * ((Hero) attacker).pointsInTalent( Talent.SPIRIT_RESONANCE );
 			for (int i = 0; i < SLOTS; i++){
 				if (i == CENTER || slots[i] == null || !defender.isAlive()) continue;
-				if (Random.Float() < chance) damage = spiritHit( slots[i], attacker, defender, damage, SHOT_MUL*0.5f );
+				if (Random.Float() < chance){
+					resonating = true;
+					try { damage = spiritHit( slots[i], attacker, defender, damage, SHOT_MUL*0.5f ); }
+					finally { resonating = false; }
+				}
 			}
 		}
 		return super.proc( attacker, defender, damage );
@@ -1103,7 +1111,7 @@ public class ForestWand extends Weapon {
 	}
 
 	//영웅의 완드·장비에 생명의 정령이 있는지
-	private static boolean lifeCarried( Hero hero ){
+	public static boolean lifeCarried( Hero hero ){
 		for (Item i : hero.belongings){
 			if (i instanceof ForestWand){
 				for (Spirit w : ((ForestWand) i).slots) if (w == Spirit.LIFE) return true;
@@ -1118,8 +1126,12 @@ public class ForestWand extends Weapon {
 		return false;
 	}
 
+	//정령 공명·전 칸 공명(양옆 칸 정령이 거드는 특성)으로 발동할 때는 생명의 정령 횟수를 쓰지 않음
+	private static boolean resonating = false;
+
 	//생명의 정령이 힘을 한 번 씀
 	public static void lifeUsed(){
+		if (resonating) return;
 		Hero hero = Dungeon.hero;
 		if (hero == null) return;
 		LifeBond b = hero.buff( LifeBond.class );
