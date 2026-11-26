@@ -1053,6 +1053,7 @@ public class ItemSpriteSheet {
 		for (int i = 0; i < 32; i++) assignItemRect( spiritBolt( i ), 12, 12 );
 	}
 	public static final int ETHER_CLAY        = MOD_WEAPON+10;  //마법 기사의 에테르 점토
+	public static final int FOREST_WAND_GRAND = MOD_WEAPON+11;  //대 정령사의 완드 (큰 그림은 items_hd.png, 움직임)
 	static{
 		assignItemRect(RIFT_DAGGER, 16, 16);
 		assignItemRect(KNIGHT_LONGSWORD, 16, 16);
@@ -1061,6 +1062,7 @@ public class ItemSpriteSheet {
 		assignItemRect(ORNAMENTAL_SWORD, 16, 16);
 		assignItemRect(FOREST_WAND, 16, 16);
 		assignItemRect(ETHER_CLAY, 16, 16);
+		assignItemRect(FOREST_WAND_GRAND, 16, 16);
 		assignItemRect(FOREST_BOLT, 9, 9);
 		assignItemRect(GYERANPPANG, 14, 8);
 		assignItemRect(HOTTEOK, 14, 9);
@@ -1079,13 +1081,16 @@ public class ItemSpriteSheet {
 	//items_hd.png는 32x32 칸으로 나뉘고, 칸 안 왼쪽 위에 그림 크기(size x size)만큼 그려 둠
 	public static class HD {
 		private static final int CELL = 32;
-		private static final float TX_W = 256f, TX_H = 32f;
+		private static final int COLS = 8;
+		private static final float TX_W = 256f, TX_H = 64f;
 		private static final java.util.HashMap<Integer, int[]> SLOT = new java.util.HashMap<>();
 		static {
-			//그림 번호 -> { 칸 번호, 그림 크기 }
-			SLOT.put( PARFAIT, new int[]{ 0, 24 } );
-			SLOT.put( EXCALIBUR, new int[]{ 1, 20 } );
-			SLOT.put( SEALED_EXCALIBUR, new int[]{ 2, 20 } );
+			//그림 번호 -> { 칸 번호, 그림 크기, 프레임 수(움직이는 그림), 초당 프레임 }
+			SLOT.put( PARFAIT, new int[]{ 0, 24, 1, 0 } );
+			SLOT.put( EXCALIBUR, new int[]{ 1, 20, 1, 0 } );
+			SLOT.put( SEALED_EXCALIBUR, new int[]{ 2, 20, 1, 0 } );
+			//대 정령사의 완드: 꽃잎의 무지갯빛이 돌며 일렁임 (둘째 줄 8프레임)
+			SLOT.put( FOREST_WAND_GRAND, new int[]{ 8, 24, 8, 7 } );
 		}
 
 		public static boolean has( int image ){
@@ -1094,10 +1099,21 @@ public class ItemSpriteSheet {
 		public static int size( int image ){
 			return SLOT.get( image )[1];
 		}
+		public static int frames( int image ){
+			return SLOT.get( image )[2];
+		}
+		public static float fps( int image ){
+			return SLOT.get( image )[3];
+		}
 		public static RectF rect( int image ){
+			return rect( image, 0 );
+		}
+		public static RectF rect( int image, int frame ){
 			int[] s = SLOT.get( image );
-			float x = s[0] * CELL;
-			return new RectF( x / TX_W, 0, (x + s[1]) / TX_W, s[1] / TX_H );
+			int idx = s[0] + frame;
+			float x = (idx % COLS) * CELL;
+			float y = (idx / COLS) * CELL;
+			return new RectF( x / TX_W, y / TX_H, (x + s[1]) / TX_W, (y + s[1]) / TX_H );
 		}
 	}
 

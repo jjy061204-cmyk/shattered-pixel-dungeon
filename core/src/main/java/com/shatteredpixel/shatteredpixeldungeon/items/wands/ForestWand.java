@@ -109,6 +109,27 @@ public class ForestWand extends Weapon {
 	public static final String AC_IMBUE  = "IMBUE";
 	public static final String AC_SPIRITS = "SPIRITS";
 	public static final String AC_CONTRACT = "CONTRACT";   //정령 계약자: 정령계에서 상급 정령 소환
+	public static final String AC_GROW = "GROW";           //30레벨 + 정령으로 가득 찬 완드: 대 정령사의 완드로 피어남
+
+	//대 정령사의 완드로 피어났는지
+	public boolean grand = false;
+	public static final int GRAND_LEVEL = 7;
+	public static final int GROW_HERO_LEVEL = 30;
+
+	public boolean canGrow( Hero hero ){
+		return !grand && hero != null && hero.lvl >= GROW_HERO_LEVEL && spiritCount() >= SLOTS;
+	}
+
+	//성장할 수 있게 된 순간 한 번만 알림 (레벨 업·정령이 들어올 때)
+	private boolean growHinted = false;
+	public static void growHint( Hero hero ){
+		if (hero == null) return;
+		ForestWand w = hero.belongings.getItem( ForestWand.class );
+		if (w == null || w.growHinted || !w.canGrow( hero )) return;
+		w.growHinted = true;
+		GLog.p( Messages.get( ForestWand.class, "grow_hint" ) );
+		if (hero.sprite != null) hero.sprite.emitter().burst( RainbowParticle.BURST, 10 );
+	}
 
 	//촉매에서 정령을 불러올 수 있는 거리
 	public static final int IMBUE_RANGE = 3;
@@ -260,6 +281,7 @@ public class ForestWand extends Weapon {
 		actions.add( AC_IMBUE );
 		actions.add( AC_SPIRITS );
 		if (hero.subClass == HeroSubClass.SPIRIT_CONTRACTOR) actions.add( AC_CONTRACT );
+		if (canGrow( hero )) actions.add( AC_GROW );
 		return actions;
 	}
 
@@ -291,14 +313,48 @@ public class ForestWand extends Weapon {
 
 		} else if (action.equals( AC_CONTRACT )) {
 			contract( hero );
+
+		} else if (action.equals( AC_GROW )) {
+			if (canGrow( hero )) grow( hero );
 		}
 	}
 
 	@Override
 	public String name() {
+		String base = grand ? Messages.get( ForestWand.class, "name_grand" ) : super.name();
 		Spirit s = active();
-		if (s == null) return super.name();
-		return Messages.get( this, "name_spirit", super.name(), s.title() );
+		if (s == null) return base;
+		return Messages.get( this, "name_spirit", base, s.title() );
+	}
+
+	@Override
+	public String desc() {
+		return grand ? Messages.get( ForestWand.class, "desc_grand" ) : super.desc();
+	}
+
+	@Override
+	public int image() {
+		return grand ? ItemSpriteSheet.FOREST_WAND_GRAND : ItemSpriteSheet.FOREST_WAND;
+	}
+
+	//성장: 영웅 30레벨에 완드의 세 칸이 정령으로 가득 차면, 정령의 기운을 머금고 무지갯빛 꽃으로 피어남
+	private void grow( Hero hero ){
+		grand = true;
+		updateQuickslot();
+		if (hero.sprite != null){
+			hero.sprite.operate( hero.pos );
+			hero.sprite.centerEmitter().burst( RainbowParticle.BURST, 40 );
+			hero.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 12 );
+			hero.sprite.emitter().burst( LeafParticle.GENERAL, 20 );
+			new Flare( 8, 40 ).color( 0xFFFFFF, true ).show( hero.sprite, 2f );
+			new Flare( 6, 28 ).color( 0xFF9EE8, true ).show( hero.sprite, 1.6f );
+			hero.sprite.showStatus( 0xFFE070, Messages.get( ForestWand.class, "grow_short" ) );
+		}
+		for (Spirit sp : slots) if (sp != null) imbueFx( hero.pos, sp );
+		Sample.INSTANCE.play( Assets.Sounds.LEVELUP );
+		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 1f, 1.2f );
+		GLog.p( Messages.get( ForestWand.class, "grown" ) );
+		hero.spendAndNext( 1f );
 	}
 
 	@Override
@@ -341,6 +397,8 @@ public class ForestWand extends Weapon {
 
 	@Override
 	public ItemSprite.Glowing glowing() {
+		//대 정령사의 완드는 꽃잎이 스스로 무지갯빛으로 일렁이므로 덧칠하지 않음
+		if (grand) return null;
 		if (active() != null) return active().glowing();
 		return super.glowing();
 	}
@@ -357,18 +415,20 @@ public class ForestWand extends Weapon {
 		return Dungeon.hero != null ? Dungeon.hero.lvl : 1;
 	}
 
+	//대 정령사의 완드: 영웅 레벨 5마다 오르는 위력이 한 번 더 (+1 · +2)
 	@Override
 	public int min( int lvl ) {
-		return 1 + heroLvl()/5;
+		return 1 + heroLvl()/5 + (grand ? 1 : 0);
 	}
 
 	@Override
 	public int max( int lvl ) {
-		return 6 + (int)(heroLvl()/2.5f);
+		return 6 + (int)(heroLvl()/2.5f) + (grand ? 2 : 0);
 	}
 
 	@Override
 	public int level() {
+		if (grand) return GRAND_LEVEL;
 		return Dungeon.hero == null ? 0 : Dungeon.hero.lvl/5;
 	}
 
@@ -1228,6 +1288,7 @@ public class ForestWand extends Weapon {
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 		Sample.INSTANCE.play( Assets.Sounds.TELEPORT, 0.6f );
 		GLog.p( Messages.get( ForestWand.class, "contracted", s.title() ) );
+		growHint( hero );
 		hero.spendAndNext( 1f );
 	}
 
@@ -1558,6 +1619,7 @@ public class ForestWand extends Weapon {
 						hero.sprite.showStatus( s.color, s.title() );
 					}
 					GLog.p( Messages.get( ForestWand.class, slot == CENTER ? "imbued_center" : "imbued_stored", s.title() ) );
+					growHint( hero );
 					//촉매 감응 +2: 깃들이기에 반 턴만 듦
 					hero.spendAndNext( hero.pointsInTalent( Talent.CATALYST_SENSE ) >= 2 ? 0.5f : 1f );
 				}
@@ -1664,6 +1726,8 @@ public class ForestWand extends Weapon {
 			if (slots[i] != null) bundle.put( SLOT + i, slots[i].name() );
 		}
 		bundle.put( "quick_art", quickArt );
+		bundle.put( "grand", grand );
+		bundle.put( "grow_hinted", growHinted );
 	}
 
 	@Override
@@ -1676,6 +1740,8 @@ public class ForestWand extends Weapon {
 			}
 		}
 		quickArt = bundle.contains( "quick_art" ) ? bundle.getString( "quick_art" ) : "switch";
+		grand = bundle.getBoolean( "grand" );
+		growHinted = bundle.getBoolean( "grow_hinted" );
 		//예전 저장(정령 하나만 담던 완드)에서 넘어온 경우
 		if (spiritCount() == 0 && bundle.contains( "spirit" )){
 			try { slots[CENTER] = Spirit.valueOf( bundle.getString( "spirit" ) ); } catch (Exception e) { slots[CENTER] = null; }

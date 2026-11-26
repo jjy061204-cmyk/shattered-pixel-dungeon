@@ -2220,6 +2220,8 @@ public class Hero extends Char {
 
 				//모드: 마법 기사의 에테르 점토가 5레벨마다 한 티어씩 자람
 				com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EtherClay.onHeroLevelUp( this );
+				//모드: 정령사의 완드가 꽃을 피울 수 있게 되면 알림
+				com.shatteredpixel.shatteredpixeldungeon.items.wands.ForestWand.growHint( this );
 
 			} else {
 				Buff.prolong(this, Bless.class, Bless.DURATION);

@@ -247,16 +247,27 @@ public class ItemSprite extends MovieClip {
 		return this;
 	}
 
+	//모드: 움직이는 큰 그림 (대 정령사의 완드 등)
+	private int hdAnim = -1;
+	private int hdFrame = 0;
+
+	private void hdFrame( int image, int f ){
+		frame( ItemSpriteSheet.HD.rect( image, f ) );
+		float k = 16f / ItemSpriteSheet.HD.size( image );
+		width = width * k;
+		height = height * k;
+		updateVertices();
+	}
+
 	public void frame( int image ){
 		if (ItemSpriteSheet.HD.has( image )){
 			//모드: 큰 그림(24x24 등)을 16x16 자리에 그려서 더 촘촘하게 보이게 함
 			texture = TextureCache.get( Assets.Sprites.ITEMS_HD );
-			frame( ItemSpriteSheet.HD.rect( image ) );
-			float k = 16f / ItemSpriteSheet.HD.size( image );
-			width = width * k;
-			height = height * k;
-			updateVertices();
+			hdAnim = ItemSpriteSheet.HD.frames( image ) > 1 ? image : -1;
+			hdFrame = 0;
+			hdFrame( image, 0 );
 		} else {
+			hdAnim = -1;
 			if (texture == null || texture != TextureCache.get( Assets.Sprites.ITEMS )){
 				texture = TextureCache.get( Assets.Sprites.ITEMS );
 			}
@@ -336,6 +347,15 @@ public class ItemSprite extends MovieClip {
 	@Override
 	public synchronized void update() {
 		super.update();
+
+		if (hdAnim != -1){
+			int n = ItemSpriteSheet.HD.frames( hdAnim );
+			int f = (int)(Game.timeTotal * ItemSpriteSheet.HD.fps( hdAnim )) % n;
+			if (f != hdFrame){
+				hdFrame = f;
+				hdFrame( hdAnim, f );
+			}
+		}
 
 		visible = (heap == null || heap.seen);
 
